@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 @RequestMapping("/")
 public class HomeController {
 
-  @GetMapping({ "", "/home" })
+  @GetMapping({ "", "home" })
   public String home(Model model) {
     model.addAttribute("pageTitle", "Library Management System");
     model.addAttribute("welcomeMessage", "Welcome to our Library Management System");
