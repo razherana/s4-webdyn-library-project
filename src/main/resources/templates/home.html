@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title th:text="${pageTitle}">Library Management</title>
+
+    <link rel="stylesheet" href="/static/bs/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/static/fa/css/all.min.css" />
+    <link rel="stylesheet" href="/static/poppins/poppins.css" />
+
+    <style>
+      body {
+        font-family: "Poppins", sans-serif;
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+
+      .sidebar {
+        min-height: 100vh;
+        width: auto;
+        background-color: #343a40;
+        padding-top: 20px;
+        transition: all 0.3s;
+        z-index: 999;
+      }
+
+      .sidebar .navbar-brand {
+        padding: 15px 20px;
+        margin-bottom: 20px;
+        color: white;
+        font-size: 1.5rem;
+      }
+
+      .sidebar .nav-link {
+        padding: 12px 20px;
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 1rem;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+      }
+
+      .sidebar .nav-link:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+        color: white;
+      }
+
+      .sidebar .nav-link.active {
+        background-color: #007bff;
+        color: white;
+        border-radius: 4px;
+      }
+
+      .sidebar .nav-link i {
+        margin-right: 10px;
+        width: 24px;
+        text-align: center;
+      }
+
+      .main-content {
+        padding: 20px;
+        transition: all 0.3s;
+      }
+
+      .grid-container {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        min-height: 100vh;
+      }
+
+      .logout-container {
+        margin-top: auto;
+        padding: 20px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .welcome-container {
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        padding: 40px;
+        margin-top: 30px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        text-align: center;
+      }
+
+      .welcome-heading {
+        font-size: 2.5rem;
+        margin-bottom: 20px;
+        color: #343a40;
+      }
+
+      @media (max-width: 768px) {
+        .grid-container {
+          grid-template-columns: 1fr;
+        }
+
+        .sidebar {
+          position: fixed;
+          width: 250px;
+          left: -250px;
+        }
+
+        .sidebar.active {
+          left: 0;
+        }
+
+        .main-content.active {
+          opacity: 0.3;
+        }
+
+        .toggle-btn {
+          display: block;
+          position: fixed;
+          top: 10px;
+          left: 10px;
+          z-index: 1000;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="grid-container">
+      <!-- Sidebar -->
+      <nav class="sidebar d-flex flex-column">
+        <a class="navbar-brand d-flex align-items-center" href="#">
+          <span class="me-2">
+            <i class="fas fa-book-reader"></i>
+          </span>
+          Library Management
+        </a>
+
+        <ul class="nav flex-column mb-auto">
+          <li class="nav-item">
+            <a class="nav-link active" href="/home">
+              <span class="me-2">
+                <i class="fas fa-home"></i>
+              </span>
+              Home
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">
+              <span class="me-2">
+                <i class="fas fa-book"></i>
+              </span>
+              Books
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">
+              <span class="me-2">
+                <i class="fas fa-user-edit"></i>
+              </span>
+              Authors
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">
+              <span class="me-2">
+                <i class="fas fa-info-circle"></i>
+              </span>
+              About
+            </a>
+          </li>
+        </ul>
+
+        <div class="logout-container mt-auto">
+          <a href="#" class="nav-link text-danger">
+            <span class="me-2">
+              <i class="fas fa-sign-out-alt"></i>
+            </span>
+            Logout
+          </a>
+        </div>
+      </nav>
+
+      <!-- Main Content -->
+      <div class="main-content">
+        <button class="btn btn-primary d-md-none toggle-btn" type="button">
+          <i class="fas fa-bars"></i>
+        </button>
+
+        <div class="welcome-container">
+          <h1 class="welcome-heading">Bienvenu</h1>
+        </div>
+      </div>
+    </div>
+
+    <script src="/static/bs/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/fa/js/all.min.js"></script>
+    <script>
+      // Toggle sidebar on mobile
+      document
+        .querySelector(".toggle-btn")
+        ?.addEventListener("click", function () {
+          document.querySelector(".sidebar").classList.toggle("active");
+          document.querySelector(".main-content").classList.toggle("active");
+        });
+    </script>
+  </body>
+</html>
