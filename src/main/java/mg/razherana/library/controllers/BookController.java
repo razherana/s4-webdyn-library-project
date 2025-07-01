@@ -52,7 +52,7 @@ public class BookController {
     return "books/create";
   }
 
-  @PostMapping("add")
+  @PostMapping("/add")
   public String addBook(@RequestParam String title,
       @RequestParam(required = false) Long authorId,
       @RequestParam(required = false) List<Long> categoryIds) {
