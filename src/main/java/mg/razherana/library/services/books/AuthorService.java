@@ -1,12 +1,12 @@
-package mg.razherana.library.services;
+package mg.razherana.library.services.books;
 
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import mg.razherana.library.models.Author;
-import mg.razherana.library.repositories.AuthorRepository;
+import mg.razherana.library.models.books.Author;
+import mg.razherana.library.repositories.books.AuthorRepository;
 
 @Service
 public class AuthorService {

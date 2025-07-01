@@ -1,4 +1,4 @@
-package mg.razherana.library.services;
+package mg.razherana.library.services.books;
 
 import java.util.HashSet;
 import java.util.List;
@@ -6,12 +6,12 @@ import java.util.Optional;
 import java.util.Set;
 
 import jakarta.transaction.Transactional;
-import mg.razherana.library.models.Author;
-import mg.razherana.library.models.Book;
-import mg.razherana.library.models.Category;
-import mg.razherana.library.repositories.AuthorRepository;
-import mg.razherana.library.repositories.BookRepository;
-import mg.razherana.library.repositories.CategoryRepository;
+import mg.razherana.library.models.books.Author;
+import mg.razherana.library.models.books.Book;
+import mg.razherana.library.models.books.Category;
+import mg.razherana.library.repositories.books.AuthorRepository;
+import mg.razherana.library.repositories.books.BookRepository;
+import mg.razherana.library.repositories.books.CategoryRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

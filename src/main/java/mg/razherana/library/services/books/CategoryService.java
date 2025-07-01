@@ -1,11 +1,11 @@
-package mg.razherana.library.services;
+package mg.razherana.library.services.books;
 
 import java.util.List;
 import java.util.Optional;
 
 import jakarta.transaction.Transactional;
-import mg.razherana.library.models.Category;
-import mg.razherana.library.repositories.CategoryRepository;
+import mg.razherana.library.models.books.Category;
+import mg.razherana.library.repositories.books.CategoryRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

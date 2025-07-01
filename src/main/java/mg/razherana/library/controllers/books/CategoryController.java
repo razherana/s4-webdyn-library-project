@@ -1,11 +1,11 @@
-package mg.razherana.library.controllers;
-
-import mg.razherana.library.services.CategoryService;
+package mg.razherana.library.controllers.books;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import mg.razherana.library.services.books.CategoryService;
 
 @Controller
 @RequestMapping("/categories")

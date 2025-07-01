@@ -1,14 +1,14 @@
-package mg.razherana.library.controllers;
+package mg.razherana.library.controllers.books;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-import mg.razherana.library.models.Author;
-import mg.razherana.library.models.Book;
-import mg.razherana.library.models.Category;
-import mg.razherana.library.services.AuthorService;
-import mg.razherana.library.services.BookService;
-import mg.razherana.library.services.CategoryService;
+import mg.razherana.library.models.books.Author;
+import mg.razherana.library.models.books.Book;
+import mg.razherana.library.models.books.Category;
+import mg.razherana.library.services.books.AuthorService;
+import mg.razherana.library.services.books.BookService;
+import mg.razherana.library.services.books.CategoryService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

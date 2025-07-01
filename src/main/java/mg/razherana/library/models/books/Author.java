@@ -1,4 +1,4 @@
-package mg.razherana.library.models;
+package mg.razherana.library.models.books;
 
 import java.util.Set;
 
