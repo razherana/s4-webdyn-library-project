@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Book Management - ${pageTitle}</title>
+    <title>Memberships - Library Management</title>
 
     <link rel="stylesheet" href="/static/bs/css/bootstrap.min.css" />
     <link rel="stylesheet" href="/static/fa/css/all.min.css" />
@@ -31,14 +31,13 @@
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link active" href="/books">
+            <a class="nav-link" href="/books">
               <span class="me-2">
                 <i class="fas fa-book"></i>
               </span>
               Books
             </a>
           </li>
-          <!-- New Menu Items -->
           <li class="nav-item">
             <a class="nav-link" href="/membership-types">
               <span class="me-2">
@@ -48,7 +47,7 @@
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="/memberships">
+            <a class="nav-link active" href="/memberships">
               <span class="me-2">
                 <i class="fas fa-address-card"></i>
               </span>
@@ -89,7 +88,7 @@
           <i class="fas fa-bars"></i>
         </button>
 
-        <!-- Book List Section -->
+        <!-- Memberships List Section -->
         <div class="container-fluid mt-4">
           <div class="row">
             <div class="col-12">
@@ -98,76 +97,70 @@
                   class="card-header d-flex justify-content-between align-items-center"
                 >
                   <h4 class="mb-0">
-                    <i class="fas fa-book me-2"></i>Book Collection
+                    <i class="fas fa-address-card me-2"></i>Memberships
                   </h4>
-                  <a href="/books/add" class="btn btn-primary">
-                    <i class="fas fa-plus-circle me-2"></i>Add New Book
+                  <a href="/memberships/add" class="btn btn-primary">
+                    <i class="fas fa-plus-circle me-2"></i>Register New
+                    Membership
                   </a>
                 </div>
                 <div class="card-body">
-                  <div class="alert alert-info" th:if="${books.empty}">
-                    <i class="fas fa-info-circle me-2"></i>No books available in
-                    the library collection.
+                  <div
+                    class="alert alert-info"
+                    th:if="${#lists.isEmpty(memberships)}"
+                  >
+                    <i class="fas fa-info-circle me-2"></i>No memberships
+                    registered yet.
                   </div>
 
-                  <div class="row" th:if="${!books.empty}">
-                    <div class="col-12">
-                      <div class="list-group">
-                        <div class="list-group-item" th:each="book : ${books}">
-                          <div
-                            class="d-flex justify-content-between align-items-center"
+                  <div
+                    class="table-responsive"
+                    th:if="${not #lists.isEmpty(memberships)}"
+                  >
+                    <table class="table table-hover">
+                      <thead>
+                        <tr>
+                          <th>ID</th>
+                          <th>Member</th>
+                          <th>Membership Type</th>
+                          <th>Start Date</th>
+                          <th>End Date</th>
+                          <th>Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr th:each="membership : ${memberships}">
+                          <td th:text="${membership.id}">1</td>
+                          <td th:text="${membership.people.name}">John Doe</td>
+                          <td th:text="${membership.membershipType.name}">
+                            Standard
+                          </td>
+                          <td
+                            th:text="${#temporals.format(membership.startDate, 'dd-MM-yyyy')}"
                           >
-                            <div>
-                              <h5
-                                class="book-title mb-1"
-                                th:text="${book.title}"
-                              >
-                                Book Title
-                              </h5>
-                              <p
-                                class="author-name mb-2"
-                                th:if="${book.author != null}"
-                                th:text="'by ' + ${book.author.name}"
-                              >
-                                by Author Name
-                              </p>
-                              <p
-                                class="author-name mb-2"
-                                th:if="${book.author == null}"
-                              >
-                                Unknown Author
-                              </p>
-
-                              <div class="mt-2">
-                                <span
-                                  class="badge bg-info"
-                                  th:each="category : ${book.categories}"
-                                  th:text="${category.name}"
-                                  >Category</span
-                                >
-                                <span
-                                  class="text-muted"
-                                  th:if="${book.categories.empty}"
-                                  >No categories</span
-                                >
-                              </div>
-                            </div>
-                            <div>
-                              <span
-                                class="badge bg-secondary rounded-pill"
-                                th:text="${'ID: ' + book.id}"
-                                >ID: 1</span
-                              >
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                            01-01-2023
+                          </td>
+                          <td
+                            th:text="${#temporals.format(membership.endDate, 'dd-MM-yyyy')}"
+                          >
+                            01-01-2024
+                          </td>
+                          <td>
+                            <span
+                              th:if="${membership.endDate.isAfter(today)}"
+                              class="badge bg-success"
+                              >Active</span
+                            >
+                            <span
+                              th:unless="${membership.endDate.isAfter(today)}"
+                              class="badge bg-warning text-dark"
+                              >Expired</span
+                            >
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
                   </div>
-                </div>
-                <div class="card-footer text-muted" th:if="${!books.empty}">
-                  <i class="fas fa-list me-2"></i>Total Books:
-                  <span th:text="${books.size()}">0</span>
                 </div>
               </div>
             </div>

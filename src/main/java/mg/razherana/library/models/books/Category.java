@@ -28,6 +28,6 @@ public class Category {
   private String name;
 
   @ManyToMany(fetch = FetchType.LAZY)
-  @JoinTable(name = "book_categories", joinColumns = @JoinColumn(name = "category_id"), inverseJoinColumns = @JoinColumn(name = "book_id"))
+  @JoinTable(name = "book_categories", joinColumns = @JoinColumn(name = "category_id", nullable = false), inverseJoinColumns = @JoinColumn(name = "book_id", nullable = false))
   private Set<Book> books = new HashSet<>();
 }
