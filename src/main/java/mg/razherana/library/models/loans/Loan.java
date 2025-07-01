@@ -1,6 +1,5 @@
-package mg.razherana.library.models.books;
+package mg.razherana.library.models.loans;
 
-import java.util.HashSet;
 import java.util.Set;
 
 import jakarta.persistence.Entity;
@@ -10,24 +9,24 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import mg.razherana.library.models.books.Book;
 
 @Entity
+@Table(name = "loans")
 @Data
-@Table(name = "categories")
-@EqualsAndHashCode(exclude = "books")
-@ToString(exclude = "books")
-public class Category {
+public class Loan {
   @Id
   @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
   private Long id;
 
-  private String name;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "people_id", nullable = false)
+  private People people;
 
   @ManyToMany(fetch = FetchType.LAZY)
-  @JoinTable(name = "book_categories", joinColumns = @JoinColumn(name = "category_id", nullable = false), inverseJoinColumns = @JoinColumn(name = "book_id", nullable = false))
-  private Set<Book> books = new HashSet<>();
+  @JoinTable(name = "loan_books", joinColumns = @JoinColumn(name = "loan_id", nullable = false), inverseJoinColumns = @JoinColumn(name = "book_id", nullable = false))
+  private Set<Book> books;
 }

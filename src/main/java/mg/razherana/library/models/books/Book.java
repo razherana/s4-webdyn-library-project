@@ -28,7 +28,7 @@ public class Book {
   private String title;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn
+  @JoinColumn(nullable = false)
   private Author author;
 
   @ManyToMany(mappedBy = "books", fetch = FetchType.LAZY)
