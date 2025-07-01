@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Book Management - ${pageTitle}</title>
+    <title>Add Membership Type - Library Management</title>
 
     <link rel="stylesheet" href="/static/bs/css/bootstrap.min.css" />
     <link rel="stylesheet" href="/static/fa/css/all.min.css" />
@@ -31,16 +31,15 @@
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link active" href="/books">
+            <a class="nav-link" href="/books">
               <span class="me-2">
                 <i class="fas fa-book"></i>
               </span>
               Books
             </a>
           </li>
-          <!-- New Menu Items -->
           <li class="nav-item">
-            <a class="nav-link" href="/membership-types">
+            <a class="nav-link active" href="/membership-types">
               <span class="me-2">
                 <i class="fas fa-id-card"></i>
               </span>
@@ -89,85 +88,93 @@
           <i class="fas fa-bars"></i>
         </button>
 
-        <!-- Book List Section -->
+        <!-- Add Membership Type Form -->
         <div class="container-fluid mt-4">
           <div class="row">
-            <div class="col-12">
+            <div class="col-12 col-md-8 mx-auto">
               <div class="card">
                 <div
                   class="card-header d-flex justify-content-between align-items-center"
                 >
                   <h4 class="mb-0">
-                    <i class="fas fa-book me-2"></i>Book Collection
+                    <i class="fas fa-plus-circle me-2"></i>Add Membership Type
                   </h4>
-                  <a href="/books/add" class="btn btn-primary">
-                    <i class="fas fa-plus-circle me-2"></i>Add New Book
+                  <a href="/membership-types" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Types
                   </a>
                 </div>
                 <div class="card-body">
-                  <div class="alert alert-info" th:if="${books.empty}">
-                    <i class="fas fa-info-circle me-2"></i>No books available in
-                    the library collection.
-                  </div>
-
-                  <div class="row" th:if="${!books.empty}">
-                    <div class="col-12">
-                      <div class="list-group">
-                        <div class="list-group-item" th:each="book : ${books}">
-                          <div
-                            class="d-flex justify-content-between align-items-center"
-                          >
-                            <div>
-                              <h5
-                                class="book-title mb-1"
-                                th:text="${book.title}"
-                              >
-                                Book Title
-                              </h5>
-                              <p
-                                class="author-name mb-2"
-                                th:if="${book.author != null}"
-                                th:text="'by ' + ${book.author.name}"
-                              >
-                                by Author Name
-                              </p>
-                              <p
-                                class="author-name mb-2"
-                                th:if="${book.author == null}"
-                              >
-                                Unknown Author
-                              </p>
-
-                              <div class="mt-2">
-                                <span
-                                  class="badge bg-info"
-                                  th:each="category : ${book.categories}"
-                                  th:text="${category.name}"
-                                  >Category</span
-                                >
-                                <span
-                                  class="text-muted"
-                                  th:if="${book.categories.empty}"
-                                  >No categories</span
-                                >
-                              </div>
-                            </div>
-                            <div>
-                              <span
-                                class="badge bg-secondary rounded-pill"
-                                th:text="${'ID: ' + book.id}"
-                                >ID: 1</span
-                              >
-                            </div>
-                          </div>
-                        </div>
+                  <form th:action="@{/membership-types/add}" method="post">
+                    <!-- Type Name -->
+                    <div class="mb-4">
+                      <label for="name" class="form-label">
+                        Name <span class="text-danger">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="name"
+                        name="name"
+                        placeholder="Enter membership type name"
+                        required
+                      />
+                      <div class="form-text">
+                        E.g., Standard, Premium, Student, etc.
                       </div>
                     </div>
-                  </div>
-                </div>
-                <div class="card-footer text-muted" th:if="${!books.empty}">
-                  <i class="fas fa-list me-2"></i>Total Books:
-                  <span th:text="${books.size()}">0</span>
+
+                    <!-- Max Books Allowed Home -->
+                    <div class="mb-4">
+                      <label for="maxBooksAllowedHome" class="form-label">
+                        Max Books Allowed (Home)
+                        <span class="text-danger">*</span>
+                      </label>
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="maxBooksAllowedHome"
+                        name="maxBooksAllowedHome"
+                        min="0"
+                        placeholder="Enter maximum number of books allowed to take home"
+                        required
+                      />
+                      <div class="form-text">
+                        Maximum number of books this membership type can borrow
+                        and take home simultaneously.
+                      </div>
+                    </div>
+
+                    <!-- Max Books Allowed Library -->
+                    <div class="mb-4">
+                      <label for="maxBooksAllowedLibrary" class="form-label">
+                        Max Books Allowed (Library)
+                        <span class="text-danger">*</span>
+                      </label>
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="maxBooksAllowedLibrary"
+                        name="maxBooksAllowedLibrary"
+                        min="0"
+                        placeholder="Enter maximum number of books allowed to read in library"
+                        required
+                      />
+                      <div class="form-text">
+                        Maximum number of books this membership type can read
+                        within the library simultaneously.
+                      </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                      <a href="/membership-types" class="btn btn-secondary"
+                        >Cancel</a
+                      >
+                      <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>Save
+                      </button>
+                    </div>
+                  </form>
                 </div>
               </div>
             </div>
