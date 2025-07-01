@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Book Management - ${pageTitle}</title>
+
+    <link rel="stylesheet" href="/static/bs/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/static/fa/css/all.min.css" />
+    <link rel="stylesheet" href="/static/poppins/poppins.css" />
+    <link rel="stylesheet" href="/static/css/library.css" />
+  </head>
+  <body>
+    <div class="grid-container">
+      <!-- Sidebar -->
+      <nav class="sidebar d-flex flex-column">
+        <a class="navbar-brand d-flex align-items-center" href="#">
+          <span class="me-2">
+            <i class="fas fa-book-reader"></i>
+          </span>
+          Library Management
+        </a>
+
+        <ul class="nav flex-column mb-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="/home">
+              <span class="me-2">
+                <i class="fas fa-home"></i>
+              </span>
+              Home
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link active" href="/books">
+              <span class="me-2">
+                <i class="fas fa-book"></i>
+              </span>
+              Books
+            </a>
+          </li>
+
+          <li class="nav-item">
+            <a class="nav-link" href="#">
+              <span class="me-2">
+                <i class="fas fa-info-circle"></i>
+              </span>
+              About
+            </a>
+          </li>
+        </ul>
+
+        <div class="logout-container mt-auto">
+          <a href="#" class="nav-link text-danger">
+            <span class="me-2">
+              <i class="fas fa-sign-out-alt"></i>
+            </span>
+            Logout
+          </a>
+        </div>
+      </nav>
+
+      <!-- Main Content -->
+      <div class="main-content">
+        <button class="btn btn-primary d-md-none toggle-btn" type="button">
+          <i class="fas fa-bars"></i>
+        </button>
+
+        <!-- Book List Section -->
+        <div class="container-fluid mt-4">
+          <div class="row">
+            <div class="col-12">
+              <div class="card">
+                <div
+                  class="card-header d-flex justify-content-between align-items-center"
+                >
+                  <h4 class="mb-0">
+                    <i class="fas fa-book me-2"></i>Book Collection
+                  </h4>
+                  <a href="/books/add" class="btn btn-primary">
+                    <i class="fas fa-plus-circle me-2"></i>Add New Book
+                  </a>
+                </div>
+                <div class="card-body">
+                  <div class="alert alert-info" th:if="${books.empty}">
+                    <i class="fas fa-info-circle me-2"></i>No books available in
+                    the library collection.
+                  </div>
+
+                  <div class="row" th:if="${!books.empty}">
+                    <div class="col-12">
+                      <div class="list-group">
+                        <div class="list-group-item" th:each="book : ${books}">
+                          <div
+                            class="d-flex justify-content-between align-items-center"
+                          >
+                            <div>
+                              <h5
+                                class="book-title mb-1"
+                                th:text="${book.title}"
+                              >
+                                Book Title
+                              </h5>
+                              <p
+                                class="author-name mb-2"
+                                th:if="${book.author != null}"
+                                th:text="'by ' + ${book.author.name}"
+                              >
+                                by Author Name
+                              </p>
+                              <p
+                                class="author-name mb-2"
+                                th:if="${book.author == null}"
+                              >
+                                Unknown Author
+                              </p>
+
+                              <div class="mt-2">
+                                <span
+                                  class="badge bg-info"
+                                  th:each="category : ${book.categories}"
+                                  th:text="${category.name}"
+                                  >Category</span
+                                >
+                                <span
+                                  class="text-muted"
+                                  th:if="${book.categories.empty}"
+                                  >No categories</span
+                                >
+                              </div>
+                            </div>
+                            <div>
+                              <span
+                                class="badge bg-secondary rounded-pill"
+                                th:text="${'ID: ' + book.id}"
+                                >ID: 1</span
+                              >
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="card-footer text-muted" th:if="${!books.empty}">
+                  <i class="fas fa-list me-2"></i>Total Books:
+                  <span th:text="${books.size()}">0</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/static/bs/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/fa/js/all.min.js"></script>
+    <script>
+      // Toggle sidebar on mobile
+      document
+        .querySelector(".toggle-btn")
+        ?.addEventListener("click", function () {
+          document.querySelector(".sidebar").classList.toggle("active");
+          document.querySelector(".main-content").classList.toggle("active");
+        });
+    </script>
+  </body>
+</html>
