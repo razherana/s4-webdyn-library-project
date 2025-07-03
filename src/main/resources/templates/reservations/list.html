@@ -71,6 +71,22 @@
             </a>
           </li>
           <li class="nav-item">
+            <a class="nav-link" href="/reservation-status-types">
+              <span class="me-2">
+                <i class="fas fa-tags"></i>
+              </span>
+              Status Types
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/reservation-status-history">
+              <span class="me-2">
+                <i class="fas fa-history"></i>
+              </span>
+              Status History
+            </a>
+          </li>
+          <li class="nav-item">
             <a class="nav-link" href="#">
               <span class="me-2">
                 <i class="fas fa-info-circle"></i>
@@ -372,6 +388,15 @@
                             >
                               <i class="fas fa-eye"></i>
                             </button>
+                            <button
+                              class="btn btn-sm btn-outline-primary"
+                              data-bs-toggle="modal"
+                              data-bs-target="#updateStatusModal"
+                              th:attr="data-reservation-id=${reservation.id},
+                                      data-book-title=${reservation.book.title}"
+                            >
+                              <i class="fas fa-edit"></i> Status
+                            </button>
                           </td>
                         </tr>
                       </tbody>
@@ -438,6 +463,71 @@
               Close
             </button>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Update Status Modal -->
+    <div
+      class="modal fade"
+      id="updateStatusModal"
+      tabindex="-1"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Update Reservation Status</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <form th:action="@{/reservations/update-status}" method="post">
+            <div class="modal-body">
+              <input type="hidden" id="reservation-id" name="reservationId" />
+              <h6 id="update-modal-book-title" class="mb-3">Book Title</h6>
+
+              <div class="mb-3">
+                <label for="statusTypeId" class="form-label">New Status</label>
+                <select
+                  class="form-select"
+                  id="statusTypeId"
+                  name="statusTypeId"
+                  required
+                >
+                  <option value="">-- Select Status --</option>
+                  <option
+                    th:each="statusType : ${statusTypes}"
+                    th:value="${statusType.id}"
+                    th:text="${statusType.name}"
+                  >
+                    Status
+                  </option>
+                </select>
+              </div>
+
+              <div class="form-text text-muted">
+                <i class="fas fa-info-circle me-1"></i>
+                This will add a new status history entry with the current date
+                and time.
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                Cancel
+              </button>
+              <button type="submit" class="btn btn-primary">
+                Update Status
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </div>
@@ -532,6 +622,19 @@
                 "#status-history-content .list-group"
               ).innerHTML = `<li class="list-group-item text-danger">Error loading status history: ${error.message}</li>`;
             });
+        });
+
+      // Handle update status modal
+      document
+        .getElementById("updateStatusModal")
+        .addEventListener("show.bs.modal", function (event) {
+          const button = event.relatedTarget;
+          const reservationId = button.getAttribute("data-reservation-id");
+          const bookTitle = button.getAttribute("data-book-title");
+
+          document.getElementById("reservation-id").value = reservationId;
+          document.getElementById("update-modal-book-title").textContent =
+            bookTitle;
         });
     </script>
   </body>

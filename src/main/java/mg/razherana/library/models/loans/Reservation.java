@@ -11,6 +11,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -32,6 +33,7 @@ public class Reservation {
   private Book book;
 
   @OneToMany(mappedBy = "reservation", fetch = FetchType.LAZY)
+  @OrderBy("statusDate DESC")
   private List<ReservationStatusHistory> reservationStatusHistories;
 
   private boolean takeHome;

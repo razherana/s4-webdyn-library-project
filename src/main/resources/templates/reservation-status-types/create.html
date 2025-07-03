@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Add Status Type - Library Management</title>
+
+    <link rel="stylesheet" href="/static/bs/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/static/fa/css/all.min.css" />
+    <link rel="stylesheet" href="/static/poppins/poppins.css" />
+    <link rel="stylesheet" href="/static/css/library.css" />
+  </head>
+  <body>
+    <div class="grid-container">
+      <!-- Sidebar -->
+      <nav class="sidebar d-flex flex-column">
+        <!-- Same sidebar as in list.html -->
+      </nav>
+
+      <!-- Main Content -->
+      <div class="main-content">
+        <button class="btn btn-primary d-md-none toggle-btn" type="button">
+          <i class="fas fa-bars"></i>
+        </button>
+
+        <!-- Add Status Type Form -->
+        <div class="container-fluid mt-4">
+          <div class="row">
+            <div class="col-12 col-md-8 mx-auto">
+              <div class="card">
+                <div
+                  class="card-header d-flex justify-content-between align-items-center"
+                >
+                  <h4 class="mb-0">
+                    <i class="fas fa-plus-circle me-2"></i>Add New Status Type
+                  </h4>
+                  <a
+                    href="/reservation-status-types"
+                    class="btn btn-outline-secondary"
+                  >
+                    <i class="fas fa-arrow-left me-2"></i>Back to Status Types
+                  </a>
+                </div>
+                <div class="card-body">
+                  <form
+                    th:action="@{/reservation-status-types/add}"
+                    method="post"
+                  >
+                    <div class="mb-3">
+                      <label for="name" class="form-label"
+                        >Status Name <span class="text-danger">*</span></label
+                      >
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="name"
+                        name="name"
+                        required
+                      />
+                      <div class="form-text">
+                        Enter a unique name for this reservation status type.
+                      </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                      <a
+                        href="/reservation-status-types"
+                        class="btn btn-secondary"
+                        >Cancel</a
+                      >
+                      <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>Save Status Type
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/static/bs/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/fa/js/all.min.js"></script>
+    <script>
+      // Toggle sidebar on mobile
+      document
+        .querySelector(".toggle-btn")
+        ?.addEventListener("click", function () {
+          document.querySelector(".sidebar").classList.toggle("active");
+          document.querySelector(".main-content").classList.toggle("active");
+        });
+    </script>
+  </body>
+</html>

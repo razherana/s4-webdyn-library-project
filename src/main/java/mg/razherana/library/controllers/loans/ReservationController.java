@@ -70,6 +70,8 @@ public class ReservationController {
       reservations = reservationService.findAll();
     }
 
+    System.out.println(reservations.get(0).getReservationStatusHistories());
+
     List<ReservationStatusType> statusTypes = statusTypeRepository.findAll();
 
     model.addAttribute("reservations", reservations);
@@ -137,5 +139,21 @@ public class ReservationController {
         .collect(Collectors.toList());
 
     return ResponseEntity.ok(response);
+  }
+
+  @PostMapping("/update-status")
+  public String updateStatus(
+      @RequestParam Long reservationId,
+      @RequestParam Long statusTypeId,
+      RedirectAttributes redirectAttributes) {
+
+    try {
+      reservationService.updateStatus(reservationId, statusTypeId);
+      redirectAttributes.addFlashAttribute("success", "Reservation status updated successfully");
+    } catch (Exception e) {
+      redirectAttributes.addFlashAttribute("error", "Error updating status: " + e.getMessage());
+    }
+
+    return "redirect:/reservations";
   }
 }
