@@ -49,29 +49,9 @@ public class ReservationController {
   private ReservationStatusTypeRepository statusTypeRepository;
 
   @GetMapping("")
-  public String list(
-      @RequestParam(required = false) String search,
-      @RequestParam(required = false) Boolean takeHome,
-      @RequestParam(required = false) String status,
-      Model model) {
-
-    List<Reservation> reservations;
-
-    if (search != null && !search.trim().isEmpty()) {
-      reservations = reservationService.search(search);
-      model.addAttribute("search", search);
-    } else if (takeHome != null) {
-      reservations = reservationService.filterByTakeHome(takeHome);
-      model.addAttribute("takeHomeFilter", takeHome);
-    } else if (status != null && !status.trim().isEmpty()) {
-      reservations = reservationService.filterByStatus(status);
-      model.addAttribute("statusFilter", status);
-    } else {
-      reservations = reservationService.findAll();
-    }
-
-    System.out.println(reservations.get(0).getReservationStatusHistories());
-
+  public String list(Model model) {
+    // Initial load without filters
+    List<Reservation> reservations = reservationService.findAll();
     List<ReservationStatusType> statusTypes = statusTypeRepository.findAll();
 
     model.addAttribute("reservations", reservations);

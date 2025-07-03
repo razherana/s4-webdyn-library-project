@@ -46,3 +46,4 @@ INSERT INTO
     `reservation_status_types` (`name`)
 VALUES ('Pending'),
     ('Approved');
+

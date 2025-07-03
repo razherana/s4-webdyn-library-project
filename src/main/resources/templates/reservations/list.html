@@ -164,30 +164,29 @@
                   <div class="row">
                     <!-- Search -->
                     <div class="col-md-6 mb-3">
-                      <form action="/reservations" method="get">
-                        <div class="input-group">
-                          <input
-                            type="text"
-                            class="form-control"
-                            placeholder="Search by book title or author..."
-                            name="search"
-                            th:value="${search}"
-                          />
-                          <button
-                            class="btn btn-outline-secondary"
-                            type="submit"
-                          >
-                            <i class="fas fa-search"></i>
-                          </button>
-                          <a
-                            th:if="${search}"
-                            href="/reservations"
-                            class="btn btn-outline-danger"
-                          >
-                            <i class="fas fa-times"></i>
-                          </a>
-                        </div>
-                      </form>
+                      <div class="input-group">
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="searchInput"
+                          placeholder="Search by book title or author..."
+                        />
+                        <button
+                          class="btn btn-outline-secondary"
+                          type="button"
+                          id="searchButton"
+                        >
+                          <i class="fas fa-search"></i>
+                        </button>
+                        <button
+                          id="clearSearchButton"
+                          class="btn btn-outline-danger"
+                          type="button"
+                          style="display: none"
+                        >
+                          <i class="fas fa-times"></i>
+                        </button>
+                      </div>
                     </div>
 
                     <!-- Filters -->
@@ -197,7 +196,7 @@
                           <button
                             class="btn btn-outline-secondary dropdown-toggle"
                             type="button"
-                            id="dropdownMenuButton"
+                            id="locationFilterButton"
                             data-bs-toggle="dropdown"
                             aria-expanded="false"
                           >
@@ -206,27 +205,31 @@
                           </button>
                           <ul
                             class="dropdown-menu"
-                            aria-labelledby="dropdownMenuButton"
+                            aria-labelledby="locationFilterButton"
                           >
                             <li>
-                              <a
-                                class="dropdown-item"
-                                href="/reservations?takeHome=true"
-                                >Take Home Only</a
+                              <button
+                                class="dropdown-item location-filter"
+                                data-take-home="true"
                               >
+                                Take Home Only
+                              </button>
                             </li>
                             <li>
-                              <a
-                                class="dropdown-item"
-                                href="/reservations?takeHome=false"
-                                >In-Library Only</a
+                              <button
+                                class="dropdown-item location-filter"
+                                data-take-home="false"
                               >
+                                In-Library Only
+                              </button>
                             </li>
                             <li><hr class="dropdown-divider" /></li>
                             <li>
-                              <a class="dropdown-item" href="/reservations"
-                                >Clear Filter</a
+                              <button
+                                class="dropdown-item clear-location-filter"
                               >
+                                Clear Filter
+                              </button>
                             </li>
                           </ul>
                         </div>
@@ -235,7 +238,7 @@
                           <button
                             class="btn btn-outline-secondary dropdown-toggle"
                             type="button"
-                            id="dropdownStatusButton"
+                            id="statusFilterButton"
                             data-bs-toggle="dropdown"
                             aria-expanded="false"
                           >
@@ -244,21 +247,22 @@
                           </button>
                           <ul
                             class="dropdown-menu"
-                            aria-labelledby="dropdownStatusButton"
+                            aria-labelledby="statusFilterButton"
                           >
                             <li th:each="statusType : ${statusTypes}">
-                              <a
-                                class="dropdown-item"
-                                th:href="@{/reservations(status=${statusType.name})}"
+                              <button
+                                class="dropdown-item status-filter"
+                                th:data-status="${statusType.name}"
                                 th:text="${statusType.name}"
-                                >Status</a
                               >
+                                Status
+                              </button>
                             </li>
                             <li><hr class="dropdown-divider" /></li>
                             <li>
-                              <a class="dropdown-item" href="/reservations"
-                                >Clear Filter</a
-                              >
+                              <button class="dropdown-item clear-status-filter">
+                                Clear Filter
+                              </button>
                             </li>
                           </ul>
                         </div>
@@ -267,43 +271,45 @@
                   </div>
 
                   <!-- Active Filters -->
-                  <div
-                    class="row"
-                    th:if="${search != null || takeHomeFilter != null || statusFilter != null}"
-                  >
+                  <div class="row">
                     <div class="col-12">
-                      <div class="d-flex gap-2 align-items-center">
+                      <div
+                        id="activeFilters"
+                        class="d-flex gap-2 align-items-center"
+                        style="display: none !important"
+                      >
                         <span class="text-muted">Active filters:</span>
 
                         <span
-                          th:if="${search}"
+                          id="searchBadge"
                           class="badge rounded-pill bg-info"
+                          style="display: none"
                         >
-                          Search: <span th:text="${search}"></span>
+                          Search: <span id="searchText"></span>
                         </span>
 
                         <span
-                          th:if="${takeHomeFilter != null}"
+                          id="locationBadge"
                           class="badge rounded-pill bg-info"
+                          style="display: none"
                         >
-                          <span
-                            th:text="${takeHomeFilter ? 'Take Home Only' : 'In-Library Only'}"
-                          ></span>
+                          <span id="locationText"></span>
                         </span>
 
                         <span
-                          th:if="${statusFilter}"
+                          id="statusBadge"
                           class="badge rounded-pill bg-info"
+                          style="display: none"
                         >
-                          Status: <span th:text="${statusFilter}"></span>
+                          Status: <span id="statusText"></span>
                         </span>
 
-                        <a
-                          href="/reservations"
+                        <button
+                          id="clearAllFilters"
                           class="btn btn-sm btn-outline-danger"
                         >
                           <i class="fas fa-times me-1"></i>Clear All
-                        </a>
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -311,17 +317,16 @@
 
                 <div class="card-body">
                   <div
-                    class="alert alert-info"
-                    th:if="${#lists.isEmpty(reservations)}"
+                    id="loadingIndicator"
+                    style="display: none"
+                    class="text-center my-4"
                   >
-                    <i class="fas fa-info-circle me-2"></i>No reservations
-                    found.
+                    <div class="spinner-border text-primary" role="status">
+                      <span class="visually-hidden">Loading...</span>
+                    </div>
                   </div>
 
-                  <div
-                    class="table-responsive"
-                    th:if="${not #lists.isEmpty(reservations)}"
-                  >
+                  <div class="table-responsive">
                     <table class="table table-hover">
                       <thead>
                         <tr>
@@ -334,8 +339,13 @@
                           <th>Actions</th>
                         </tr>
                       </thead>
-                      <tbody>
-                        <tr th:each="reservation : ${reservations}">
+                      <tbody id="reservationTableBody">
+                        <!-- We're using the existing rows but will manipulate them with JS -->
+                        <tr
+                          th:each="reservation : ${reservations}"
+                          th:attr="data-reservation-id=${reservation.id}, data-book-title=${reservation.book.title}, data-author=${reservation.book.author != null ? reservation.book.author.name : 'N/A'}, data-take-home=${reservation.takeHome}, data-status=${!reservation.reservationStatusHistories.empty ? reservation.reservationStatusHistories[0].reservationStatusType.name : 'Unknown'}"
+                          class="reservation-row"
+                        >
                           <td th:text="${reservation.id}">1</td>
                           <td th:text="${reservation.book.title}">
                             Book Title
@@ -399,16 +409,23 @@
                             </button>
                           </td>
                         </tr>
+                        <tr id="noResultsRow" style="display: none">
+                          <td colspan="7" class="text-center">
+                            <div class="alert alert-info mb-0">
+                              <i class="fas fa-info-circle me-2"></i>No
+                              reservations found matching your criteria.
+                            </div>
+                          </td>
+                        </tr>
                       </tbody>
                     </table>
                   </div>
                 </div>
-                <div
-                  class="card-footer text-muted"
-                  th:if="${not #lists.isEmpty(reservations)}"
-                >
+                <div class="card-footer text-muted">
                   <i class="fas fa-list me-2"></i>Total Reservations:
-                  <span th:text="${reservations.size()}">0</span>
+                  <span id="reservationCount" th:text="${reservations.size()}"
+                    >0</span
+                  >
                 </div>
               </div>
             </div>
@@ -636,6 +653,174 @@
           document.getElementById("update-modal-book-title").textContent =
             bookTitle;
         });
+
+      // Client-side filtering functionality
+      document.addEventListener("DOMContentLoaded", function () {
+        // Get all filter elements
+        const searchInput = document.getElementById("searchInput");
+        const searchButton = document.getElementById("searchButton");
+        const clearSearchButton = document.getElementById("clearSearchButton");
+        const locationFilters = document.querySelectorAll(".location-filter");
+        const clearLocationFilter = document.querySelector(
+          ".clear-location-filter"
+        );
+        const statusFilters = document.querySelectorAll(".status-filter");
+        const clearStatusFilter = document.querySelector(
+          ".clear-status-filter"
+        );
+        const clearAllFilters = document.getElementById("clearAllFilters");
+
+        // Filter badges
+        const activeFilters = document.getElementById("activeFilters");
+        const searchBadge = document.getElementById("searchBadge");
+        const searchText = document.getElementById("searchText");
+        const locationBadge = document.getElementById("locationBadge");
+        const locationText = document.getElementById("locationText");
+        const statusBadge = document.getElementById("statusBadge");
+        const statusText = document.getElementById("statusText");
+
+        // Reservation rows and counter
+        const reservationRows = document.querySelectorAll(".reservation-row");
+        const noResultsRow = document.getElementById("noResultsRow");
+        const reservationCount = document.getElementById("reservationCount");
+
+        // Filter state
+        let currentSearchTerm = "";
+        let currentTakeHome = null;
+        let currentStatus = null;
+
+        // Update filter badges visibility
+        function updateFilterBadges() {
+          const hasFilters =
+            currentSearchTerm || currentTakeHome !== null || currentStatus;
+
+          activeFilters.style.display = hasFilters ? "flex" : "none";
+
+          searchBadge.style.display = currentSearchTerm
+            ? "inline-block"
+            : "none";
+          searchText.textContent = currentSearchTerm;
+
+          locationBadge.style.display =
+            currentTakeHome !== null ? "inline-block" : "none";
+          locationText.textContent =
+            currentTakeHome === true
+              ? "Take Home Only"
+              : currentTakeHome === false
+              ? "In-Library Only"
+              : "";
+
+          statusBadge.style.display = currentStatus ? "inline-block" : "none";
+          statusText.textContent = currentStatus || "";
+        }
+
+        // Apply all filters
+        function applyFilters() {
+          let visibleCount = 0;
+
+          reservationRows.forEach((row) => {
+            const bookTitle = row.getAttribute("data-book-title").toLowerCase();
+            const author = row.getAttribute("data-author").toLowerCase();
+            const takeHome = row.getAttribute("data-take-home") === "true";
+            const status = row.getAttribute("data-status");
+
+            // Check if the row matches all active filters
+            const matchesSearch =
+              !currentSearchTerm ||
+              bookTitle.includes(currentSearchTerm.toLowerCase()) ||
+              author.includes(currentSearchTerm.toLowerCase());
+
+            const matchesTakeHome =
+              currentTakeHome === null || takeHome === currentTakeHome;
+
+            const matchesStatus = !currentStatus || status === currentStatus;
+
+            // Show/hide the row based on filter matches
+            if (matchesSearch && matchesTakeHome && matchesStatus) {
+              row.style.display = "";
+              visibleCount++;
+            } else {
+              row.style.display = "none";
+            }
+          });
+
+          // Show "no results" message if needed
+          noResultsRow.style.display = visibleCount === 0 ? "" : "none";
+
+          // Update the counter
+          reservationCount.textContent = visibleCount;
+
+          // Update filter badges
+          updateFilterBadges();
+        }
+
+        // Clear all filters
+        function clearFilters() {
+          currentSearchTerm = "";
+          currentTakeHome = null;
+          currentStatus = null;
+
+          searchInput.value = "";
+          clearSearchButton.style.display = "none";
+
+          applyFilters();
+        }
+
+        // Event Listeners
+        searchButton.addEventListener("click", function () {
+          currentSearchTerm = searchInput.value.trim();
+          clearSearchButton.style.display = currentSearchTerm
+            ? "block"
+            : "none";
+          applyFilters();
+        });
+
+        searchInput.addEventListener("keyup", function (event) {
+          if (event.key === "Enter") {
+            currentSearchTerm = searchInput.value.trim();
+            clearSearchButton.style.display = currentSearchTerm
+              ? "block"
+              : "none";
+            applyFilters();
+          }
+        });
+
+        clearSearchButton.addEventListener("click", function () {
+          searchInput.value = "";
+          currentSearchTerm = "";
+          clearSearchButton.style.display = "none";
+          applyFilters();
+        });
+
+        locationFilters.forEach((filter) => {
+          filter.addEventListener("click", function () {
+            currentTakeHome = filter.getAttribute("data-take-home") === "true";
+            applyFilters();
+          });
+        });
+
+        clearLocationFilter.addEventListener("click", function () {
+          currentTakeHome = null;
+          applyFilters();
+        });
+
+        statusFilters.forEach((filter) => {
+          filter.addEventListener("click", function () {
+            currentStatus = filter.getAttribute("data-status");
+            applyFilters();
+          });
+        });
+
+        clearStatusFilter.addEventListener("click", function () {
+          currentStatus = null;
+          applyFilters();
+        });
+
+        clearAllFilters.addEventListener("click", clearFilters);
+
+        // Initialize
+        updateFilterBadges();
+      });
     </script>
   </body>
 </html>

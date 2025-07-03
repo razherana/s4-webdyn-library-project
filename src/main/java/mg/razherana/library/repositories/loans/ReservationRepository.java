@@ -53,4 +53,21 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
       "AND h.statusDate = (SELECT MAX(h2.statusDate) FROM ReservationStatusHistory h2 WHERE h2.reservation = r) " +
       "ORDER BY r.reservationDate DESC")
   List<Reservation> findByLatestStatus(@Param("statusName") String statusName);
+
+  // New combined search query with all possible filters
+  @Query("SELECT DISTINCT r FROM Reservation r " +
+      "JOIN FETCH r.book b " +
+      "LEFT JOIN FETCH b.author a " +
+      "LEFT JOIN FETCH r.reservationStatusHistories h " +
+      "LEFT JOIN FETCH h.reservationStatusType t " +
+      "WHERE (:search IS NULL OR b.title LIKE %:search% OR a.name LIKE %:search%) " +
+      "AND (:takeHome IS NULL OR r.takeHome = :takeHome) " +
+      "AND (:status IS NULL OR (h.statusDate = (SELECT MAX(h2.statusDate) FROM ReservationStatusHistory h2 WHERE h2.reservation = r) "
+      +
+      "     AND t.name = :status)) " +
+      "ORDER BY r.reservationDate DESC")
+  List<Reservation> findWithFilters(
+      @Param("search") String search,
+      @Param("takeHome") Boolean takeHome,
+      @Param("status") String status);
 }

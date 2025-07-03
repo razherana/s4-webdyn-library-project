@@ -143,4 +143,12 @@ public class ReservationService {
 
     return statusHistoryRepository.save(statusHistory);
   }
+
+  public List<Reservation> findWithFilters(String search, Boolean takeHome, String status) {
+    // Normalize empty strings to null
+    search = (search != null && search.trim().isEmpty()) ? null : search;
+    status = (status != null && status.trim().isEmpty()) ? null : status;
+
+    return reservationRepository.findWithFilters(search, takeHome, status);
+  }
 }
