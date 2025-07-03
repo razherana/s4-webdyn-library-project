@@ -22,11 +22,11 @@ public class Membership {
   @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
   private Long id;
 
-  @ManyToOne(fetch = jakarta.persistence.FetchType.LAZY)
+  @ManyToOne
   @JoinColumn(name = "people_id", nullable = false)
   private People people;
 
-  @ManyToOne(fetch = jakarta.persistence.FetchType.LAZY)
+  @ManyToOne
   @JoinColumn(name = "membership_type_id", nullable = false)
   private MembershipType membershipType;
 
