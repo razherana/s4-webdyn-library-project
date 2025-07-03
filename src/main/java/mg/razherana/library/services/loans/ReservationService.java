@@ -151,4 +151,57 @@ public class ReservationService {
 
     return reservationRepository.findWithFilters(search, takeHome, status);
   }
+
+  /**
+   * Find confirmed reservations for a specific book
+   */
+  public List<Reservation> findConfirmedReservationsForBook(Long bookId) {
+    List<Reservation> result = new ArrayList<>();
+    List<Reservation> bookReservations = reservationRepository.findByBookId(bookId);
+
+    for (Reservation reservation : bookReservations) {
+      ReservationStatusHistory latestStatus = statusHistoryRepository.findLatestByReservationId(reservation.getId());
+      if (latestStatus != null && latestStatus.getReservationStatusType().getName().equals("Confirmed")) {
+        result.add(reservation);
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Find pending reservations for a specific book
+   */
+  public List<Reservation> findPendingReservationsForBook(Long bookId) {
+    List<Reservation> result = new ArrayList<>();
+    List<Reservation> bookReservations = reservationRepository.findByBookId(bookId);
+
+    for (Reservation reservation : bookReservations) {
+      ReservationStatusHistory latestStatus = statusHistoryRepository.findLatestByReservationId(reservation.getId());
+      if (latestStatus != null && latestStatus.getReservationStatusType().getName().equals("Pending")) {
+        result.add(reservation);
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Cancel a reservation
+   */
+  @Transactional
+  public ReservationStatusHistory cancelReservation(Long reservationId) {
+    Reservation reservation = reservationRepository.findById(reservationId)
+        .orElseThrow(() -> new IllegalArgumentException("Reservation not found"));
+
+    ReservationStatusType cancelledStatus = statusTypeRepository.findByName("Cancelled")
+        .orElseThrow(() -> new IllegalStateException("Cancelled status type not found"));
+
+    ReservationStatusHistory statusHistory = new ReservationStatusHistory();
+    statusHistory.setReservation(reservation);
+    statusHistory.setReservationStatusType(cancelledStatus);
+    statusHistory.setStatusDate(LocalDateTime.now());
+
+    return statusHistoryRepository.save(statusHistory);
+  }
 }

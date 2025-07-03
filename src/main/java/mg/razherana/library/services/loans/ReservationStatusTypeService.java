@@ -60,8 +60,6 @@ public class ReservationStatusTypeService {
       throw new IllegalArgumentException("Status type not found");
     }
 
-    // TODO: You might want to check if the status type is being used before
-    // deleting
     statusTypeRepository.deleteById(id);
   }
 }

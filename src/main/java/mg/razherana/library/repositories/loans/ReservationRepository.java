@@ -12,6 +12,8 @@ import mg.razherana.library.models.loans.Reservation;
 
 @Repository
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
+  @Query("SELECT r FROM Reservation r WHERE r.book.id = :bookId ORDER BY r.reservationDate DESC")
+  List<Reservation> findByBookId(Long bookId);
 
   @Query("SELECT r FROM Reservation r " +
       "JOIN FETCH r.book b " +

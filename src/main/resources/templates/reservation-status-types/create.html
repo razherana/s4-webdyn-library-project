@@ -13,9 +13,9 @@
   <body>
     <div class="grid-container">
       <!-- Sidebar -->
-      <nav class="sidebar d-flex flex-column">
-        <!-- Same sidebar as in list.html -->
-      </nav>
+      <th:block
+        th:replace="~{fragments/sidebar :: sidebar('loan-types')}"
+      ></th:block>
 
       <!-- Main Content -->
       <div class="main-content">

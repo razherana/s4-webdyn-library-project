@@ -3,63 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Reservation Status Types - Library Management</title>
+    <title>Return State Types - Library Management</title>
 
     <link rel="stylesheet" href="/static/bs/css/bootstrap.min.css" />
     <link rel="stylesheet" href="/static/fa/css/all.min.css" />
     <link rel="stylesheet" href="/static/poppins/poppins.css" />
     <link rel="stylesheet" href="/static/css/library.css" />
-    <style>
-      /* Additional styles for accordion sidebar */
-      .accordion-button {
-        padding: 0.8rem 1.25rem;
-        color: rgba(255, 255, 255, 0.8);
-        background-color: transparent;
-        box-shadow: none;
-      }
-
-      .accordion-button:not(.collapsed) {
-        color: white;
-        background-color: rgba(255, 255, 255, 0.1);
-        box-shadow: none;
-      }
-
-      .accordion-button::after {
-        filter: invert(1);
-        opacity: 0.5;
-      }
-
-      .accordion-button:not(.collapsed)::after {
-        filter: invert(1);
-        opacity: 0.8;
-      }
-
-      .sidebar .accordion {
-        --bs-accordion-bg: transparent;
-        --bs-accordion-border-color: transparent;
-        --bs-accordion-btn-focus-box-shadow: none;
-        --bs-accordion-active-bg: transparent;
-        --bs-accordion-active-color: white;
-      }
-
-      .sidebar .accordion-item {
-        background-color: transparent;
-        border: none;
-      }
-
-      .sidebar .accordion-body {
-        padding: 0;
-      }
-
-      .sidebar .nav-subitem .nav-link {
-        padding-left: 3.5rem;
-      }
-
-      .sidebar .nav-link.active-parent {
-        background-color: rgba(0, 123, 255, 0.3);
-        color: white;
-      }
-    </style>
   </head>
   <body>
     <div class="grid-container">
@@ -105,7 +54,7 @@
           ></button>
         </div>
 
-        <!-- Status Types List Section -->
+        <!-- State Types List Section -->
         <div class="container-fluid mt-4">
           <div class="row">
             <div class="col-12">
@@ -114,54 +63,49 @@
                   class="card-header d-flex justify-content-between align-items-center"
                 >
                   <h4 class="mb-0">
-                    <i class="fas fa-tags me-2"></i>Reservation Status Types
+                    <i class="fas fa-clipboard-check me-2"></i>Return State
+                    Types
                   </h4>
                   <a
-                    href="/reservation-status-types/add"
+                    href="/returned-loan-state-types/add"
                     class="btn btn-primary"
                   >
-                    <i class="fas fa-plus-circle me-2"></i>Add New Status Type
+                    <i class="fas fa-plus-circle me-2"></i>Add New State Type
                   </a>
                 </div>
                 <div class="card-body">
                   <div
                     class="alert alert-info"
-                    th:if="${#lists.isEmpty(statusTypes)}"
+                    th:if="${#lists.isEmpty(stateTypes)}"
                   >
-                    <i class="fas fa-info-circle me-2"></i>No status types
+                    <i class="fas fa-info-circle me-2"></i>No return state types
                     found.
                   </div>
 
                   <div
                     class="table-responsive"
-                    th:if="${not #lists.isEmpty(statusTypes)}"
+                    th:if="${not #lists.isEmpty(stateTypes)}"
                   >
                     <table class="table table-hover">
                       <thead>
                         <tr>
                           <th>ID</th>
                           <th>Name</th>
+                          <th>Description</th>
                           <th>Actions</th>
                         </tr>
                       </thead>
                       <tbody>
-                        <tr th:each="statusType : ${statusTypes}">
-                          <td th:text="${statusType.id}">1</td>
-                          <td>
-                            <span
-                              class="badge"
-                              th:classappend="${statusType.name == 'Pending' ? 'bg-warning text-dark' : 
-                                               statusType.name == 'Cancelled' ? 'bg-danger' :
-                                               'bg-success'}"
-                              th:text="${statusType.name}"
-                            >
-                              Status Name
-                            </span>
+                        <tr th:each="stateType : ${stateTypes}">
+                          <td th:text="${stateType.id}">1</td>
+                          <td th:text="${stateType.name}">Normal</td>
+                          <td th:text="${stateType.description}">
+                            Book returned in normal condition
                           </td>
                           <td>
                             <div class="btn-group" role="group">
                               <a
-                                th:href="@{/reservation-status-types/edit/{id}(id=${statusType.id})}"
+                                th:href="@{/returned-loan-state-types/edit/{id}(id=${stateType.id})}"
                                 class="btn btn-sm btn-outline-primary"
                               >
                                 <i class="fas fa-edit"></i>
@@ -171,8 +115,8 @@
                                 class="btn btn-sm btn-outline-danger"
                                 data-bs-toggle="modal"
                                 data-bs-target="#deleteModal"
-                                th:data-id="${statusType.id}"
-                                th:data-name="${statusType.name}"
+                                th:data-id="${stateType.id}"
+                                th:data-name="${stateType.name}"
                               >
                                 <i class="fas fa-trash"></i>
                               </button>
@@ -205,12 +149,12 @@
           </div>
           <div class="modal-body">
             <p>
-              Are you sure you want to delete the status type:
-              <strong id="deleteStatusName"></strong>?
+              Are you sure you want to delete the state type:
+              <strong id="deleteStateName"></strong>?
             </p>
             <p class="text-danger">
               <i class="fas fa-exclamation-triangle me-2"></i>
-              This action cannot be undone and may affect existing reservations.
+              This action cannot be undone and may affect existing loan records.
             </p>
           </div>
           <div class="modal-footer">
@@ -221,8 +165,8 @@
             >
               Cancel
             </button>
-            <form action="/reservation-status-types/delete" method="post">
-              <input type="hidden" id="deleteStatusId" name="id" />
+            <form action="/returned-loan-state-types/delete" method="post">
+              <input type="hidden" id="deleteStateId" name="id" />
               <button type="submit" class="btn btn-danger">Delete</button>
             </form>
           </div>
@@ -249,56 +193,9 @@
           const id = button.getAttribute("data-id");
           const name = button.getAttribute("data-name");
 
-          document.getElementById("deleteStatusId").value = id;
-          document.getElementById("deleteStatusName").textContent = name;
+          document.getElementById("deleteStateId").value = id;
+          document.getElementById("deleteStateName").textContent = name;
         });
-
-      // Set active accordion item based on current page
-      document.addEventListener("DOMContentLoaded", function () {
-        const currentPath = window.location.pathname;
-        const navLinks = document.querySelectorAll(".sidebar .nav-link");
-
-        // Find the active link
-        let activeLink = null;
-        navLinks.forEach((link) => {
-          const href = link.getAttribute("href");
-          if (href && currentPath.startsWith(href) && href !== "/") {
-            // If we have a match that's not just the root
-            if (
-              !activeLink ||
-              href.length > activeLink.getAttribute("href").length
-            ) {
-              // Take the longer match (more specific)
-              activeLink = link;
-            }
-          }
-        });
-
-        if (activeLink) {
-          // Mark the link as active
-          activeLink.classList.add("active");
-
-          // Find parent accordion and expand it
-          const accordionBody = activeLink.closest(".accordion-collapse");
-          if (accordionBody) {
-            const accordionId = accordionBody.id;
-            const accordionButton = document.querySelector(
-              `[data-bs-target="#${accordionId}"]`
-            );
-
-            // Add active-parent class to the button
-            if (accordionButton) {
-              accordionButton.classList.add("active-parent");
-            }
-
-            // Create a new bootstrap.Collapse instance and show it
-            const bsCollapse = new bootstrap.Collapse(accordionBody, {
-              toggle: false,
-            });
-            bsCollapse.show();
-          }
-        }
-      });
     </script>
   </body>
 </html>

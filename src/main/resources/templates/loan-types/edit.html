@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Edit Membership Type - Library Management</title>
+    <title>Edit Loan Type - Library Management</title>
 
     <link rel="stylesheet" href="/static/bs/css/bootstrap.min.css" />
     <link rel="stylesheet" href="/static/fa/css/all.min.css" />
@@ -74,131 +74,73 @@
           <i class="fas fa-bars"></i>
         </button>
 
-        <!-- Edit Membership Type Form -->
+        <!-- Flash Messages -->
+        <div
+          th:if="${success}"
+          class="alert alert-success alert-dismissible fade show mt-3"
+          role="alert"
+        >
+          <i class="fas fa-check-circle me-2"></i>
+          <span th:text="${success}">Success message</span>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+            aria-label="Close"
+          ></button>
+        </div>
+
+        <div
+          th:if="${error}"
+          class="alert alert-danger alert-dismissible fade show mt-3"
+          role="alert"
+        >
+          <i class="fas fa-exclamation-circle me-2"></i>
+          <span th:text="${error}">Error message</span>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+            aria-label="Close"
+          ></button>
+        </div>
+
+        <!-- Edit Loan Type Form -->
         <div class="container-fluid mt-4">
           <div class="row">
-            <div class="col-12 col-md-8 mx-auto">
+            <div class="col-md-8 mx-auto">
               <div class="card">
-                <div
-                  class="card-header d-flex justify-content-between align-items-center"
-                >
+                <div class="card-header">
                   <h4 class="mb-0">
-                    <i class="fas fa-edit me-2"></i>Edit Membership Type
+                    <i class="fas fa-edit me-2"></i>Edit Loan Type
                   </h4>
-                  <a href="/membership-types" class="btn btn-outline-secondary">
-                    <i class="fas fa-arrow-left me-2"></i>Back to Types
-                  </a>
                 </div>
                 <div class="card-body">
-                  <form
-                    th:action="@{/membership-types/update}"
-                    method="post"
-                    th:object="${membershipType}"
-                  >
-                    <input type="hidden" name="id" th:value="*{id}" />
+                  <form action="/loan-types/update" method="post">
+                    <input type="hidden" name="id" th:value="${loanType.id}" />
 
-                    <!-- Type Name -->
-                    <div class="mb-4">
-                      <label for="name" class="form-label">
-                        Name <span class="text-danger">*</span>
-                      </label>
+                    <div class="mb-3">
+                      <label for="name" class="form-label">Name</label>
                       <input
                         type="text"
                         class="form-control"
                         id="name"
                         name="name"
-                        th:value="*{name}"
-                        required
-                      />
-                    </div>
-
-                    <!-- Max Books Allowed Home -->
-                    <div class="mb-4">
-                      <label for="maxBooksAllowedHome" class="form-label">
-                        Max Books Allowed (Home)
-                        <span class="text-danger">*</span>
-                      </label>
-                      <input
-                        type="number"
-                        class="form-control"
-                        id="maxBooksAllowedHome"
-                        name="maxBooksAllowedHome"
-                        min="0"
-                        th:value="*{maxBooksAllowedHome}"
+                        th:value="${loanType.name}"
                         required
                       />
                       <div class="form-text">
-                        Maximum number of books this membership type can borrow
-                        and take home simultaneously.
+                        <i class="fas fa-info-circle me-1"></i>
+                        Enter a descriptive name for the loan type.
                       </div>
                     </div>
 
-                    <!-- Max Books Allowed Library -->
-                    <div class="mb-4">
-                      <label for="maxBooksAllowedLibrary" class="form-label">
-                        Max Books Allowed (Library)
-                        <span class="text-danger">*</span>
-                      </label>
-                      <input
-                        type="number"
-                        class="form-control"
-                        id="maxBooksAllowedLibrary"
-                        name="maxBooksAllowedLibrary"
-                        min="0"
-                        th:value="*{maxBooksAllowedLibrary}"
-                        required
-                      />
-                      <div class="form-text">
-                        Maximum number of books this membership type can read
-                        within the library simultaneously.
-                      </div>
-                    </div>
-
-                    <!-- Max Time Hours Home -->
-                    <div class="mb-4">
-                      <label for="maxTimeHoursHome" class="form-label">
-                        Max Time Hours (Home)
-                      </label>
-                      <input
-                        type="number"
-                        class="form-control"
-                        id="maxTimeHoursHome"
-                        name="maxTimeHoursHome"
-                        min="0"
-                        th:value="*{maxTimeHoursHome}"
-                      />
-                      <div class="form-text">
-                        Maximum number of hours a book can be borrowed for home
-                        use. Set to 0 for no time limit.
-                      </div>
-                    </div>
-
-                    <!-- Max Time Hours Library -->
-                    <div class="mb-4">
-                      <label for="maxTimeHoursLibrary" class="form-label">
-                        Max Time Hours (Library)
-                      </label>
-                      <input
-                        type="number"
-                        class="form-control"
-                        id="maxTimeHoursLibrary"
-                        name="maxTimeHoursLibrary"
-                        min="0"
-                        th:value="*{maxTimeHoursLibrary}"
-                      />
-                      <div class="form-text">
-                        Maximum number of hours a book can be kept in the
-                        library. Set to 0 for no time limit.
-                      </div>
-                    </div>
-
-                    <!-- Action Buttons -->
-                    <div class="d-flex justify-content-end gap-2 mt-4">
-                      <a href="/membership-types" class="btn btn-secondary"
-                        >Cancel</a
-                      >
+                    <div class="d-flex justify-content-between mt-4">
+                      <a href="/loan-types" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Cancel
+                      </a>
                       <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save me-2"></i>Update
+                        <i class="fas fa-save me-2"></i>Update Loan Type
                       </button>
                     </div>
                   </form>

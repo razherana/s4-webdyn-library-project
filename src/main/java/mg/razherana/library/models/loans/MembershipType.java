@@ -24,4 +24,12 @@ public class MembershipType {
   // Maximum number of books allowed for this membership type
   @Column(nullable = false)
   private int maxBooksAllowedLibrary;
+
+  // Maximum time in hours a book can be borrowed for home use
+  @Column(nullable = false, columnDefinition = "INTEGER DEFAULT 0")
+  private int maxTimeHoursHome;
+
+  // Maximum time in hours a book can be kept in the library
+  @Column(nullable = false, columnDefinition = "INTEGER DEFAULT 0")
+  private int maxTimeHoursLibrary;
 }

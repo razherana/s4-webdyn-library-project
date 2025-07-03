@@ -110,6 +110,56 @@ body {
   border-top: none;
 }
 
+/* Accordion Sidebar Styles */
+.accordion-button {
+  padding: 0.8rem 1.25rem;
+  color: rgba(255, 255, 255, 0.8);
+  background-color: transparent;
+  box-shadow: none;
+}
+
+.accordion-button:not(.collapsed) {
+  color: white;
+  background-color: rgba(255, 255, 255, 0.1);
+  box-shadow: none;
+}
+
+.accordion-button::after {
+  filter: invert(1);
+  opacity: 0.5;
+}
+
+.accordion-button:not(.collapsed)::after {
+  filter: invert(1);
+  opacity: 0.8;
+}
+
+.sidebar .accordion {
+  --bs-accordion-bg: transparent;
+  --bs-accordion-border-color: transparent;
+  --bs-accordion-btn-focus-box-shadow: none;
+  --bs-accordion-active-bg: transparent;
+  --bs-accordion-active-color: white;
+}
+
+.sidebar .accordion-item {
+  background-color: transparent;
+  border: none;
+}
+
+.sidebar .accordion-body {
+  padding: 0;
+}
+
+.sidebar .nav-subitem .nav-link {
+  padding-left: 3.5rem;
+}
+
+.sidebar .nav-link.active-parent {
+  background-color: rgba(0, 123, 255, 0.3);
+  color: white;
+}
+
 @media (max-width: 768px) {
   .grid-container {
     grid-template-columns: 1fr;
@@ -136,4 +186,54 @@ body {
     left: 10px;
     z-index: 1000;
   }
+}
+
+/* Additional styles for accordion sidebar */
+.accordion-button {
+  padding: 0.8rem 1.25rem;
+  color: rgba(255, 255, 255, 0.8);
+  background-color: transparent;
+  box-shadow: none;
+}
+
+.accordion-button:not(.collapsed) {
+  color: white;
+  background-color: rgba(255, 255, 255, 0.1);
+  box-shadow: none;
+}
+
+.accordion-button::after {
+  filter: invert(1);
+  opacity: 0.5;
+}
+
+.accordion-button:not(.collapsed)::after {
+  filter: invert(1);
+  opacity: 0.8;
+}
+
+.sidebar .accordion {
+  --bs-accordion-bg: transparent;
+  --bs-accordion-border-color: transparent;
+  --bs-accordion-btn-focus-box-shadow: none;
+  --bs-accordion-active-bg: transparent;
+  --bs-accordion-active-color: white;
+}
+
+.sidebar .accordion-item {
+  background-color: transparent;
+  border: none;
+}
+
+.sidebar .accordion-body {
+  padding: 0;
+}
+
+.sidebar .nav-subitem .nav-link {
+  padding-left: 3.5rem;
+}
+
+.sidebar .nav-link.active-parent {
+  background-color: rgba(0, 123, 255, 0.3);
+  color: white;
 }

@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Loan Details - Library Management</title>
+
+    <link rel="stylesheet" href="/static/bs/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/static/fa/css/all.min.css" />
+    <link rel="stylesheet" href="/static/poppins/poppins.css" />
+    <link rel="stylesheet" href="/static/css/library.css" />
+  </head>
+  <body>
+    <div class="grid-container">
+      <!-- Sidebar -->
+      <th:block
+        th:replace="~{fragments/sidebar :: sidebar('loan-types')}"
+      ></th:block>
+
+      <!-- Main Content -->
+      <div class="main-content">
+        <button class="btn btn-primary d-md-none toggle-btn" type="button">
+          <i class="fas fa-bars"></i>
+        </button>
+
+        <!-- Loan Details Section -->
+        <div class="container-fluid mt-4">
+          <div class="row">
+            <div class="col-12">
+              <div class="card">
+                <div
+                  class="card-header d-flex justify-content-between align-items-center"
+                >
+                  <h4 class="mb-0">
+                    <i class="fas fa-info-circle me-2"></i>Loan Details
+                  </h4>
+                  <a href="/loans" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Loans
+                  </a>
+                </div>
+
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-md-6">
+                      <h5 class="mb-3">Loan Information</h5>
+                      <table class="table table-borderless">
+                        <tr>
+                          <th style="width: 150px">Loan ID:</th>
+                          <td th:text="${loan.id}">1</td>
+                        </tr>
+                        <tr>
+                          <th>Status:</th>
+                          <td>
+                            <span
+                              th:class="${loan.getStatus() == 'In loan' ? 'badge bg-primary' : 
+                                         loan.getStatus() == 'Late' ? 'badge bg-danger' : 
+                                         'badge bg-success'}"
+                              th:text="${loan.getStatus()}"
+                            >
+                              Status
+                            </span>
+                          </td>
+                        </tr>
+                        <tr>
+                          <th>Loan Date:</th>
+                          <td
+                            th:text="${#temporals.format(loan.loanDate, 'dd-MM-yyyy HH:mm')}"
+                          >
+                            01-01-2023 14:30
+                          </td>
+                        </tr>
+                        <tr>
+                          <th>Return Date:</th>
+                          <td
+                            th:text="${loan.returnDate != null ? #temporals.format(loan.returnDate, 'dd-MM-yyyy HH:mm') : 'Not returned yet'}"
+                          >
+                            Not returned yet
+                          </td>
+                        </tr>
+                        <tr>
+                          <th>Loan Type:</th>
+                          <td th:text="${loan.loanType.name}">Home</td>
+                        </tr>
+                      </table>
+                    </div>
+
+                    <div class="col-md-6">
+                      <h5 class="mb-3">Book Information</h5>
+                      <table class="table table-borderless">
+                        <tr>
+                          <th style="width: 150px">Title:</th>
+                          <td th:text="${loan.book.title}">Book Title</td>
+                        </tr>
+                        <tr>
+                          <th>Author:</th>
+                          <td
+                            th:text="${loan.book.author != null ? loan.book.author.name : 'N/A'}"
+                          >
+                            Author Name
+                          </td>
+                        </tr>
+                        <tr>
+                          <th>ISBN:</th>
+                          <td
+                            th:text="${loan.book.isbn != null ? loan.book.isbn : 'N/A'}"
+                          >
+                            1234567890123
+                          </td>
+                        </tr>
+                      </table>
+
+                      <h5 class="mb-3 mt-4">Member Information</h5>
+                      <table class="table table-borderless">
+                        <tr>
+                          <th style="width: 150px">Name:</th>
+                          <td th:text="${loan.membership.people.name}">
+                            John Doe
+                          </td>
+                        </tr>
+                        <tr>
+                          <th>Membership:</th>
+                          <td th:text="${loan.membership.membershipType.name}">
+                            Standard
+                          </td>
+                        </tr>
+                        <tr>
+                          <th>Valid Until:</th>
+                          <td
+                            th:text="${#temporals.format(loan.membership.endDate, 'dd-MM-yyyy')}"
+                          >
+                            31-12-2023
+                          </td>
+                        </tr>
+                      </table>
+                    </div>
+                  </div>
+
+                  <!-- Return Information (if returned) -->
+                  <div class="row mt-4" th:if="${loan.returnDate != null}">
+                    <div class="col-12">
+                      <h5 class="mb-3">Return Information</h5>
+                      <div
+                        class="alert alert-success"
+                        th:if="${returnState == null}"
+                      >
+                        <i class="fas fa-check-circle me-2"></i>
+                        This book has been returned on
+                        <strong
+                          th:text="${#temporals.format(loan.returnDate, 'dd-MM-yyyy HH:mm')}"
+                          >01-01-2023 16:30</strong
+                        >.
+                      </div>
+
+                      <div class="card" th:if="${returnState != null}">
+                        <div class="card-body">
+                          <h6 class="card-subtitle mb-2 text-muted">
+                            Return Condition
+                          </h6>
+                          <p>
+                            <span
+                              class="badge bg-info me-2"
+                              th:text="${returnState.stateType.name}"
+                            >
+                              Normal
+                            </span>
+                            <span
+                              th:text="${#temporals.format(loan.returnDate, 'dd-MM-yyyy HH:mm')}"
+                              >01-01-2023 16:30</span
+                            >
+                          </p>
+                          <p
+                            class="card-text"
+                            th:if="${returnState.notes != null && !returnState.notes.isEmpty()}"
+                          >
+                            <strong>Notes:</strong>
+                            <span th:text="${returnState.notes}">
+                              The book was returned in good condition.
+                            </span>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Status History -->
+                  <div
+                    class="row mt-4"
+                    th:if="${!#lists.isEmpty(statusHistory)}"
+                  >
+                    <div class="col-12">
+                      <h5 class="mb-3">Status History</h5>
+                      <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                          <thead>
+                            <tr>
+                              <th>Date & Time</th>
+                              <th>Status</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr th:each="status : ${statusHistory}">
+                              <td
+                                th:text="${#temporals.format(status.statusDate, 'dd-MM-yyyy HH:mm')}"
+                              >
+                                01-01-2023 14:30
+                              </td>
+                              <td th:text="${status.loanStatusType.name}">
+                                Issued
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Actions -->
+                  <div class="row mt-4">
+                    <div class="col-12">
+                      <div class="d-flex justify-content-end gap-2">
+                        <a href="/loans" class="btn btn-secondary">
+                          <i class="fas fa-arrow-left me-2"></i>Back to Loans
+                        </a>
+                        <button
+                          th:if="${loan.returnDate == null}"
+                          class="btn btn-success"
+                          data-bs-toggle="modal"
+                          data-bs-target="#returnLoanModal"
+                          th:data-loan-id="${loan.id}"
+                          th:data-book-title="${loan.book.title}"
+                        >
+                          <i class="fas fa-undo me-2"></i>Return Book
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Return Loan Modal -->
+    <div
+      class="modal fade"
+      id="returnLoanModal"
+      tabindex="-1"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Return Book</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <form th:action="@{/loans/return}" method="post">
+            <div class="modal-body">
+              <input type="hidden" id="return-loan-id" name="loanId" />
+              <h6 id="return-modal-book-title" class="mb-3">Book Title</h6>
+
+              <div class="mb-3">
+                <label for="returnDate" class="form-label"
+                  >Return Date & Time</label
+                >
+                <input
+                  type="datetime-local"
+                  class="form-control"
+                  id="returnDate"
+                  name="returnDate"
+                  required
+                />
+              </div>
+
+              <div class="mb-3">
+                <label for="returnStateTypeId" class="form-label"
+                  >Return Condition</label
+                >
+                <select
+                  class="form-select"
+                  id="returnStateTypeId"
+                  name="returnStateTypeId"
+                  required
+                >
+                  <option value="">-- Select Condition --</option>
+                  <option
+                    th:each="stateType : ${returnStateTypes}"
+                    th:value="${stateType.id}"
+                    th:text="${stateType.name}"
+                  >
+                    Normal
+                  </option>
+                </select>
+              </div>
+
+              <div class="mb-3">
+                <label for="notes" class="form-label">Notes</label>
+                <textarea
+                  class="form-control"
+                  id="notes"
+                  name="notes"
+                  rows="3"
+                  placeholder="Any notes about the returned book condition..."
+                ></textarea>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                Cancel
+              </button>
+              <button type="submit" class="btn btn-success">
+                <i class="fas fa-check me-2"></i>Mark as Returned
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script src="/static/bs/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/fa/js/all.min.js"></script>
+    <script>
+      // Toggle sidebar on mobile
+      document
+        .querySelector(".toggle-btn")
+        ?.addEventListener("click", function () {
+          document.querySelector(".sidebar").classList.toggle("active");
+          document.querySelector(".main-content").classList.toggle("active");
+        });
+
+      // Set the return date default value to current datetime
+      document.addEventListener("DOMContentLoaded", function () {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, "0");
+        const day = String(now.getDate()).padStart(2, "0");
+        const hours = String(now.getHours()).padStart(2, "0");
+        const minutes = String(now.getMinutes()).padStart(2, "0");
+
+        const formattedDate = `${year}-${month}-${day}T${hours}:${minutes}`;
+        document.getElementById("returnDate").value = formattedDate;
+      });
+
+      // Handle return loan modal
+      document
+        .getElementById("returnLoanModal")
+        ?.addEventListener("show.bs.modal", function (event) {
+          const button = event.relatedTarget;
+          const loanId = button.getAttribute("data-loan-id");
+          const bookTitle = button.getAttribute("data-book-title");
+
+          document.getElementById("return-loan-id").value = loanId;
+          document.getElementById("return-modal-book-title").textContent =
+            bookTitle;
+        });
+    </script>
+  </body>
+</html>
