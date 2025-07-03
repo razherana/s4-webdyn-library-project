@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reservations - Library Management</title>
+
+    <link rel="stylesheet" href="/static/bs/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/static/fa/css/all.min.css" />
+    <link rel="stylesheet" href="/static/poppins/poppins.css" />
+    <link rel="stylesheet" href="/static/css/library.css" />
+  </head>
+  <body>
+    <div class="grid-container">
+      <!-- Sidebar -->
+      <nav class="sidebar d-flex flex-column">
+        <a class="navbar-brand d-flex align-items-center" href="#">
+          <span class="me-2">
+            <i class="fas fa-book-reader"></i>
+          </span>
+          Library Management
+        </a>
+
+        <ul class="nav flex-column mb-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="/home">
+              <span class="me-2">
+                <i class="fas fa-home"></i>
+              </span>
+              Home
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/books">
+              <span class="me-2">
+                <i class="fas fa-book"></i>
+              </span>
+              Books
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/membership-types">
+              <span class="me-2">
+                <i class="fas fa-id-card"></i>
+              </span>
+              Membership Types
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/memberships">
+              <span class="me-2">
+                <i class="fas fa-address-card"></i>
+              </span>
+              Memberships
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/peoples">
+              <span class="me-2">
+                <i class="fas fa-users"></i>
+              </span>
+              People
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link active" href="/reservations">
+              <span class="me-2">
+                <i class="fas fa-calendar-check"></i>
+              </span>
+              Reservations
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">
+              <span class="me-2">
+                <i class="fas fa-info-circle"></i>
+              </span>
+              About
+            </a>
+          </li>
+        </ul>
+
+        <div class="logout-container mt-auto">
+          <a href="#" class="nav-link text-danger">
+            <span class="me-2">
+              <i class="fas fa-sign-out-alt"></i>
+            </span>
+            Logout
+          </a>
+        </div>
+      </nav>
+
+      <!-- Main Content -->
+      <div class="main-content">
+        <button class="btn btn-primary d-md-none toggle-btn" type="button">
+          <i class="fas fa-bars"></i>
+        </button>
+
+        <!-- Flash Messages -->
+        <div
+          th:if="${success}"
+          class="alert alert-success alert-dismissible fade show mt-3"
+          role="alert"
+        >
+          <i class="fas fa-check-circle me-2"></i>
+          <span th:text="${success}">Success message</span>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+            aria-label="Close"
+          ></button>
+        </div>
+
+        <div
+          th:if="${error}"
+          class="alert alert-danger alert-dismissible fade show mt-3"
+          role="alert"
+        >
+          <i class="fas fa-exclamation-circle me-2"></i>
+          <span th:text="${error}">Error message</span>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+            aria-label="Close"
+          ></button>
+        </div>
+
+        <!-- Reservations List Section -->
+        <div class="container-fluid mt-4">
+          <div class="row">
+            <div class="col-12">
+              <div class="card">
+                <div
+                  class="card-header d-flex justify-content-between align-items-center"
+                >
+                  <h4 class="mb-0">
+                    <i class="fas fa-calendar-check me-2"></i>Reservations
+                  </h4>
+                  <a href="/reservations/add" class="btn btn-primary">
+                    <i class="fas fa-plus-circle me-2"></i>Add Reservation
+                  </a>
+                </div>
+
+                <!-- Filters Section -->
+                <div class="card-body border-bottom">
+                  <div class="row">
+                    <!-- Search -->
+                    <div class="col-md-6 mb-3">
+                      <form action="/reservations" method="get">
+                        <div class="input-group">
+                          <input
+                            type="text"
+                            class="form-control"
+                            placeholder="Search by book title or author..."
+                            name="search"
+                            th:value="${search}"
+                          />
+                          <button
+                            class="btn btn-outline-secondary"
+                            type="submit"
+                          >
+                            <i class="fas fa-search"></i>
+                          </button>
+                          <a
+                            th:if="${search}"
+                            href="/reservations"
+                            class="btn btn-outline-danger"
+                          >
+                            <i class="fas fa-times"></i>
+                          </a>
+                        </div>
+                      </form>
+                    </div>
+
+                    <!-- Filters -->
+                    <div class="col-md-6 mb-3">
+                      <div class="d-flex gap-2 justify-content-md-end">
+                        <div class="dropdown">
+                          <button
+                            class="btn btn-outline-secondary dropdown-toggle"
+                            type="button"
+                            id="dropdownMenuButton"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false"
+                          >
+                            <i class="fas fa-filter me-1"></i>
+                            Filter by Location
+                          </button>
+                          <ul
+                            class="dropdown-menu"
+                            aria-labelledby="dropdownMenuButton"
+                          >
+                            <li>
+                              <a
+                                class="dropdown-item"
+                                href="/reservations?takeHome=true"
+                                >Take Home Only</a
+                              >
+                            </li>
+                            <li>
+                              <a
+                                class="dropdown-item"
+                                href="/reservations?takeHome=false"
+                                >In-Library Only</a
+                              >
+                            </li>
+                            <li><hr class="dropdown-divider" /></li>
+                            <li>
+                              <a class="dropdown-item" href="/reservations"
+                                >Clear Filter</a
+                              >
+                            </li>
+                          </ul>
+                        </div>
+
+                        <div class="dropdown">
+                          <button
+                            class="btn btn-outline-secondary dropdown-toggle"
+                            type="button"
+                            id="dropdownStatusButton"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false"
+                          >
+                            <i class="fas fa-tasks me-1"></i>
+                            Filter by Status
+                          </button>
+                          <ul
+                            class="dropdown-menu"
+                            aria-labelledby="dropdownStatusButton"
+                          >
+                            <li th:each="statusType : ${statusTypes}">
+                              <a
+                                class="dropdown-item"
+                                th:href="@{/reservations(status=${statusType.name})}"
+                                th:text="${statusType.name}"
+                                >Status</a
+                              >
+                            </li>
+                            <li><hr class="dropdown-divider" /></li>
+                            <li>
+                              <a class="dropdown-item" href="/reservations"
+                                >Clear Filter</a
+                              >
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Active Filters -->
+                  <div
+                    class="row"
+                    th:if="${search != null || takeHomeFilter != null || statusFilter != null}"
+                  >
+                    <div class="col-12">
+                      <div class="d-flex gap-2 align-items-center">
+                        <span class="text-muted">Active filters:</span>
+
+                        <span
+                          th:if="${search}"
+                          class="badge rounded-pill bg-info"
+                        >
+                          Search: <span th:text="${search}"></span>
+                        </span>
+
+                        <span
+                          th:if="${takeHomeFilter != null}"
+                          class="badge rounded-pill bg-info"
+                        >
+                          <span
+                            th:text="${takeHomeFilter ? 'Take Home Only' : 'In-Library Only'}"
+                          ></span>
+                        </span>
+
+                        <span
+                          th:if="${statusFilter}"
+                          class="badge rounded-pill bg-info"
+                        >
+                          Status: <span th:text="${statusFilter}"></span>
+                        </span>
+
+                        <a
+                          href="/reservations"
+                          class="btn btn-sm btn-outline-danger"
+                        >
+                          <i class="fas fa-times me-1"></i>Clear All
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="card-body">
+                  <div
+                    class="alert alert-info"
+                    th:if="${#lists.isEmpty(reservations)}"
+                  >
+                    <i class="fas fa-info-circle me-2"></i>No reservations
+                    found.
+                  </div>
+
+                  <div
+                    class="table-responsive"
+                    th:if="${not #lists.isEmpty(reservations)}"
+                  >
+                    <table class="table table-hover">
+                      <thead>
+                        <tr>
+                          <th>ID</th>
+                          <th>Book</th>
+                          <th>Author</th>
+                          <th>Date & Time</th>
+                          <th>Location</th>
+                          <th>Status</th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr th:each="reservation : ${reservations}">
+                          <td th:text="${reservation.id}">1</td>
+                          <td th:text="${reservation.book.title}">
+                            Book Title
+                          </td>
+                          <td
+                            th:text="${reservation.book.author != null ? reservation.book.author.name : 'N/A'}"
+                          >
+                            Author Name
+                          </td>
+                          <td
+                            th:text="${#temporals.format(reservation.reservationDate, 'dd-MM-yyyy HH:mm')}"
+                          >
+                            01-01-2023 14:30
+                          </td>
+                          <td>
+                            <span
+                              th:if="${reservation.takeHome}"
+                              class="badge bg-warning text-dark"
+                              >Take Home</span
+                            >
+                            <span
+                              th:unless="${reservation.takeHome}"
+                              class="badge bg-info"
+                              >In-Library</span
+                            >
+                          </td>
+                          <td>
+                            <span
+                              th:if="${!reservation.reservationStatusHistories.empty}"
+                              th:with="latestStatus=${reservation.reservationStatusHistories[0]}"
+                              th:class="${latestStatus.reservationStatusType.name == 'Pending' ? 'badge bg-warning text-dark' : 'badge bg-success'}"
+                              th:text="${latestStatus.reservationStatusType.name}"
+                            >
+                              Status
+                            </span>
+                            <span
+                              th:if="${reservation.reservationStatusHistories.empty}"
+                              class="badge bg-secondary"
+                              >Unknown</span
+                            >
+                          </td>
+                          <td>
+                            <button
+                              class="btn btn-sm btn-outline-info"
+                              data-bs-toggle="modal"
+                              data-bs-target="#viewDetailsModal"
+                              th:attr="data-reservation-id=${reservation.id},
+                                            data-book-title=${reservation.book.title},
+                                            data-reservation-date=${#temporals.format(reservation.reservationDate, 'dd-MM-yyyy HH:mm')}"
+                            >
+                              <i class="fas fa-eye"></i>
+                            </button>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                <div
+                  class="card-footer text-muted"
+                  th:if="${not #lists.isEmpty(reservations)}"
+                >
+                  <i class="fas fa-list me-2"></i>Total Reservations:
+                  <span th:text="${reservations.size()}">0</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- View Details Modal -->
+    <div
+      class="modal fade"
+      id="viewDetailsModal"
+      tabindex="-1"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Reservation Details</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <h6 id="modal-book-title" class="mb-3">Book Title</h6>
+            <p>
+              <strong>Reservation Date:</strong>
+              <span id="modal-reservation-date">01-01-2023 14:30</span>
+            </p>
+
+            <h6 class="mt-4 mb-3">Status History</h6>
+            <div id="status-history-loading" class="text-center">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+            </div>
+            <div id="status-history-content" style="display: none">
+              <ul class="list-group">
+                <!-- Status history will be populated via JavaScript -->
+              </ul>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/static/bs/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/fa/js/all.min.js"></script>
+    <script>
+      // Toggle sidebar on mobile
+      document
+        .querySelector(".toggle-btn")
+        ?.addEventListener("click", function () {
+          document.querySelector(".sidebar").classList.toggle("active");
+          document.querySelector(".main-content").classList.toggle("active");
+        });
+
+      // Handle reservation details modal
+      document
+        .getElementById("viewDetailsModal")
+        .addEventListener("show.bs.modal", function (event) {
+          const button = event.relatedTarget;
+          const reservationId = button.getAttribute("data-reservation-id");
+          const bookTitle = button.getAttribute("data-book-title");
+          const reservationDate = button.getAttribute("data-reservation-date");
+
+          document.getElementById("modal-book-title").textContent = bookTitle;
+          document.getElementById("modal-reservation-date").textContent =
+            reservationDate;
+
+          // Reset and show loading spinner
+          document.getElementById("status-history-loading").style.display =
+            "block";
+          document.getElementById("status-history-content").style.display =
+            "none";
+          const historyList = document.querySelector(
+            "#status-history-content .list-group"
+          );
+          if (historyList) {
+            historyList.innerHTML = "";
+          }
+
+          // Fetch status history via AJAX
+          fetch(`/reservations/status-history/${reservationId}`)
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error("Network response was not ok");
+              }
+              return response.json();
+            })
+            .then((data) => {
+              document.getElementById("status-history-loading").style.display =
+                "none";
+              document.getElementById("status-history-content").style.display =
+                "block";
+
+              const historyList = document.querySelector(
+                "#status-history-content .list-group"
+              );
+
+              if (data.length === 0) {
+                historyList.innerHTML =
+                  '<li class="list-group-item text-muted">No status history available</li>';
+              } else {
+                data.forEach((status) => {
+                  const listItem = document.createElement("li");
+                  listItem.className = "list-group-item";
+
+                  const statusBadge = document.createElement("span");
+                  statusBadge.className =
+                    status.statusType === "Pending"
+                      ? "badge bg-warning text-dark me-2"
+                      : "badge bg-success me-2";
+                  statusBadge.textContent = status.statusType;
+
+                  const statusDate = document.createElement("small");
+                  statusDate.className = "text-muted";
+                  statusDate.textContent = status.date;
+
+                  listItem.appendChild(statusBadge);
+                  listItem.appendChild(document.createTextNode(" "));
+                  listItem.appendChild(statusDate);
+
+                  historyList.appendChild(listItem);
+                });
+              }
+            })
+            .catch((error) => {
+              document.getElementById("status-history-loading").style.display =
+                "none";
+              document.getElementById("status-history-content").style.display =
+                "block";
+              document.querySelector(
+                "#status-history-content .list-group"
+              ).innerHTML = `<li class="list-group-item text-danger">Error loading status history: ${error.message}</li>`;
+            });
+        });
+    </script>
+  </body>
+</html>

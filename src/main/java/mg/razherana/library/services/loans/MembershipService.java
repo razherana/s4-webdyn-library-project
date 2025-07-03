@@ -44,6 +44,10 @@ public class MembershipService {
     return !activeMemberships.isEmpty();
   }
 
+  public List<Membership> findActiveMemberships(LocalDate date) {
+    return membershipRepository.findActiveMemberships(date);
+  }
+
   @Transactional
   public Membership register(Long peopleId, Long membershipTypeId, LocalDate startDate, LocalDate endDate) {
     // Check if person already has an active membership
