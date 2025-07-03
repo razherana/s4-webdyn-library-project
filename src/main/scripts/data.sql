@@ -41,3 +41,8 @@ VALUES ('Student'),
     ('Teacher'),
     ('Staff'),
     ('Visitor');
+
+INSERT INTO
+    `reservation_status_types` (`name`)
+VALUES ('Pending'),
+    ('Approved');
