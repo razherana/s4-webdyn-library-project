@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Library Management System - Login</title>
+
+    <link rel="stylesheet" href="/static/bs/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/static/fa/css/all.min.css" />
+    <link rel="stylesheet" href="/static/poppins/poppins.css" />
+    <link rel="stylesheet" href="/static/css/library.css" />
+
+    <style>
+      body {
+        background-color: #f5f5f5;
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .login-container {
+        max-width: 400px;
+        padding: 40px;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+      }
+      .logo-container {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+      .logo-container i {
+        font-size: 3rem;
+        color: #0d6efd;
+      }
+      .logo-container h1 {
+        margin-top: 10px;
+        font-size: 1.5rem;
+      }
+      .alert {
+        margin-bottom: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container py-5">
+      <div class="row justify-content-center">
+        <div class="col-12 col-md-8 col-lg-6 col-xl-5">
+          <div class="login-container bg-white shadow rounded-4">
+            <div class="logo-container">
+              <i class="fas fa-book-reader text-primary"></i>
+              <h1 class="fw-bold">Library Management System</h1>
+            </div>
+
+            <!-- Error message display if login fails -->
+            <div
+              th:if="${error}"
+              class="alert alert-danger alert-dismissible fade show"
+              role="alert"
+            >
+              <i class="fas fa-exclamation-triangle me-2"></i>
+              <span th:text="${error}">Error message</span>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="alert"
+                aria-label="Close"
+              ></button>
+            </div>
+
+            <!-- Success message display -->
+            <div
+              th:if="${success}"
+              class="alert alert-success alert-dismissible fade show"
+              role="alert"
+            >
+              <i class="fas fa-check-circle me-2"></i>
+              <span th:text="${success}">Success message</span>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="alert"
+                aria-label="Close"
+              ></button>
+            </div>
+
+            <form
+              action="/auth/login"
+              method="post"
+              class="needs-validation"
+              novalidate
+            >
+              <div class="mb-4">
+                <label for="username" class="form-label fw-medium"
+                  >Username</label
+                >
+                <div class="input-group has-validation">
+                  <span class="input-group-text bg-light"
+                    ><i class="fas fa-user text-secondary"></i
+                  ></span>
+                  <input
+                    type="text"
+                    class="form-control border-start-0"
+                    id="username"
+                    name="username"
+                    placeholder="Enter your username"
+                    required
+                    autofocus
+                  />
+                  <div class="invalid-feedback">
+                    Please enter your username.
+                  </div>
+                </div>
+              </div>
+              <div class="mb-4">
+                <label for="password" class="form-label fw-medium"
+                  >Password</label
+                >
+                <div class="input-group has-validation">
+                  <span class="input-group-text bg-light"
+                    ><i class="fas fa-lock text-secondary"></i
+                  ></span>
+                  <input
+                    type="password"
+                    class="form-control border-start-0"
+                    id="password"
+                    name="password"
+                    placeholder="Enter your password"
+                    required
+                  />
+                  <div class="invalid-feedback">
+                    Please enter your password.
+                  </div>
+                </div>
+              </div>
+              <button
+                type="submit"
+                class="btn btn-primary w-100 py-2 mt-3 fw-medium shadow-sm"
+              >
+                <i class="fas fa-sign-in-alt me-2"></i>Login
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/static/bs/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/fa/js/all.min.js"></script>
+    <script>
+      // Bootstrap 5.3 form validation
+      (() => {
+        "use strict";
+
+        // Fetch all the forms we want to apply custom Bootstrap validation styles to
+        const forms = document.querySelectorAll(".needs-validation");
+
+        // Loop over them and prevent submission
+        Array.from(forms).forEach((form) => {
+          form.addEventListener(
+            "submit",
+            (event) => {
+              if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+              }
+
+              form.classList.add("was-validated");
+            },
+            false
+          );
+        });
+      })();
+    </script>
+  </body>
+</html>

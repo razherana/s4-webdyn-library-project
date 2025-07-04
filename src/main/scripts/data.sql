@@ -53,3 +53,21 @@ VALUES ('Warning'),
     ('Fine'),
     ('Suspension'),
     ('Ban');
+
+INSERT INTO
+    roles (`name`, `description`)
+VALUES (
+        'admin',
+        'Manages all aspects of the library system, including user management, book management, and system settings.'
+    ),
+    (
+        'librarian',
+        'Manages books, approves reservations, and handles day-to-day library operations.'
+    );
+
+-- Add sample users
+INSERT INTO
+    users (username, password)
+VALUES ('admin', 'admin123'),
+    ('librarian', 'librarian123'),
+    ('member', 'member123');
