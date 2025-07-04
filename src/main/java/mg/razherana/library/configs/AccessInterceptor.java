@@ -26,13 +26,16 @@ public class AccessInterceptor implements HandlerInterceptor {
     }
 
     // Check if user is authenticated
-    if (request.getSession().getAttribute("user") == null) {
+    if (request.getSession().getAttribute(UserService.USER_SESSION_ATTR) == null) {
       response.sendRedirect(request.getContextPath() + "/auth/login");
       return false;
     }
 
     // Check roles and accesses of the roles
-    long userId = (long) request.getSession().getAttribute("user");
+    long userId = (long) request.getSession().getAttribute(
+        UserService.USER_SESSION_ATTR);
+
+    System.out.println(userId);
 
     requestURI = requestURI.replaceAll("\\?.*", "");
 
@@ -41,6 +44,11 @@ public class AccessInterceptor implements HandlerInterceptor {
       requestURI = requestURI.substring(0, requestURI.length() - 1);
     }
 
-    return userService.hasAccess(userId, requestURI, request.getMethod());
+    if (userService.hasAccess(userId, requestURI, request.getMethod())) {
+      return true;
+    } else {
+      response.sendError(HttpServletResponse.SC_FORBIDDEN, "You do not have access to this resource");
+      return false;
+    }
   }
 }

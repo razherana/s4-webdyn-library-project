@@ -9,10 +9,12 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import lombok.Data;
+import lombok.ToString;
 
 @Entity
 @Table(name = "roles")
 @Data
+@ToString(exclude = "accesses")
 public class Role {
   @Id
   @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)

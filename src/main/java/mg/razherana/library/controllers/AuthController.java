@@ -53,8 +53,13 @@ public class AuthController {
     return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Not authenticated");
   }
 
+  @GetMapping("/logout")
+  public String logoutGet(HttpSession session, RedirectAttributes redirectAttributes) {
+    return logoutPost(session, redirectAttributes);
+  }
+
   @PostMapping("/logout")
-  public String logout(HttpSession session, RedirectAttributes redirectAttributes) {
+  public String logoutPost(HttpSession session, RedirectAttributes redirectAttributes) {
     userService.logout(session);
     redirectAttributes.addFlashAttribute("success", "Logged out successfully");
     return "redirect:/auth/login";

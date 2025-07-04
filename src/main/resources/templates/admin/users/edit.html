@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Edit User - Library Management</title>
+
+    <link rel="stylesheet" href="/static/bs/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/static/fa/css/all.min.css" />
+    <link rel="stylesheet" href="/static/poppins/poppins.css" />
+    <link rel="stylesheet" href="/static/css/library.css" />
+  </head>
+  <body>
+    <div class="grid-container">
+      <!-- Sidebar -->
+      <th:block
+        th:replace="~{fragments/sidebar :: sidebar('admin-users')}"
+      ></th:block>
+
+      <!-- Main Content -->
+      <div class="main-content">
+        <button class="btn btn-primary d-md-none toggle-btn" type="button">
+          <i class="fas fa-bars"></i>
+        </button>
+
+        <!-- Flash Messages -->
+        <div
+          th:if="${error}"
+          class="alert alert-danger alert-dismissible fade show mt-3"
+          role="alert"
+        >
+          <i class="fas fa-exclamation-circle me-2"></i>
+          <span th:text="${error}">Error message</span>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+            aria-label="Close"
+          ></button>
+        </div>
+
+        <!-- Edit User Form -->
+        <div class="container-fluid mt-4">
+          <div class="row">
+            <div class="col-12 col-md-8 mx-auto">
+              <div class="card">
+                <div
+                  class="card-header d-flex justify-content-between align-items-center"
+                >
+                  <h4 class="mb-0">
+                    <i class="fas fa-user-edit me-2"></i>Edit User
+                  </h4>
+                  <a href="/admin/users" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Users List
+                  </a>
+                </div>
+                <div class="card-body">
+                  <form action="/admin/users/update" method="post">
+                    <input type="hidden" name="id" th:value="${user.id}" />
+
+                    <!-- Username -->
+                    <div class="mb-3">
+                      <label for="username" class="form-label"
+                        >Username <span class="text-danger">*</span></label
+                      >
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="username"
+                        name="username"
+                        th:value="${user.username}"
+                        required
+                      />
+                      <div class="form-text">
+                        Enter a unique username for this user
+                      </div>
+                    </div>
+
+                    <!-- Password -->
+                    <div class="mb-3">
+                      <label for="password" class="form-label">Password</label>
+                      <input
+                        type="password"
+                        class="form-control"
+                        id="password"
+                        name="password"
+                      />
+                      <div class="form-text">
+                        Leave blank to keep current password, or enter a new
+                        password to change it
+                      </div>
+                    </div>
+
+                    <!-- Roles -->
+                    <div class="mb-3">
+                      <label class="form-label">Roles</label>
+                      <div class="card">
+                        <div class="card-body">
+                          <div th:if="${allRoles.empty}" class="text-muted">
+                            No roles available. Please create roles first.
+                          </div>
+                          <div th:unless="${allRoles.empty}" class="row">
+                            <div
+                              th:each="role : ${allRoles}"
+                              class="col-md-6 mb-2"
+                            >
+                              <div class="form-check">
+                                <input
+                                  class="form-check-input"
+                                  type="checkbox"
+                                  th:id="${'role-' + role.id}"
+                                  name="roleIds"
+                                  th:value="${role.id}"
+                                  th:checked="${user.roles.contains(role)}"
+                                />
+                                <label
+                                  class="form-check-label"
+                                  th:for="${'role-' + role.id}"
+                                >
+                                  <span th:text="${role.name}">Admin</span>
+                                  <small
+                                    class="text-muted d-block"
+                                    th:text="${role.description}"
+                                  >
+                                    Manages all aspects of the system
+                                  </small>
+                                </label>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="form-text">
+                        Select one or more roles for this user
+                      </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end mt-4">
+                      <a href="/admin/users" class="btn btn-secondary me-2"
+                        >Cancel</a
+                      >
+                      <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>Update User
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/static/bs/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/fa/js/all.min.js"></script>
+    <script>
+      // Toggle sidebar on mobile
+      document
+        .querySelector(".toggle-btn")
+        ?.addEventListener("click", function () {
+          document.querySelector(".sidebar").classList.toggle("active");
+          document.querySelector(".main-content").classList.toggle("active");
+        });
+    </script>
+  </body>
+</html>
