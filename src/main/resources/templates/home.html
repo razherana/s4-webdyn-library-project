@@ -141,6 +141,59 @@
         color: white;
       }
 
+      /* Statistics cards styles */
+      .stats-container {
+        margin-top: 30px;
+      }
+
+      .stat-card {
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+      }
+
+      .stat-card:hover {
+        transform: translateY(-5px);
+      }
+
+      .stat-icon {
+        font-size: 3rem;
+        margin-bottom: 15px;
+      }
+
+      .stat-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 5px;
+      }
+
+      .stat-label {
+        font-size: 1.1rem;
+        color: #6c757d;
+      }
+
+      .books-card {
+        background-color: #e3f2fd;
+        color: #0d6efd;
+      }
+
+      .members-card {
+        background-color: #f8f9fa;
+        color: #6c757d;
+      }
+
+      .loans-card {
+        background-color: #d1e7dd;
+        color: #198754;
+      }
+
+      .reservations-card {
+        background-color: #fff3cd;
+        color: #ffc107;
+      }
+
       @media (max-width: 768px) {
         .grid-container {
           grid-template-columns: 1fr;
@@ -174,7 +227,7 @@
     <div class="grid-container">
       <!-- Sidebar -->
       <th:block
-        th:replace="~{fragments/sidebar :: sidebar('loan-types')}"
+        th:replace="~{fragments/sidebar :: sidebar('dashboard')}"
       ></th:block>
 
       <!-- Main Content -->
@@ -184,8 +237,60 @@
         </button>
 
         <div class="welcome-container">
-          <h1 class="welcome-heading">Welcome to book management</h1>
+          <h1 class="welcome-heading">Welcome to Library Management System</h1>
+          <p class="lead">Manage your library resources efficiently</p>
         </div>
+
+        <!-- Statistics Section -->
+        <div class="stats-container">
+          <div class="row">
+            <!-- Books Statistics -->
+            <div class="col-md-6 col-lg-3">
+              <div class="stat-card books-card text-center">
+                <div class="stat-icon">
+                  <i class="fas fa-book"></i>
+                </div>
+                <div class="stat-value" th:text="${totalBooks}">0</div>
+                <div class="stat-label">Total Books</div>
+              </div>
+            </div>
+
+            <!-- Members Statistics -->
+            <div class="col-md-6 col-lg-3">
+              <div class="stat-card members-card text-center">
+                <div class="stat-icon">
+                  <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-value" th:text="${totalMembers}">0</div>
+                <div class="stat-label">Total Members</div>
+              </div>
+            </div>
+
+            <!-- Active Loans Statistics -->
+            <div class="col-md-6 col-lg-3">
+              <div class="stat-card loans-card text-center">
+                <div class="stat-icon">
+                  <i class="fas fa-book-reader"></i>
+                </div>
+                <div class="stat-value" th:text="${activeLoans}">0</div>
+                <div class="stat-label">Active Loans</div>
+              </div>
+            </div>
+
+            <!-- Pending Reservations Statistics -->
+            <div class="col-md-6 col-lg-3">
+              <div class="stat-card reservations-card text-center">
+                <div class="stat-icon">
+                  <i class="fas fa-calendar-check"></i>
+                </div>
+                <div class="stat-value" th:text="${pendingReservations}">0</div>
+                <div class="stat-label">Pending Reservations</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- You could add more sections here, like recent activities or announcements -->
       </div>
     </div>
 

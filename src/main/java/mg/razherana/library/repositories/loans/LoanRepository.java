@@ -50,4 +50,7 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
 
   @Query("SELECT l FROM Loan l WHERE l.returnDate IS NULL")
   List<Loan> findByReturnDateIsNull();
+
+  @Query("SELECT COUNT(l) FROM Loan l WHERE l.returnDate IS NULL")
+  long countByReturnedFalse();
 }
