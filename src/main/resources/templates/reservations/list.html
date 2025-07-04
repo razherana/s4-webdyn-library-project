@@ -295,6 +295,7 @@
                           <th>ID</th>
                           <th>Book</th>
                           <th>Author</th>
+                          <th>Membership</th>
                           <th>Date & Time</th>
                           <th>Location</th>
                           <th>Status</th>
@@ -305,7 +306,7 @@
                         <!-- We're using the existing rows but will manipulate them with JS -->
                         <tr
                           th:each="reservation : ${reservations}"
-                          th:attr="data-reservation-id=${reservation.id}, data-book-title=${reservation.book.title}, data-author=${reservation.book.author != null ? reservation.book.author.name : 'N/A'}, data-take-home=${reservation.takeHome}, data-status=${!reservation.reservationStatusHistories.empty ? reservation.reservationStatusHistories[0].reservationStatusType.name : 'Unknown'}"
+                          th:attr="data-reservation-id=${reservation.id}, data-book-title=${reservation.book.title}, data-author=${reservation.book.author != null ? reservation.book.author.name : 'N/A'}, data-membership=${reservation.membership != null ? (reservation.membership.people != null ? reservation.membership.people.name : 'Unknown') : 'N/A'}, data-take-home=${reservation.takeHome}, data-status=${!reservation.reservationStatusHistories.empty ? reservation.reservationStatusHistories[0].reservationStatusType.name : 'Unknown'}"
                           class="reservation-row"
                         >
                           <td th:text="${reservation.id}">1</td>
@@ -316,6 +317,14 @@
                             th:text="${reservation.book.author != null ? reservation.book.author.name : 'N/A'}"
                           >
                             Author Name
+                          </td>
+                          <td>
+                            <span th:if="${reservation.membership != null}">
+                              <span th:text="${reservation.membership.people != null ? reservation.membership.people.name : 'Unknown Member'}">Member Name</span>
+                              <small class="text-muted d-block" th:if="${reservation.membership.membershipType != null}" 
+                                     th:text="${'(' + reservation.membership.membershipType.name + ')'}">Membership Type</small>
+                            </span>
+                            <span th:unless="${reservation.membership != null}" class="text-muted">N/A</span>
                           </td>
                           <td
                             th:text="${#temporals.format(reservation.reservationDate, 'dd-MM-yyyy HH:mm')}"
@@ -421,6 +430,10 @@
             <p>
               <strong>Reservation Date:</strong>
               <span id="modal-reservation-date">01-01-2023 14:30</span>
+            </p>
+            <p>
+              <strong>Membership:</strong>
+              <span id="modal-membership">Member information</span>
             </p>
 
             <h6 class="mt-4 mb-3">Status History</h6>
@@ -579,10 +592,11 @@
           const reservationId = button.getAttribute("data-reservation-id");
           const bookTitle = button.getAttribute("data-book-title");
           const reservationDate = button.getAttribute("data-reservation-date");
+          const membership = button.closest('tr').getAttribute("data-membership") || "N/A";
 
           document.getElementById("modal-book-title").textContent = bookTitle;
-          document.getElementById("modal-reservation-date").textContent =
-            reservationDate;
+          document.getElementById("modal-reservation-date").textContent = reservationDate;
+          document.getElementById("modal-membership").textContent = membership;
 
           // Reset and show loading spinner
           document.getElementById("status-history-loading").style.display =

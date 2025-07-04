@@ -101,4 +101,37 @@ public class PunishmentService {
     Punishment punishment = findById(id);
     punishmentRepository.delete(punishment);
   }
+
+  /**
+   * Check if a membership has an active punishment at the given date
+   * 
+   * @param membershipId The membership ID to check
+   * @param date         The date to check for active punishments
+   * @return true if there's an active punishment, false otherwise
+   */
+  public boolean hasPunishmentAt(Long membershipId, LocalDateTime date) {
+    return getActivePunishmentAt(membershipId, date) != null;
+  }
+
+  /**
+   * Get active punishment details for a membership at a specific date
+   * 
+   * @param membershipId The membership ID to check
+   * @param date         The date to check for active punishments
+   * @return The active Punishment or null if none exists
+   */
+  public Punishment getActivePunishmentAt(Long membershipId, LocalDateTime date) {
+    List<Punishment> punishments = punishmentRepository.findByMembershipId(membershipId);
+
+    for (Punishment punishment : punishments) {
+      LocalDateTime punishmentStart = punishment.getPunishmentDate();
+      LocalDateTime punishmentEnd = punishmentStart.plusSeconds((long) (punishment.getDurationHours() * 3600));
+
+      if (date.isAfter(punishmentStart) && date.isBefore(punishmentEnd)) {
+        return punishment;
+      }
+    }
+
+    return null;
+  }
 }

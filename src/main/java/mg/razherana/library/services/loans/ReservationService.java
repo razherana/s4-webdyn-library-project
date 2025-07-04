@@ -38,27 +38,16 @@ public class ReservationService {
   @Autowired
   private MembershipRepository membershipRepository;
 
+  // Make sure all public methods that return entities to the controller are
+  // marked as @Transactional(readOnly = true)
+  @Transactional(readOnly = true)
   public List<Reservation> findAll() {
-    return reservationRepository.findAllWithDetails();
+    return reservationRepository.findAll();
   }
 
+  @Transactional(readOnly = true)
   public Reservation findById(Long id) {
     return reservationRepository.findById(id).orElse(null);
-  }
-
-  public List<Reservation> search(String keyword) {
-    if (keyword == null || keyword.trim().isEmpty()) {
-      return findAll();
-    }
-    return reservationRepository.findByTitleOrAuthorContaining(keyword.trim());
-  }
-
-  public List<Reservation> filterByTakeHome(boolean takeHome) {
-    return reservationRepository.findByTakeHome(takeHome);
-  }
-
-  public List<Reservation> filterByStatus(String statusName) {
-    return reservationRepository.findByLatestStatus(statusName);
   }
 
   public ReservationStatusHistory getLatestStatus(Long reservationId) {
@@ -109,6 +98,7 @@ public class ReservationService {
     reservation.setTakeHome(takeHome);
     reservation.setReservationDate(reservationDateTime);
     reservation.setReservationStatusHistories(new ArrayList<>());
+    reservation.setMembership(membership);
 
     // Save reservation
     Reservation savedReservation = reservationRepository.save(reservation);
@@ -172,18 +162,9 @@ public class ReservationService {
   /**
    * Find pending reservations for a specific book
    */
+  @Transactional(readOnly = true)
   public List<Reservation> findPendingReservationsForBook(Long bookId) {
-    List<Reservation> result = new ArrayList<>();
-    List<Reservation> bookReservations = reservationRepository.findByBookId(bookId);
-
-    for (Reservation reservation : bookReservations) {
-      ReservationStatusHistory latestStatus = statusHistoryRepository.findLatestByReservationId(reservation.getId());
-      if (latestStatus != null && latestStatus.getReservationStatusType().getName().equals("Pending")) {
-        result.add(reservation);
-      }
-    }
-
-    return result;
+    return reservationRepository.findPendingReservationsForBook(bookId);
   }
 
   /**

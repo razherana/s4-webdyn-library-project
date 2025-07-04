@@ -17,7 +17,7 @@ public class PeopleService {
   private PeopleRepository peopleRepository;
 
   public List<People> findAll() {
-    return peopleRepository.findAll();
+    return peopleRepository.findAllWithMemberships();
   }
 
   public People findById(Long id) {

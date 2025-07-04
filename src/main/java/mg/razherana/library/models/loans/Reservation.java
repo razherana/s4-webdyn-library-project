@@ -21,16 +21,20 @@ import mg.razherana.library.models.books.Book;
 @Entity
 @Table(name = "reservations")
 @Data
-@ToString(exclude = "book")
-@EqualsAndHashCode(exclude = "book")
+@ToString(exclude = { "book", "membership" })
+@EqualsAndHashCode(exclude = { "book", "membership" })
 public class Reservation {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private long id;
 
-  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @ManyToOne(optional = false, fetch = FetchType.EAGER)
   @JoinColumn(name = "book_id", nullable = false)
   private Book book;
+
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(name = "membership_id", nullable = false)
+  private Membership membership;
 
   @OneToMany(mappedBy = "reservation", fetch = FetchType.LAZY)
   @OrderBy("statusDate DESC")

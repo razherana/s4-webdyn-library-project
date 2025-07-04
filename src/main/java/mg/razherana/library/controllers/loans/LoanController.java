@@ -25,10 +25,12 @@ import mg.razherana.library.models.books.Book;
 import mg.razherana.library.models.loans.Loan;
 import mg.razherana.library.models.loans.LoanStatusHistory;
 import mg.razherana.library.models.loans.LoanType;
+import mg.razherana.library.models.loans.Membership;
 import mg.razherana.library.models.loans.People;
 import mg.razherana.library.models.loans.Reservation;
 import mg.razherana.library.models.loans.ReturnedLoanState;
 import mg.razherana.library.models.loans.ReturnedLoanStateType;
+import mg.razherana.library.models.punishments.Punishment;
 import mg.razherana.library.models.punishments.PunishmentType;
 import mg.razherana.library.repositories.books.BookRepository;
 import mg.razherana.library.repositories.loans.LoanTypeRepository;
@@ -36,6 +38,7 @@ import mg.razherana.library.services.loans.LoanService;
 import mg.razherana.library.services.loans.PeopleService;
 import mg.razherana.library.services.loans.ReservationService;
 import mg.razherana.library.services.loans.ReturnedLoanStateService;
+import mg.razherana.library.services.punishments.PunishmentService;
 import mg.razherana.library.services.punishments.PunishmentTypeService;
 
 @Controller
@@ -63,6 +66,9 @@ public class LoanController {
   @Autowired
   private PunishmentTypeService punishmentTypeService;
 
+  @Autowired
+  private PunishmentService punishmentService;
+
   @GetMapping
   public String listLoans(Model model) {
     List<Loan> loans = loanService.findAll();
@@ -89,6 +95,18 @@ public class LoanController {
     Map<Long, Long> activeLoanCounts = loanService.getActiveLoanCountsForAllMemberships();
     Map<Long, Long> lateLoanCounts = loanService.getLateLoanCountsForAllMemberships();
 
+    // Get active punishments for all memberships
+    Map<Long, Punishment> activePunishments = new HashMap<>();
+    LocalDateTime now = LocalDateTime.now();
+    for (People person : people) {
+      for (Membership membership : person.getMemberships()) {
+        Punishment activePunishment = punishmentService.getActivePunishmentAt(membership.getId(), now);
+        if (activePunishment != null) {
+          activePunishments.put(membership.getId(), activePunishment);
+        }
+      }
+    }
+
     Set<Long> borrowedBookIds = loanService.getBorrowedBookIds();
 
     model.addAttribute("borrowedBookIds", borrowedBookIds);
@@ -97,6 +115,7 @@ public class LoanController {
     model.addAttribute("loanTypes", loanTypes);
     model.addAttribute("activeLoanCounts", activeLoanCounts);
     model.addAttribute("lateLoanCounts", lateLoanCounts);
+    model.addAttribute("activePunishments", activePunishments);
 
     return "loans/create";
   }
@@ -110,6 +129,20 @@ public class LoanController {
       RedirectAttributes redirectAttributes) {
 
     try {
+      // Check if member has an active punishment
+      LocalDateTime now = LocalDateTime.now();
+      if (punishmentService.hasPunishmentAt(membershipId, now)) {
+        Punishment activePunishment = punishmentService.getActivePunishmentAt(membershipId, now);
+        LocalDateTime endTime = activePunishment.getPunishmentDate()
+            .plusSeconds((long) (activePunishment.getDurationHours() * 3600));
+
+        redirectAttributes.addFlashAttribute("error",
+            "This member has an active punishment until " +
+                endTime.format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm")) +
+                ". Reason: " + activePunishment.getDescription());
+        return "redirect:/loans/create";
+      }
+
       // Check for pending reservations
       List<Reservation> pendingReservations = reservationService.findPendingReservationsForBook(bookId);
       if (!pendingReservations.isEmpty()) {

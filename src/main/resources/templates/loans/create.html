@@ -135,7 +135,12 @@
                                     data-home-limit=${membership.membershipType.maxBooksAllowedHome},
                                     data-library-limit=${membership.membershipType.maxBooksAllowedLibrary},
                                     data-active-loans=${activeLoanCounts.containsKey(membership.id) ? activeLoanCounts.get(membership.id) : 0},
-                                    data-late-loans=${lateLoanCounts.containsKey(membership.id) ? lateLoanCounts.get(membership.id) : 0}"
+                                    data-late-loans=${lateLoanCounts.containsKey(membership.id) ? lateLoanCounts.get(membership.id) : 0},
+                                    data-has-punishment=${activePunishments != null && activePunishments.containsKey(membership.id)},
+                                    data-punishment-end=${activePunishments != null && activePunishments.containsKey(membership.id) ? 
+                                     #temporals.format(activePunishments.get(membership.id).punishmentDate.plusHours(activePunishments.get(membership.id).durationHours), 'dd-MM-yyyy HH:mm') : ''},
+                                    data-punishment-reason=${activePunishments != null && activePunishments.containsKey(membership.id) ? 
+                                        activePunishments.get(membership.id).description : ''}"
                           >
                             Membership Type
                           </option>
@@ -159,6 +164,21 @@
                           <span class="badge bg-success" id="libraryLoansLimit"
                             >Library limit: 0</span
                           >
+                        </div>
+                      </div>
+                      <div
+                        id="punishmentWarning"
+                        class="alert alert-danger mt-2"
+                        style="display: none"
+                      >
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <span
+                          >This member has an active punishment until
+                          <span id="punishmentEndTime"></span
+                        ></span>
+                        <div class="mt-1">
+                          <strong>Reason:</strong>
+                          <span id="punishmentReason"></span>
                         </div>
                       </div>
                     </div>
@@ -430,6 +450,40 @@
         // Add event listeners
         membershipSelect.addEventListener("change", checkLoanLimits);
         loanTypeSelect.addEventListener("change", checkLoanLimits);
+      });
+
+      // Handle membership selection to check for punishments
+      document.addEventListener("DOMContentLoaded", function () {
+        const membershipSelect = document.getElementById("membershipId");
+        const punishmentWarning = document.getElementById("punishmentWarning");
+        const punishmentEndTime = document.getElementById("punishmentEndTime");
+        const punishmentReason = document.getElementById("punishmentReason");
+
+        membershipSelect.addEventListener("change", function () {
+          // Check for punishments
+          const selectedOption = membershipSelect.selectedOptions[0];
+          if (selectedOption && selectedOption.value) {
+            const hasPunishment =
+              selectedOption.getAttribute("data-has-punishment") === "true";
+
+            if (hasPunishment) {
+              punishmentEndTime.textContent = selectedOption.getAttribute(
+                "data-punishment-end"
+              );
+              punishmentReason.textContent = selectedOption.getAttribute(
+                "data-punishment-reason"
+              );
+              punishmentWarning.style.display = "block";
+              document.getElementById("submitLoanBtn").disabled = true;
+            } else {
+              punishmentWarning.style.display = "none";
+              // Only enable if no other restrictions apply
+              checkLoanLimits();
+            }
+          } else {
+            punishmentWarning.style.display = "none";
+          }
+        });
       });
     </script>
   </body>

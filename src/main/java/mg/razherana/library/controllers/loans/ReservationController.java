@@ -27,9 +27,11 @@ import mg.razherana.library.models.loans.Membership;
 import mg.razherana.library.models.loans.Reservation;
 import mg.razherana.library.models.loans.ReservationStatusType;
 import mg.razherana.library.models.loans.ReservationStatusHistory;
+import mg.razherana.library.models.punishments.Punishment;
 import mg.razherana.library.services.books.BookService;
 import mg.razherana.library.services.loans.MembershipService;
 import mg.razherana.library.services.loans.ReservationService;
+import mg.razherana.library.services.punishments.PunishmentService;
 import mg.razherana.library.repositories.loans.ReservationStatusTypeRepository;
 
 @Controller
@@ -48,9 +50,11 @@ public class ReservationController {
   @Autowired
   private ReservationStatusTypeRepository statusTypeRepository;
 
+  @Autowired
+  private PunishmentService punishmentService;
+
   @GetMapping("")
   public String list(Model model) {
-    // Initial load without filters
     List<Reservation> reservations = reservationService.findAll();
     List<ReservationStatusType> statusTypes = statusTypeRepository.findAll();
 
@@ -91,6 +95,19 @@ public class ReservationController {
       // Don't allow reservations in the past
       if (reservationDateTime.isBefore(LocalDateTime.now())) {
         redirectAttributes.addFlashAttribute("error", "Cannot make reservations in the past");
+        return "redirect:/reservations/add";
+      }
+
+      // Check if member has an active punishment at the reservation date
+      if (punishmentService.hasPunishmentAt(membershipId, reservationDateTime)) {
+        Punishment activePunishment = punishmentService.getActivePunishmentAt(membershipId, reservationDateTime);
+        LocalDateTime endTime = activePunishment.getPunishmentDate()
+            .plusSeconds((long) (activePunishment.getDurationHours() * 3600));
+
+        redirectAttributes.addFlashAttribute("error",
+            "This member has a punishment active at the requested reservation time (until " +
+                endTime.format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm")) +
+                "). Reason: " + activePunishment.getDescription());
         return "redirect:/reservations/add";
       }
 
