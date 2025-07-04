@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reservations - Library Management</title>
+
+    <link rel="stylesheet" href="/static/bs/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/static/fa/css/all.min.css" />
+    <link rel="stylesheet" href="/static/poppins/poppins.css" />
+    <link rel="stylesheet" href="/static/css/library.css" />
+    <style>
+      /* Additional styles for accordion sidebar */
+      .accordion-button {
+        padding: 0.8rem 1.25rem;
+        color: rgba(255, 255, 255, 0.8);
+        background-color: transparent;
+        box-shadow: none;
+      }
+
+      .accordion-button:not(.collapsed) {
+        color: white;
+        background-color: rgba(255, 255, 255, 0.1);
+        box-shadow: none;
+      }
+
+      .accordion-button::after {
+        filter: invert(1);
+        opacity: 0.5;
+      }
+
+      .accordion-button:not(.collapsed)::after {
+        filter: invert(1);
+        opacity: 0.8;
+      }
+
+      .sidebar .accordion {
+        --bs-accordion-bg: transparent;
+        --bs-accordion-border-color: transparent;
+        --bs-accordion-btn-focus-box-shadow: none;
+        --bs-accordion-active-bg: transparent;
+        --bs-accordion-active-color: white;
+      }
+
+      .sidebar .accordion-item {
+        background-color: transparent;
+        border: none;
+      }
+
+      .sidebar .accordion-body {
+        padding: 0;
+      }
+
+      .sidebar .nav-subitem .nav-link {
+        padding-left: 3.5rem;
+      }
+
+      .sidebar .nav-link.active-parent {
+        background-color: rgba(0, 123, 255, 0.3);
+        color: white;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="grid-container">
+      <!-- Sidebar -->
+      <th:block
+        th:replace="~{fragments/sidebar :: sidebar('loan-types')}"
+      ></th:block>
+
+      <!-- Main Content -->
+      <div class="main-content">
+        <button class="btn btn-primary d-md-none toggle-btn" type="button">
+          <i class="fas fa-bars"></i>
+        </button>
+
+        <!-- Flash Messages -->
+        <div
+          th:if="${success}"
+          class="alert alert-success alert-dismissible fade show mt-3"
+          role="alert"
+        >
+          <i class="fas fa-check-circle me-2"></i>
+          <span th:text="${success}">Success message</span>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+            aria-label="Close"
+          ></button>
+        </div>
+
+        <div
+          th:if="${error}"
+          class="alert alert-danger alert-dismissible fade show mt-3"
+          role="alert"
+        >
+          <i class="fas fa-exclamation-circle me-2"></i>
+          <span th:text="${error}">Error message</span>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+            aria-label="Close"
+          ></button>
+        </div>
+
+        <!-- Reservations List Section -->
+        <div class="container-fluid mt-4">
+          <div class="row">
+            <div class="col-12">
+              <div class="card">
+                <div
+                  class="card-header d-flex justify-content-between align-items-center"
+                >
+                  <h4 class="mb-0">
+                    <i class="fas fa-calendar-check me-2"></i>Reservations
+                  </h4>
+                  <a href="/reservations/add" class="btn btn-primary">
+                    <i class="fas fa-plus-circle me-2"></i>Add Reservation
+                  </a>
+                </div>
+
+                <!-- Filters Section -->
+                <div class="card-body border-bottom">
+                  <div class="row">
+                    <!-- Search -->
+                    <div class="col-md-6 mb-3">
+                      <div class="input-group">
+                        <input
+                          type="text"
+                          class="form-control"
+                          id="searchInput"
+                          placeholder="Search by book title or author..."
+                        />
+                        <button
+                          class="btn btn-outline-secondary"
+                          type="button"
+                          id="searchButton"
+                        >
+                          <i class="fas fa-search"></i>
+                        </button>
+                        <button
+                          id="clearSearchButton"
+                          class="btn btn-outline-danger"
+                          type="button"
+                          style="display: none"
+                        >
+                          <i class="fas fa-times"></i>
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- Filters -->
+                    <div class="col-md-6 mb-3">
+                      <div class="d-flex gap-2 justify-content-md-end">
+                        <div class="dropdown">
+                          <button
+                            class="btn btn-outline-secondary dropdown-toggle"
+                            type="button"
+                            id="locationFilterButton"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false"
+                          >
+                            <i class="fas fa-filter me-1"></i>
+                            Filter by Location
+                          </button>
+                          <ul
+                            class="dropdown-menu"
+                            aria-labelledby="locationFilterButton"
+                          >
+                            <li>
+                              <button
+                                class="dropdown-item location-filter"
+                                data-take-home="true"
+                              >
+                                Take Home Only
+                              </button>
+                            </li>
+                            <li>
+                              <button
+                                class="dropdown-item location-filter"
+                                data-take-home="false"
+                              >
+                                In-Library Only
+                              </button>
+                            </li>
+                            <li><hr class="dropdown-divider" /></li>
+                            <li>
+                              <button
+                                class="dropdown-item clear-location-filter"
+                              >
+                                Clear Filter
+                              </button>
+                            </li>
+                          </ul>
+                        </div>
+
+                        <div class="dropdown">
+                          <button
+                            class="btn btn-outline-secondary dropdown-toggle"
+                            type="button"
+                            id="statusFilterButton"
+                            data-bs-toggle="dropdown"
+                            aria-expanded="false"
+                          >
+                            <i class="fas fa-tasks me-1"></i>
+                            Filter by Status
+                          </button>
+                          <ul
+                            class="dropdown-menu"
+                            aria-labelledby="statusFilterButton"
+                          >
+                            <li th:each="statusType : ${statusTypes}">
+                              <button
+                                class="dropdown-item status-filter"
+                                th:data-status="${statusType.name}"
+                                th:text="${statusType.name}"
+                              >
+                                Status
+                              </button>
+                            </li>
+                            <li><hr class="dropdown-divider" /></li>
+                            <li>
+                              <button class="dropdown-item clear-status-filter">
+                                Clear Filter
+                              </button>
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Active Filters -->
+                  <div class="row">
+                    <div class="col-12">
+                      <div
+                        id="activeFilters"
+                        class="d-flex gap-2 align-items-center"
+                        style="display: none !important"
+                      >
+                        <span class="text-muted">Active filters:</span>
+
+                        <span
+                          id="searchBadge"
+                          class="badge rounded-pill bg-info"
+                          style="display: none"
+                        >
+                          Search: <span id="searchText"></span>
+                        </span>
+
+                        <span
+                          id="locationBadge"
+                          class="badge rounded-pill bg-info"
+                          style="display: none"
+                        >
+                          <span id="locationText"></span>
+                        </span>
+
+                        <span
+                          id="statusBadge"
+                          class="badge rounded-pill bg-info"
+                          style="display: none"
+                        >
+                          Status: <span id="statusText"></span>
+                        </span>
+
+                        <button
+                          id="clearAllFilters"
+                          class="btn btn-sm btn-outline-danger"
+                        >
+                          <i class="fas fa-times me-1"></i>Clear All
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="card-body">
+                  <div
+                    id="loadingIndicator"
+                    style="display: none"
+                    class="text-center my-4"
+                  >
+                    <div class="spinner-border text-primary" role="status">
+                      <span class="visually-hidden">Loading...</span>
+                    </div>
+                  </div>
+
+                  <div class="table-responsive">
+                    <table class="table table-hover">
+                      <thead>
+                        <tr>
+                          <th>ID</th>
+                          <th>Book</th>
+                          <th>Author</th>
+                          <th>Membership</th>
+                          <th>Date & Time</th>
+                          <th>Location</th>
+                          <th>Status</th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody id="reservationTableBody">
+                        <!-- We're using the existing rows but will manipulate them with JS -->
+                        <tr
+                          th:each="reservation : ${reservations}"
+                          th:attr="data-reservation-id=${reservation.id}, data-book-title=${reservation.book.title}, data-author=${reservation.book.author != null ? reservation.book.author.name : 'N/A'}, data-membership=${reservation.membership != null ? (reservation.membership.people != null ? reservation.membership.people.name : 'Unknown') : 'N/A'}, data-take-home=${reservation.takeHome}, data-status=${!reservation.reservationStatusHistories.empty ? reservation.reservationStatusHistories[0].reservationStatusType.name : 'Unknown'}"
+                          class="reservation-row"
+                        >
+                          <td th:text="${reservation.id}">1</td>
+                          <td th:text="${reservation.book.title}">
+                            Book Title
+                          </td>
+                          <td
+                            th:text="${reservation.book.author != null ? reservation.book.author.name : 'N/A'}"
+                          >
+                            Author Name
+                          </td>
+                          <td>
+                            <span th:if="${reservation.membership != null}">
+                              <span th:text="${reservation.membership.people != null ? reservation.membership.people.name : 'Unknown Member'}">Member Name</span>
+                              <small class="text-muted d-block" th:if="${reservation.membership.membershipType != null}" 
+                                     th:text="${'(' + reservation.membership.membershipType.name + ')'}">Membership Type</small>
+                            </span>
+                            <span th:unless="${reservation.membership != null}" class="text-muted">N/A</span>
+                          </td>
+                          <td
+                            th:text="${#temporals.format(reservation.reservationDate, 'dd-MM-yyyy HH:mm')}"
+                          >
+                            01-01-2023 14:30
+                          </td>
+                          <td>
+                            <span
+                              th:if="${reservation.takeHome}"
+                              class="badge bg-warning text-dark"
+                              >Take Home</span
+                            >
+                            <span
+                              th:unless="${reservation.takeHome}"
+                              class="badge bg-info"
+                              >In-Library</span
+                            >
+                          </td>
+                          <td>
+                            <span
+                              th:if="${!reservation.reservationStatusHistories.empty}"
+                              th:with="latestStatus=${reservation.reservationStatusHistories[0]}"
+                              th:class="${latestStatus.reservationStatusType.name == 'Pending' ? 'badge bg-warning text-dark' : 
+                                        latestStatus.reservationStatusType.name == 'Cancelled' ? 'badge bg-danger' : 
+                                        'badge bg-success'}"
+                              th:text="${latestStatus.reservationStatusType.name}"
+                            >
+                              Status
+                            </span>
+                            <span
+                              th:if="${reservation.reservationStatusHistories.empty}"
+                              class="badge bg-secondary"
+                              >Unknown</span
+                            >
+                          </td>
+                          <td>
+                            <button
+                              class="btn btn-sm btn-outline-info"
+                              data-bs-toggle="modal"
+                              data-bs-target="#viewDetailsModal"
+                              th:attr="data-reservation-id=${reservation.id},
+                                            data-book-title=${reservation.book.title},
+                                            data-reservation-date=${#temporals.format(reservation.reservationDate, 'dd-MM-yyyy HH:mm')}"
+                            >
+                              <i class="fas fa-eye"></i>
+                            </button>
+                            <button
+                              class="btn btn-sm btn-outline-primary"
+                              data-bs-toggle="modal"
+                              data-bs-target="#updateStatusModal"
+                              th:attr="data-reservation-id=${reservation.id},
+                                      data-book-title=${reservation.book.title}"
+                            >
+                              <i class="fas fa-edit"></i> Status
+                            </button>
+                          </td>
+                        </tr>
+                        <tr id="noResultsRow" style="display: none">
+                          <td colspan="7" class="text-center">
+                            <div class="alert alert-info mb-0">
+                              <i class="fas fa-info-circle me-2"></i>No
+                              reservations found matching your criteria.
+                            </div>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                <div class="card-footer text-muted">
+                  <i class="fas fa-list me-2"></i>Total Reservations:
+                  <span id="reservationCount" th:text="${reservations.size()}"
+                    >0</span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- View Details Modal -->
+    <div
+      class="modal fade"
+      id="viewDetailsModal"
+      tabindex="-1"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Reservation Details</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <h6 id="modal-book-title" class="mb-3">Book Title</h6>
+            <p>
+              <strong>Reservation Date:</strong>
+              <span id="modal-reservation-date">01-01-2023 14:30</span>
+            </p>
+            <p>
+              <strong>Membership:</strong>
+              <span id="modal-membership">Member information</span>
+            </p>
+
+            <h6 class="mt-4 mb-3">Status History</h6>
+            <div id="status-history-loading" class="text-center">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+            </div>
+            <div id="status-history-content" style="display: none">
+              <ul class="list-group">
+                <!-- Status history will be populated via JavaScript -->
+              </ul>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Update Status Modal -->
+    <div
+      class="modal fade"
+      id="updateStatusModal"
+      tabindex="-1"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Update Reservation Status</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <form th:action="@{/reservations/update-status}" method="post">
+            <div class="modal-body">
+              <input type="hidden" id="reservation-id" name="reservationId" />
+              <h6 id="update-modal-book-title" class="mb-3">Book Title</h6>
+
+              <div class="mb-3">
+                <label for="statusTypeId" class="form-label">New Status</label>
+                <select
+                  class="form-select"
+                  id="statusTypeId"
+                  name="statusTypeId"
+                  required
+                >
+                  <option value="">-- Select Status --</option>
+                  <option
+                    th:each="statusType : ${statusTypes}"
+                    th:value="${statusType.id}"
+                    th:text="${statusType.name}"
+                  >
+                    Status
+                  </option>
+                </select>
+              </div>
+
+              <div class="form-text text-muted">
+                <i class="fas fa-info-circle me-1"></i>
+                This will add a new status history entry with the current date
+                and time.
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-dismiss="modal"
+              >
+                Cancel
+              </button>
+              <button type="submit" class="btn btn-primary">
+                Update Status
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script src="/static/bs/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/fa/js/all.min.js"></script>
+    <script>
+      // Toggle sidebar on mobile
+      document
+        .querySelector(".toggle-btn")
+        ?.addEventListener("click", function () {
+          document.querySelector(".sidebar").classList.toggle("active");
+          document.querySelector(".main-content").classList.toggle("active");
+        });
+
+      // Set active accordion item based on current page
+      document.addEventListener("DOMContentLoaded", function () {
+        const currentPath = window.location.pathname;
+        const navLinks = document.querySelectorAll(".sidebar .nav-link");
+
+        // Find the active link
+        let activeLink = null;
+        navLinks.forEach((link) => {
+          const href = link.getAttribute("href");
+          if (href && currentPath.startsWith(href) && href !== "/") {
+            // If we have a match that's not just the root
+            if (
+              !activeLink ||
+              href.length > activeLink.getAttribute("href").length
+            ) {
+              // Take the longer match (more specific)
+              activeLink = link;
+            }
+          }
+        });
+
+        if (activeLink) {
+          // Mark the link as active
+          activeLink.classList.add("active");
+
+          // Find parent accordion and expand it
+          const accordionBody = activeLink.closest(".accordion-collapse");
+          if (accordionBody) {
+            const accordionId = accordionBody.id;
+            const accordionButton = document.querySelector(
+              `[data-bs-target="#${accordionId}"]`
+            );
+
+            // Add active-parent class to the button
+            if (accordionButton) {
+              accordionButton.classList.add("active-parent");
+            }
+
+            // Create a new bootstrap.Collapse instance and show it
+            const bsCollapse = new bootstrap.Collapse(accordionBody, {
+              toggle: false,
+            });
+            bsCollapse.show();
+          }
+        }
+      });
+
+      // Handle reservation details modal
+      document
+        .getElementById("viewDetailsModal")
+        .addEventListener("show.bs.modal", function (event) {
+          const button = event.relatedTarget;
+          const reservationId = button.getAttribute("data-reservation-id");
+          const bookTitle = button.getAttribute("data-book-title");
+          const reservationDate = button.getAttribute("data-reservation-date");
+          const membership = button.closest('tr').getAttribute("data-membership") || "N/A";
+
+          document.getElementById("modal-book-title").textContent = bookTitle;
+          document.getElementById("modal-reservation-date").textContent = reservationDate;
+          document.getElementById("modal-membership").textContent = membership;
+
+          // Reset and show loading spinner
+          document.getElementById("status-history-loading").style.display =
+            "block";
+          document.getElementById("status-history-content").style.display =
+            "none";
+          const historyList = document.querySelector(
+            "#status-history-content .list-group"
+          );
+          if (historyList) {
+            historyList.innerHTML = "";
+          }
+
+          // Fetch status history via AJAX
+          fetch(`/reservations/status-history/${reservationId}`)
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error("Network response was not ok");
+              }
+              return response.json();
+            })
+            .then((data) => {
+              document.getElementById("status-history-loading").style.display =
+                "none";
+              document.getElementById("status-history-content").style.display =
+                "block";
+
+              const historyList = document.querySelector(
+                "#status-history-content .list-group"
+              );
+
+              if (data.length === 0) {
+                historyList.innerHTML =
+                  '<li class="list-group-item text-muted">No status history available</li>';
+              } else {
+                data.forEach((status) => {
+                  const listItem = document.createElement("li");
+                  listItem.className = "list-group-item";
+
+                  const statusBadge = document.createElement("span");
+                  statusBadge.className =
+                    status.statusType === "Pending"
+                      ? "badge bg-warning text-dark me-2"
+                      : "badge bg-success me-2";
+                  statusBadge.textContent = status.statusType;
+
+                  const statusDate = document.createElement("small");
+                  statusDate.className = "text-muted";
+                  statusDate.textContent = status.date;
+
+                  listItem.appendChild(statusBadge);
+                  listItem.appendChild(document.createTextNode(" "));
+                  listItem.appendChild(statusDate);
+
+                  historyList.appendChild(listItem);
+                });
+              }
+            })
+            .catch((error) => {
+              document.getElementById("status-history-loading").style.display =
+                "none";
+              document.getElementById("status-history-content").style.display =
+                "block";
+              document.querySelector(
+                "#status-history-content .list-group"
+              ).innerHTML = `<li class="list-group-item text-danger">Error loading status history: ${error.message}</li>`;
+            });
+        });
+
+      // Handle update status modal
+      document
+        .getElementById("updateStatusModal")
+        .addEventListener("show.bs.modal", function (event) {
+          const button = event.relatedTarget;
+          const reservationId = button.getAttribute("data-reservation-id");
+          const bookTitle = button.getAttribute("data-book-title");
+
+          document.getElementById("reservation-id").value = reservationId;
+          document.getElementById("update-modal-book-title").textContent =
+            bookTitle;
+        });
+
+      // Client-side filtering functionality
+      document.addEventListener("DOMContentLoaded", function () {
+        // Get all filter elements
+        const searchInput = document.getElementById("searchInput");
+        const searchButton = document.getElementById("searchButton");
+        const clearSearchButton = document.getElementById("clearSearchButton");
+        const locationFilters = document.querySelectorAll(".location-filter");
+        const clearLocationFilter = document.querySelector(
+          ".clear-location-filter"
+        );
+        const statusFilters = document.querySelectorAll(".status-filter");
+        const clearStatusFilter = document.querySelector(
+          ".clear-status-filter"
+        );
+        const clearAllFilters = document.getElementById("clearAllFilters");
+
+        // Filter badges
+        const activeFilters = document.getElementById("activeFilters");
+        const searchBadge = document.getElementById("searchBadge");
+        const searchText = document.getElementById("searchText");
+        const locationBadge = document.getElementById("locationBadge");
+        const locationText = document.getElementById("locationText");
+        const statusBadge = document.getElementById("statusBadge");
+        const statusText = document.getElementById("statusText");
+
+        // Reservation rows and counter
+        const reservationRows = document.querySelectorAll(".reservation-row");
+        const noResultsRow = document.getElementById("noResultsRow");
+        const reservationCount = document.getElementById("reservationCount");
+
+        // Filter state
+        let currentSearchTerm = "";
+        let currentTakeHome = null;
+        let currentStatus = null;
+
+        // Update filter badges visibility
+        function updateFilterBadges() {
+          const hasFilters =
+            currentSearchTerm || currentTakeHome !== null || currentStatus;
+
+          activeFilters.style.display = hasFilters ? "flex" : "none";
+
+          searchBadge.style.display = currentSearchTerm
+            ? "inline-block"
+            : "none";
+          searchText.textContent = currentSearchTerm;
+
+          locationBadge.style.display =
+            currentTakeHome !== null ? "inline-block" : "none";
+          locationText.textContent =
+            currentTakeHome === true
+              ? "Take Home Only"
+              : currentTakeHome === false
+              ? "In-Library Only"
+              : "";
+
+          statusBadge.style.display = currentStatus ? "inline-block" : "none";
+          statusText.textContent = currentStatus || "";
+        }
+
+        // Apply all filters
+        function applyFilters() {
+          let visibleCount = 0;
+
+          reservationRows.forEach((row) => {
+            const bookTitle = row.getAttribute("data-book-title").toLowerCase();
+            const author = row.getAttribute("data-author").toLowerCase();
+            const takeHome = row.getAttribute("data-take-home") === "true";
+            const status = row.getAttribute("data-status");
+
+            // Check if the row matches all active filters
+            const matchesSearch =
+              !currentSearchTerm ||
+              bookTitle.includes(currentSearchTerm.toLowerCase()) ||
+              author.includes(currentSearchTerm.toLowerCase());
+
+            const matchesTakeHome =
+              currentTakeHome === null || takeHome === currentTakeHome;
+
+            const matchesStatus = !currentStatus || status === currentStatus;
+
+            // Show/hide the row based on filter matches
+            if (matchesSearch && matchesTakeHome && matchesStatus) {
+              row.style.display = "";
+              visibleCount++;
+            } else {
+              row.style.display = "none";
+            }
+          });
+
+          // Show "no results" message if needed
+          noResultsRow.style.display = visibleCount === 0 ? "" : "none";
+
+          // Update the counter
+          reservationCount.textContent = visibleCount;
+
+          // Update filter badges
+          updateFilterBadges();
+        }
+
+        // Clear all filters
+        function clearFilters() {
+          currentSearchTerm = "";
+          currentTakeHome = null;
+          currentStatus = null;
+
+          searchInput.value = "";
+          clearSearchButton.style.display = "none";
+
+          applyFilters();
+        }
+
+        // Event Listeners
+        searchButton.addEventListener("click", function () {
+          currentSearchTerm = searchInput.value.trim();
+          clearSearchButton.style.display = currentSearchTerm
+            ? "block"
+            : "none";
+          applyFilters();
+        });
+
+        searchInput.addEventListener("keyup", function (event) {
+          if (event.key === "Enter") {
+            currentSearchTerm = searchInput.value.trim();
+            clearSearchButton.style.display = currentSearchTerm
+              ? "block"
+              : "none";
+            applyFilters();
+          }
+        });
+
+        clearSearchButton.addEventListener("click", function () {
+          searchInput.value = "";
+          currentSearchTerm = "";
+          clearSearchButton.style.display = "none";
+          applyFilters();
+        });
+
+        locationFilters.forEach((filter) => {
+          filter.addEventListener("click", function () {
+            currentTakeHome = filter.getAttribute("data-take-home") === "true";
+            applyFilters();
+          });
+        });
+
+        clearLocationFilter.addEventListener("click", function () {
+          currentTakeHome = null;
+          applyFilters();
+        });
+
+        statusFilters.forEach((filter) => {
+          filter.addEventListener("click", function () {
+            currentStatus = filter.getAttribute("data-status");
+            applyFilters();
+          });
+        });
+
+        clearStatusFilter.addEventListener("click", function () {
+          currentStatus = null;
+          applyFilters();
+        });
+
+        clearAllFilters.addEventListener("click", clearFilters);
+
+        // Initialize
+        updateFilterBadges();
+      });
+    </script>
+  </body>
+</html>

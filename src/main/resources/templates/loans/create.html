@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Create Loan - Library Management</title>
+
+    <link rel="stylesheet" href="/static/bs/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/static/fa/css/all.min.css" />
+    <link rel="stylesheet" href="/static/poppins/poppins.css" />
+    <link rel="stylesheet" href="/static/css/library.css" />
+  </head>
+  <body>
+    <div class="grid-container">
+      <!-- Sidebar -->
+      <th:block
+        th:replace="~{fragments/sidebar :: sidebar('loan-types')}"
+      ></th:block>
+
+      <!-- Main Content -->
+      <div class="main-content">
+        <button class="btn btn-primary d-md-none toggle-btn" type="button">
+          <i class="fas fa-bars"></i>
+        </button>
+
+        <!-- Flash Messages -->
+        <div
+          th:if="${success}"
+          class="alert alert-success alert-dismissible fade show mt-3"
+          role="alert"
+        >
+          <i class="fas fa-check-circle me-2"></i>
+          <span th:text="${success}">Success message</span>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+            aria-label="Close"
+          ></button>
+        </div>
+
+        <div
+          th:if="${error}"
+          class="alert alert-danger alert-dismissible fade show mt-3"
+          role="alert"
+        >
+          <i class="fas fa-exclamation-circle me-2"></i>
+          <span th:text="${error}">Error message</span>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+            aria-label="Close"
+          ></button>
+        </div>
+
+        <!-- Pending Reservation Warning -->
+        <div
+          th:if="${pendingReservation}"
+          class="alert alert-warning alert-dismissible fade show mt-3"
+          role="alert"
+        >
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          <strong>Warning:</strong> There is a pending reservation for this
+          book.
+          <div class="mt-2">
+            <form
+              th:action="@{/reservations/cancel/{id}(id=${pendingReservation.id})}"
+              method="post"
+              class="d-inline"
+            >
+              <button type="submit" class="btn btn-sm btn-outline-danger">
+                <i class="fas fa-times me-2"></i>Cancel Reservation
+              </button>
+            </form>
+            <button
+              type="button"
+              class="btn btn-sm btn-outline-secondary ms-2"
+              data-bs-dismiss="alert"
+            >
+              Proceed Anyway
+            </button>
+          </div>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+            aria-label="Close"
+          ></button>
+        </div>
+
+        <!-- Create Loan Form -->
+        <div class="container-fluid mt-4">
+          <div class="row">
+            <div class="col-12 col-md-8 mx-auto">
+              <div class="card">
+                <div
+                  class="card-header d-flex justify-content-between align-items-center"
+                >
+                  <h4 class="mb-0">
+                    <i class="fas fa-plus-circle me-2"></i>Create New Loan
+                  </h4>
+                  <a href="/loans" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Loans
+                  </a>
+                </div>
+                <div class="card-body">
+                  <form
+                    th:action="@{/loans/create}"
+                    method="post"
+                    id="loanForm"
+                  >
+                    <!-- Membership Selection -->
+                    <div class="mb-4">
+                      <label for="membershipId" class="form-label">
+                        Member <span class="text-danger">*</span>
+                      </label>
+                      <select
+                        class="form-select"
+                        id="membershipId"
+                        name="membershipId"
+                        required
+                      >
+                        <option value="">-- Select Member --</option>
+                        <optgroup
+                          th:each="person : ${people}"
+                          th:label="${person.name}"
+                        >
+                          <option
+                            th:each="membership : ${person.memberships}"
+                            th:if="${membership.endDate.isAfter(#temporals.createToday())}"
+                            th:value="${membership.id}"
+                            th:text="${membership.membershipType.name + ' (valid until ' + #temporals.format(membership.endDate, 'dd-MM-yyyy') + ')'}"
+                            th:attr="data-membership-type=${membership.membershipType.id},
+                                    data-home-limit=${membership.membershipType.maxBooksAllowedHome},
+                                    data-library-limit=${membership.membershipType.maxBooksAllowedLibrary},
+                                    data-active-loans=${activeLoanCounts.containsKey(membership.id) ? activeLoanCounts.get(membership.id) : 0},
+                                    data-late-loans=${lateLoanCounts.containsKey(membership.id) ? lateLoanCounts.get(membership.id) : 0},
+                                    data-has-punishment=${activePunishments != null && activePunishments.containsKey(membership.id)},
+                                    data-punishment-end=${activePunishments != null && activePunishments.containsKey(membership.id) ? 
+                                     #temporals.format(activePunishments.get(membership.id).punishmentDate.plusHours(activePunishments.get(membership.id).durationHours), 'dd-MM-yyyy HH:mm') : ''},
+                                    data-punishment-reason=${activePunishments != null && activePunishments.containsKey(membership.id) ? 
+                                        activePunishments.get(membership.id).description : ''}"
+                          >
+                            Membership Type
+                          </option>
+                        </optgroup>
+                      </select>
+                      <div
+                        id="membershipInfo"
+                        class="form-text mt-2"
+                        style="display: none"
+                      >
+                        <div class="d-flex gap-2 flex-wrap">
+                          <span class="badge bg-info" id="activeLoansInfo"
+                            >Active loans: 0</span
+                          >
+                          <span class="badge bg-danger" id="lateLoansInfo"
+                            >Late loans: 0</span
+                          >
+                          <span class="badge bg-success" id="homeLoansLimit"
+                            >Home limit: 0</span
+                          >
+                          <span class="badge bg-success" id="libraryLoansLimit"
+                            >Library limit: 0</span
+                          >
+                        </div>
+                      </div>
+                      <div
+                        id="punishmentWarning"
+                        class="alert alert-danger mt-2"
+                        style="display: none"
+                      >
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <span
+                          >This member has an active punishment until
+                          <span id="punishmentEndTime"></span
+                        ></span>
+                        <div class="mt-1">
+                          <strong>Reason:</strong>
+                          <span id="punishmentReason"></span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Book Selection -->
+                    <div class="mb-4">
+                      <label for="bookId" class="form-label">
+                        Book <span class="text-danger">*</span>
+                      </label>
+                      <div class="d-flex align-items-center mb-2">
+                        <div class="form-check form-switch">
+                          <input
+                            class="form-check-input"
+                            type="checkbox"
+                            id="showOnlyAvailable"
+                            checked
+                          />
+                          <label
+                            class="form-check-label"
+                            for="showOnlyAvailable"
+                            >Show only available books</label
+                          >
+                        </div>
+                      </div>
+                      <select
+                        class="form-select"
+                        id="bookId"
+                        name="bookId"
+                        required
+                      >
+                        <option value="">-- Select Book --</option>
+                        <option
+                          th:each="book : ${books}"
+                          th:value="${book.id}"
+                          th:text="${book.title + (book.author != null ? ' - ' + book.author.name : '')}"
+                          th:attr="data-available=${borrowedBookIds != null && !borrowedBookIds.contains(book.id)}"
+                          th:style="${borrowedBookIds != null && borrowedBookIds.contains(book.id) ? 'color: #aaa' : ''}"
+                        >
+                          Book Title - Author
+                        </option>
+                      </select>
+                      <div class="form-text">
+                        <small class="text-muted">
+                          Books in gray are currently loaned out
+                        </small>
+                      </div>
+                    </div>
+
+                    <!-- Loan Type -->
+                    <div class="mb-4">
+                      <label for="loanTypeId" class="form-label">
+                        Loan Type <span class="text-danger">*</span>
+                      </label>
+                      <select
+                        class="form-select"
+                        id="loanTypeId"
+                        name="loanTypeId"
+                        required
+                      >
+                        <option value="">-- Select Loan Type --</option>
+                        <option
+                          th:each="loanType : ${loanTypes}"
+                          th:value="${loanType.id}"
+                          th:text="${loanType.name}"
+                          th:attr="data-home=${loanType.name.toLowerCase().contains('home')}"
+                        >
+                          Loan Type
+                        </option>
+                      </select>
+                      <div
+                        id="loanLimitWarning"
+                        class="alert alert-danger mt-2"
+                        style="display: none"
+                      >
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        <span id="loanLimitWarningText"></span>
+                      </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex justify-content-end gap-2 mt-4">
+                      <a href="/loans" class="btn btn-secondary">Cancel</a>
+                      <button
+                        type="submit"
+                        class="btn btn-primary"
+                        id="submitLoanBtn"
+                      >
+                        <i class="fas fa-save me-2"></i>Create Loan
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/static/bs/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/fa/js/all.min.js"></script>
+    <script>
+      // Toggle sidebar on mobile
+      document
+        .querySelector(".toggle-btn")
+        ?.addEventListener("click", function () {
+          document.querySelector(".sidebar").classList.toggle("active");
+          document.querySelector(".main-content").classList.toggle("active");
+        });
+
+      // Set active accordion item based on current page
+      document.addEventListener("DOMContentLoaded", function () {
+        const currentPath = window.location.pathname;
+        const navLinks = document.querySelectorAll(".sidebar .nav-link");
+
+        // Find the active link
+        let activeLink = null;
+        navLinks.forEach((link) => {
+          const href = link.getAttribute("href");
+          if (href && currentPath.startsWith(href) && href !== "/") {
+            // If we have a match that's not just the root
+            if (
+              !activeLink ||
+              href.length > activeLink.getAttribute("href").length
+            ) {
+              // Take the longer match (more specific)
+              activeLink = link;
+            }
+          }
+        });
+
+        if (activeLink) {
+          // Mark the link as active
+          activeLink.classList.add("active");
+
+          // Find parent accordion and expand it
+          const accordionBody = activeLink.closest(".accordion-collapse");
+          if (accordionBody) {
+            const accordionId = accordionBody.id;
+            const accordionButton = document.querySelector(
+              `[data-bs-target="#${accordionId}"]`
+            );
+
+            // Add active-parent class to the button
+            if (accordionButton) {
+              accordionButton.classList.add("active-parent");
+            }
+
+            // Create a new bootstrap.Collapse instance and show it
+            const bsCollapse = new bootstrap.Collapse(accordionBody, {
+              toggle: false,
+            });
+            bsCollapse.show();
+          }
+        }
+      });
+
+      // Handle book availability filtering
+      document.addEventListener("DOMContentLoaded", function () {
+        const showOnlyAvailableCheckbox =
+          document.getElementById("showOnlyAvailable");
+        const bookSelect = document.getElementById("bookId");
+        const bookOptions = Array.from(bookSelect.options).slice(1); // Skip the first placeholder option
+
+        // Function to filter books based on availability
+        function filterBooks() {
+          const showOnlyAvailable = showOnlyAvailableCheckbox.checked;
+
+          // First, remove all options except the placeholder
+          while (bookSelect.options.length > 1) {
+            bookSelect.remove(1);
+          }
+
+          // Then add back the ones that match the filter
+          for (const option of bookOptions) {
+            if (
+              !showOnlyAvailable ||
+              option.getAttribute("data-available") === "true"
+            ) {
+              bookSelect.add(option.cloneNode(true));
+            }
+          }
+        }
+
+        // Initial filter
+        filterBooks();
+
+        // Add event listener for checkbox changes
+        showOnlyAvailableCheckbox.addEventListener("change", filterBooks);
+      });
+
+      // Handle membership limit checks
+      document.addEventListener("DOMContentLoaded", function () {
+        const membershipSelect = document.getElementById("membershipId");
+        const loanTypeSelect = document.getElementById("loanTypeId");
+        const submitButton = document.getElementById("submitLoanBtn");
+        const membershipInfo = document.getElementById("membershipInfo");
+        const activeLoansInfo = document.getElementById("activeLoansInfo");
+        const lateLoansInfo = document.getElementById("lateLoansInfo");
+        const homeLoansLimit = document.getElementById("homeLoansLimit");
+        const libraryLoansLimit = document.getElementById("libraryLoansLimit");
+        const loanLimitWarning = document.getElementById("loanLimitWarning");
+        const loanLimitWarningText = document.getElementById(
+          "loanLimitWarningText"
+        );
+
+        function checkLoanLimits() {
+          // Hide warning by default
+          loanLimitWarning.style.display = "none";
+          submitButton.disabled = false;
+
+          const membershipOption = membershipSelect.selectedOptions[0];
+          const loanTypeOption = loanTypeSelect.selectedOptions[0];
+
+          // If either isn't selected yet, do nothing
+          if (
+            !membershipOption ||
+            membershipOption.value === "" ||
+            !loanTypeOption ||
+            loanTypeOption.value === ""
+          ) {
+            membershipInfo.style.display = "none";
+            return;
+          }
+
+          // Show membership info
+          membershipInfo.style.display = "block";
+
+          // Get membership data
+          const activeLoans = parseInt(
+            membershipOption.getAttribute("data-active-loans") || "0"
+          );
+          const lateLoans = parseInt(
+            membershipOption.getAttribute("data-late-loans") || "0"
+          );
+          const homeLimit = parseInt(
+            membershipOption.getAttribute("data-home-limit") || "0"
+          );
+          const libraryLimit = parseInt(
+            membershipOption.getAttribute("data-library-limit") || "0"
+          );
+
+          // Update info badges
+          activeLoansInfo.textContent = `Active loans: ${activeLoans}`;
+          lateLoansInfo.textContent = `Late loans: ${lateLoans}`;
+          homeLoansLimit.textContent = `Home limit: ${homeLimit}`;
+          libraryLoansLimit.textContent = `Library limit: ${libraryLimit}`;
+
+          // Check if loan type is for home or library
+          const isHomeType =
+            loanTypeOption.getAttribute("data-home") === "true";
+          const relevantLimit = isHomeType ? homeLimit : libraryLimit;
+
+          // Check if exceeding limits
+          if (lateLoans > 0) {
+            loanLimitWarning.style.display = "block";
+            loanLimitWarningText.textContent =
+              "This member has late loans and cannot borrow more books until they are returned.";
+            submitButton.disabled = true;
+          } else if (activeLoans >= relevantLimit) {
+            loanLimitWarning.style.display = "block";
+            loanLimitWarningText.textContent = `This member has reached the maximum number of ${
+              isHomeType ? "home" : "library"
+            } loans (${relevantLimit}).`;
+            submitButton.disabled = true;
+          }
+        }
+
+        // Add event listeners
+        membershipSelect.addEventListener("change", checkLoanLimits);
+        loanTypeSelect.addEventListener("change", checkLoanLimits);
+      });
+
+      // Handle membership selection to check for punishments
+      document.addEventListener("DOMContentLoaded", function () {
+        const membershipSelect = document.getElementById("membershipId");
+        const punishmentWarning = document.getElementById("punishmentWarning");
+        const punishmentEndTime = document.getElementById("punishmentEndTime");
+        const punishmentReason = document.getElementById("punishmentReason");
+
+        membershipSelect.addEventListener("change", function () {
+          // Check for punishments
+          const selectedOption = membershipSelect.selectedOptions[0];
+          if (selectedOption && selectedOption.value) {
+            const hasPunishment =
+              selectedOption.getAttribute("data-has-punishment") === "true";
+
+            if (hasPunishment) {
+              punishmentEndTime.textContent = selectedOption.getAttribute(
+                "data-punishment-end"
+              );
+              punishmentReason.textContent = selectedOption.getAttribute(
+                "data-punishment-reason"
+              );
+              punishmentWarning.style.display = "block";
+              document.getElementById("submitLoanBtn").disabled = true;
+            } else {
+              punishmentWarning.style.display = "none";
+              // Only enable if no other restrictions apply
+              checkLoanLimits();
+            }
+          } else {
+            punishmentWarning.style.display = "none";
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

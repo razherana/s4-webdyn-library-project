@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Loan Status Types - Library Management</title>
+
+    <link rel="stylesheet" href="/static/bs/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/static/fa/css/all.min.css" />
+    <link rel="stylesheet" href="/static/poppins/poppins.css" />
+    <link rel="stylesheet" href="/static/css/library.css" />
+  </head>
+  <body>
+    <div class="grid-container">
+      <!-- Sidebar -->
+      <th:block
+        th:replace="~{fragments/sidebar :: sidebar('loan-types')}"
+      ></th:block>
+
+      <!-- Main Content -->
+      <div class="main-content">
+        <button class="btn btn-primary d-md-none toggle-btn" type="button">
+          <i class="fas fa-bars"></i>
+        </button>
+
+        <!-- Flash Messages -->
+        <div
+          th:if="${success}"
+          class="alert alert-success alert-dismissible fade show mt-3"
+          role="alert"
+        >
+          <i class="fas fa-check-circle me-2"></i>
+          <span th:text="${success}">Success message</span>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+            aria-label="Close"
+          ></button>
+        </div>
+
+        <div
+          th:if="${error}"
+          class="alert alert-danger alert-dismissible fade show mt-3"
+          role="alert"
+        >
+          <i class="fas fa-exclamation-circle me-2"></i>
+          <span th:text="${error}">Error message</span>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+            aria-label="Close"
+          ></button>
+        </div>
+
+        <!-- Status Types List Section -->
+        <div class="container-fluid mt-4">
+          <div class="row">
+            <div class="col-12">
+              <div class="card">
+                <div
+                  class="card-header d-flex justify-content-between align-items-center"
+                >
+                  <h4 class="mb-0">
+                    <i class="fas fa-tag me-2"></i>Loan Status Types
+                  </h4>
+                  <a href="/loan-status-types/add" class="btn btn-primary">
+                    <i class="fas fa-plus-circle me-2"></i>Add New Status Type
+                  </a>
+                </div>
+                <div class="card-body">
+                  <div
+                    class="alert alert-info"
+                    th:if="${#lists.isEmpty(statusTypes)}"
+                  >
+                    <i class="fas fa-info-circle me-2"></i>No loan status types
+                    found.
+                  </div>
+
+                  <div
+                    class="table-responsive"
+                    th:if="${not #lists.isEmpty(statusTypes)}"
+                  >
+                    <table class="table table-hover">
+                      <thead>
+                        <tr>
+                          <th>ID</th>
+                          <th>Name</th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr th:each="statusType : ${statusTypes}">
+                          <td th:text="${statusType.id}">1</td>
+                          <td>
+                            <span
+                              class="badge"
+                              th:classappend="${statusType.name == 'In loan' ? 'bg-primary' : 
+                                               statusType.name == 'Late' ? 'bg-danger' :
+                                               'bg-success'}"
+                              th:text="${statusType.name}"
+                            >
+                              Status Name
+                            </span>
+                          </td>
+                          <td>
+                            <div class="btn-group" role="group">
+                              <a
+                                th:href="@{/loan-status-types/edit/{id}(id=${statusType.id})}"
+                                class="btn btn-sm btn-outline-primary"
+                              >
+                                <i class="fas fa-edit"></i>
+                              </a>
+                              <button
+                                type="button"
+                                class="btn btn-sm btn-outline-danger"
+                                data-bs-toggle="modal"
+                                data-bs-target="#deleteModal"
+                                th:data-id="${statusType.id}"
+                                th:data-name="${statusType.name}"
+                              >
+                                <i class="fas fa-trash"></i>
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Confirm Delete</h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <p>
+              Are you sure you want to delete the loan status type:
+              <strong id="deleteStatusName"></strong>?
+            </p>
+            <p class="text-danger">
+              <i class="fas fa-exclamation-triangle me-2"></i>
+              This action cannot be undone and may affect existing loans.
+            </p>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Cancel
+            </button>
+            <form action="/loan-status-types/delete" method="post">
+              <input type="hidden" id="deleteStatusId" name="id" />
+              <button type="submit" class="btn btn-danger">Delete</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/static/bs/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/fa/js/all.min.js"></script>
+    <script>
+      // Toggle sidebar on mobile
+      document
+        .querySelector(".toggle-btn")
+        ?.addEventListener("click", function () {
+          document.querySelector(".sidebar").classList.toggle("active");
+          document.querySelector(".main-content").classList.toggle("active");
+        });
+
+      // Handle delete modal
+      document
+        .getElementById("deleteModal")
+        .addEventListener("show.bs.modal", function (event) {
+          const button = event.relatedTarget;
+          const id = button.getAttribute("data-id");
+          const name = button.getAttribute("data-name");
+
+          document.getElementById("deleteStatusId").value = id;
+          document.getElementById("deleteStatusName").textContent = name;
+        });
+    </script>
+  </body>
+</html>

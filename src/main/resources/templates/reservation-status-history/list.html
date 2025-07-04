@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Status History - Library Management</title>
+
+    <link rel="stylesheet" href="/static/bs/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/static/fa/css/all.min.css" />
+    <link rel="stylesheet" href="/static/poppins/poppins.css" />
+    <link rel="stylesheet" href="/static/css/library.css" />
+  </head>
+  <body>
+    <div class="grid-container">
+      <!-- Sidebar -->
+      <th:block
+        th:replace="~{fragments/sidebar :: sidebar('loan-types')}"
+      ></th:block>
+
+      <!-- Main Content -->
+      <div class="main-content">
+        <button class="btn btn-primary d-md-none toggle-btn" type="button">
+          <i class="fas fa-bars"></i>
+        </button>
+
+        <!-- Status History List Section -->
+        <div class="container-fluid mt-4">
+          <div class="row">
+            <div class="col-12">
+              <div class="card">
+                <div
+                  class="card-header d-flex justify-content-between align-items-center"
+                >
+                  <h4 class="mb-0">
+                    <i class="fas fa-history me-2"></i>Reservation Status
+                    History
+                  </h4>
+                  <a href="/reservations" class="btn btn-outline-primary">
+                    <i class="fas fa-calendar-check me-2"></i>View Reservations
+                  </a>
+                </div>
+
+                <!-- Filter Section -->
+                <div
+                  class="card-body border-bottom"
+                  th:if="${reservationFilter != null}"
+                >
+                  <div class="d-flex align-items-center">
+                    <span class="text-muted me-2">Active filter:</span>
+                    <span class="badge bg-info rounded-pill">
+                      Reservation ID:
+                      <span th:text="${reservationFilter}"></span>
+                    </span>
+                    <a
+                      href="/reservation-status-history"
+                      class="btn btn-sm btn-outline-danger ms-2"
+                    >
+                      <i class="fas fa-times"></i> Clear Filter
+                    </a>
+                  </div>
+                </div>
+
+                <div class="card-body">
+                  <div
+                    class="alert alert-info"
+                    th:if="${#lists.isEmpty(statusHistories)}"
+                  >
+                    <i class="fas fa-info-circle me-2"></i>No status history
+                    entries found.
+                  </div>
+
+                  <div
+                    class="table-responsive"
+                    th:if="${not #lists.isEmpty(statusHistories)}"
+                  >
+                    <table class="table table-hover">
+                      <thead>
+                        <tr>
+                          <th>ID</th>
+                          <th>Reservation</th>
+                          <th>Book</th>
+                          <th>Status</th>
+                          <th>Date & Time</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr th:each="history : ${statusHistories}">
+                          <td th:text="${history.id}">1</td>
+                          <td>
+                            <a
+                              th:href="@{/reservation-status-history(reservationId=${history.reservation.id})}"
+                              class="badge bg-secondary"
+                            >
+                              <i class="fas fa-link me-1"></i>
+                              <span th:text="${history.reservation.id}">1</span>
+                            </a>
+                          </td>
+                          <td
+                            th:text="${history.reservation.book != null ? history.reservation.book.title : 'N/A'}"
+                          >
+                            Book Title
+                          </td>
+                          <td>
+                            <span
+                              class="badge"
+                              th:classappend="${history.reservationStatusType.name == 'Pending' ? 'bg-warning text-dark' : 'bg-success'}"
+                              th:text="${history.reservationStatusType.name}"
+                            >
+                              Status
+                            </span>
+                          </td>
+                          <td
+                            th:text="${#temporals.format(history.statusDate, 'dd-MM-yyyy HH:mm:ss')}"
+                          >
+                            01-01-2023 14:30:00
+                          </td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                <div
+                  class="card-footer text-muted"
+                  th:if="${not #lists.isEmpty(statusHistories)}"
+                >
+                  <i class="fas fa-list me-2"></i>Total Entries:
+                  <span th:text="${statusHistories.size()}">0</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/static/bs/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/fa/js/all.min.js"></script>
+    <script>
+      // Toggle sidebar on mobile
+      document
+        .querySelector(".toggle-btn")
+        ?.addEventListener("click", function () {
+          document.querySelector(".sidebar").classList.toggle("active");
+          document.querySelector(".main-content").classList.toggle("active");
+        });
+    </script>
+  </body>
+</html>

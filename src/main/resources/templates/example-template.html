@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Example Page - Library Management</title>
+
+    <link rel="stylesheet" href="/static/bs/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/static/fa/css/all.min.css" />
+    <link rel="stylesheet" href="/static/poppins/poppins.css" />
+    <link rel="stylesheet" href="/static/css/library.css" />
+  </head>
+  <body>
+    <div class="grid-container">
+      <!-- Include the sidebar and pass the active menu parameter -->
+      <th:block
+        th:replace="~{fragments/sidebar :: sidebar('loan-types')}"
+      ></th:block>
+
+      <!-- Main Content -->
+      <div class="main-content">
+        <button class="btn btn-primary d-md-none toggle-btn" type="button">
+          <i class="fas fa-bars"></i>
+        </button>
+
+        <!-- Rest of your page content -->
+        <div class="container-fluid mt-4">
+          <h1>Page Content Goes Here</h1>
+        </div>
+      </div>
+    </div>
+
+    <script src="/static/bs/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/fa/js/all.min.js"></script>
+
+    <!-- Include sidebar scripts -->
+    <th:block th:replace="fragments/sidebar :: sidebar-scripts"></th:block>
+  </body>
+</html>

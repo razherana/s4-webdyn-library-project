@@ -30,7 +30,8 @@ public class MembershipTypeService {
   }
 
   @Transactional
-  public MembershipType update(Long id, String name, int maxBooksAllowedHome, int maxBooksAllowedLibrary) {
+  public MembershipType update(Long id, String name, int maxBooksAllowedHome, int maxBooksAllowedLibrary,
+      int maxTimeHoursHome, int maxTimeHoursLibrary) {
     Optional<MembershipType> optionalType = membershipTypeRepository.findById(id);
 
     if (optionalType.isPresent()) {
@@ -38,6 +39,8 @@ public class MembershipTypeService {
       type.setName(name);
       type.setMaxBooksAllowedHome(maxBooksAllowedHome);
       type.setMaxBooksAllowedLibrary(maxBooksAllowedLibrary);
+      type.setMaxTimeHoursHome(maxTimeHoursHome);
+      type.setMaxTimeHoursLibrary(maxTimeHoursLibrary);
       return membershipTypeRepository.save(type);
     }
 

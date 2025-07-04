@@ -9,78 +9,64 @@
     <link rel="stylesheet" href="/static/fa/css/all.min.css" />
     <link rel="stylesheet" href="/static/poppins/poppins.css" />
     <link rel="stylesheet" href="/static/css/library.css" />
+    <style>
+      /* Additional styles for accordion sidebar */
+      .accordion-button {
+        padding: 0.8rem 1.25rem;
+        color: rgba(255, 255, 255, 0.8);
+        background-color: transparent;
+        box-shadow: none;
+      }
+
+      .accordion-button:not(.collapsed) {
+        color: white;
+        background-color: rgba(255, 255, 255, 0.1);
+        box-shadow: none;
+      }
+
+      .accordion-button::after {
+        filter: invert(1);
+        opacity: 0.5;
+      }
+
+      .accordion-button:not(.collapsed)::after {
+        filter: invert(1);
+        opacity: 0.8;
+      }
+
+      .sidebar .accordion {
+        --bs-accordion-bg: transparent;
+        --bs-accordion-border-color: transparent;
+        --bs-accordion-btn-focus-box-shadow: none;
+        --bs-accordion-active-bg: transparent;
+        --bs-accordion-active-color: white;
+      }
+
+      .sidebar .accordion-item {
+        background-color: transparent;
+        border: none;
+      }
+
+      .sidebar .accordion-body {
+        padding: 0;
+      }
+
+      .sidebar .nav-subitem .nav-link {
+        padding-left: 3.5rem;
+      }
+
+      .sidebar .nav-link.active-parent {
+        background-color: rgba(0, 123, 255, 0.3);
+        color: white;
+      }
+    </style>
   </head>
   <body>
     <div class="grid-container">
       <!-- Sidebar -->
-      <nav class="sidebar d-flex flex-column">
-        <a class="navbar-brand d-flex align-items-center" href="#">
-          <span class="me-2">
-            <i class="fas fa-book-reader"></i>
-          </span>
-          Library Management
-        </a>
-
-        <ul class="nav flex-column mb-auto">
-          <li class="nav-item">
-            <a class="nav-link" href="/home">
-              <span class="me-2">
-                <i class="fas fa-home"></i>
-              </span>
-              Home
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="/books">
-              <span class="me-2">
-                <i class="fas fa-book"></i>
-              </span>
-              Books
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="/membership-types">
-              <span class="me-2">
-                <i class="fas fa-id-card"></i>
-              </span>
-              Membership Types
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="/memberships">
-              <span class="me-2">
-                <i class="fas fa-address-card"></i>
-              </span>
-              Memberships
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link active" href="/peoples">
-              <span class="me-2">
-                <i class="fas fa-users"></i>
-              </span>
-              People
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#">
-              <span class="me-2">
-                <i class="fas fa-info-circle"></i>
-              </span>
-              About
-            </a>
-          </li>
-        </ul>
-
-        <div class="logout-container mt-auto">
-          <a href="#" class="nav-link text-danger">
-            <span class="me-2">
-              <i class="fas fa-sign-out-alt"></i>
-            </span>
-            Logout
-          </a>
-        </div>
-      </nav>
+      <th:block
+        th:replace="~{fragments/sidebar :: sidebar('loan-types')}"
+      ></th:block>
 
       <!-- Main Content -->
       <div class="main-content">
@@ -175,6 +161,53 @@
           document.querySelector(".sidebar").classList.toggle("active");
           document.querySelector(".main-content").classList.toggle("active");
         });
+
+      // Set active accordion item based on current page
+      document.addEventListener("DOMContentLoaded", function () {
+        const currentPath = window.location.pathname;
+        const navLinks = document.querySelectorAll(".sidebar .nav-link");
+
+        // Find the active link
+        let activeLink = null;
+        navLinks.forEach((link) => {
+          const href = link.getAttribute("href");
+          if (href && currentPath.startsWith(href) && href !== "/") {
+            // If we have a match that's not just the root
+            if (
+              !activeLink ||
+              href.length > activeLink.getAttribute("href").length
+            ) {
+              // Take the longer match (more specific)
+              activeLink = link;
+            }
+          }
+        });
+
+        if (activeLink) {
+          // Mark the link as active
+          activeLink.classList.add("active");
+
+          // Find parent accordion and expand it
+          const accordionBody = activeLink.closest(".accordion-collapse");
+          if (accordionBody) {
+            const accordionId = accordionBody.id;
+            const accordionButton = document.querySelector(
+              `[data-bs-target="#${accordionId}"]`
+            );
+
+            // Add active-parent class to the button
+            if (accordionButton) {
+              accordionButton.classList.add("active-parent");
+            }
+
+            // Create a new bootstrap.Collapse instance and show it
+            const bsCollapse = new bootstrap.Collapse(accordionBody, {
+              toggle: false,
+            });
+            bsCollapse.show();
+          }
+        }
+      });
     </script>
   </body>
 </html>

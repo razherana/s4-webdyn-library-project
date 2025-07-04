@@ -41,3 +41,15 @@ VALUES ('Student'),
     ('Teacher'),
     ('Staff'),
     ('Visitor');
+
+INSERT INTO
+    `reservation_status_types` (`name`)
+VALUES ('Pending'),
+    ('Approved');
+
+INSERT INTO
+    punishment_types (`name`)
+VALUES ('Warning'),
+    ('Fine'),
+    ('Suspension'),
+    ('Ban');

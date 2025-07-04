@@ -13,74 +13,9 @@
   <body>
     <div class="grid-container">
       <!-- Sidebar -->
-      <nav class="sidebar d-flex flex-column">
-        <a class="navbar-brand d-flex align-items-center" href="#">
-          <span class="me-2">
-            <i class="fas fa-book-reader"></i>
-          </span>
-          Library Management
-        </a>
-
-        <ul class="nav flex-column mb-auto">
-          <li class="nav-item">
-            <a class="nav-link" href="/home">
-              <span class="me-2">
-                <i class="fas fa-home"></i>
-              </span>
-              Home
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="/books">
-              <span class="me-2">
-                <i class="fas fa-book"></i>
-              </span>
-              Books
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link active" href="/membership-types">
-              <span class="me-2">
-                <i class="fas fa-id-card"></i>
-              </span>
-              Membership Types
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="/memberships">
-              <span class="me-2">
-                <i class="fas fa-address-card"></i>
-              </span>
-              Memberships
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="/peoples">
-              <span class="me-2">
-                <i class="fas fa-users"></i>
-              </span>
-              People
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link" href="#">
-              <span class="me-2">
-                <i class="fas fa-info-circle"></i>
-              </span>
-              About
-            </a>
-          </li>
-        </ul>
-
-        <div class="logout-container mt-auto">
-          <a href="#" class="nav-link text-danger">
-            <span class="me-2">
-              <i class="fas fa-sign-out-alt"></i>
-            </span>
-            Logout
-          </a>
-        </div>
-      </nav>
+      <th:block
+        th:replace="~{fragments/sidebar :: sidebar('loan-types')}"
+      ></th:block>
 
       <!-- Main Content -->
       <div class="main-content">
@@ -162,6 +97,46 @@
                       <div class="form-text">
                         Maximum number of books this membership type can read
                         within the library simultaneously.
+                      </div>
+                    </div>
+
+                    <!-- Max Time Hours Home -->
+                    <div class="mb-4">
+                      <label for="maxTimeHoursHome" class="form-label">
+                        Max Time Hours (Home)
+                      </label>
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="maxTimeHoursHome"
+                        name="maxTimeHoursHome"
+                        min="0"
+                        value="0"
+                        placeholder="Enter maximum hours for home loans"
+                      />
+                      <div class="form-text">
+                        Maximum number of hours a book can be borrowed for home
+                        use. Set to 0 for no time limit.
+                      </div>
+                    </div>
+
+                    <!-- Max Time Hours Library -->
+                    <div class="mb-4">
+                      <label for="maxTimeHoursLibrary" class="form-label">
+                        Max Time Hours (Library)
+                      </label>
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="maxTimeHoursLibrary"
+                        name="maxTimeHoursLibrary"
+                        min="0"
+                        value="0"
+                        placeholder="Enter maximum hours for in-library loans"
+                      />
+                      <div class="form-text">
+                        Maximum number of hours a book can be kept in the
+                        library. Set to 0 for no time limit.
                       </div>
                     </div>
 
