@@ -384,6 +384,19 @@
           <form th:action="@{/loans/return}" method="post">
             <div class="modal-body">
               <input type="hidden" id="return-loan-id" name="loanId" />
+              <input
+                type="hidden"
+                id="loan-max-hours"
+                name="maxHours"
+                value="0"
+              />
+              <input
+                type="hidden"
+                id="loan-is-home"
+                name="isHomeLoan"
+                value="false"
+              />
+              <input type="hidden" id="loan-date" name="loanDate" value="" />
               <h6 id="return-modal-book-title" class="mb-3">Book Title</h6>
 
               <div class="mb-3">
@@ -439,11 +452,143 @@
               >
                 Cancel
               </button>
-              <button type="submit" class="btn btn-success">
+              <button type="button" id="check-late-btn" class="btn btn-success">
+                <i class="fas fa-check me-2"></i>Validate Return
+              </button>
+              <button
+                type="submit"
+                id="submit-return-btn"
+                class="btn btn-success"
+                style="display: none"
+              >
                 <i class="fas fa-check me-2"></i>Mark as Returned
               </button>
             </div>
           </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Late Return Modal -->
+    <div
+      class="modal fade"
+      id="lateReturnModal"
+      tabindex="-1"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header bg-warning">
+            <h5 class="modal-title">
+              <i class="fas fa-exclamation-triangle me-2"></i>Late Return
+              Detected
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <p>
+              This book is being returned
+              <span id="late-hours" class="fw-bold text-danger"></span> hours
+              late.
+            </p>
+            <p>
+              According to the membership rules, this loan should have been
+              returned within
+              <span id="max-allowed-hours" class="fw-bold"></span> hours.
+            </p>
+
+            <div class="alert alert-info">
+              <i class="fas fa-info-circle me-2"></i>
+              A punishment may be necessary for this late return.
+            </div>
+
+            <div class="form-check mb-3">
+              <input
+                class="form-check-input"
+                type="checkbox"
+                id="createPunishmentCheckbox"
+              />
+              <label class="form-check-label" for="createPunishmentCheckbox">
+                Create a punishment for this late return
+              </label>
+            </div>
+
+            <div id="punishmentForm" style="display: none">
+              <div class="mb-3">
+                <label for="punishmentTypeId" class="form-label"
+                  >Punishment Type</label
+                >
+                <select
+                  class="form-select"
+                  id="punishmentTypeId"
+                  name="punishmentTypeId"
+                >
+                  <option value="">-- Select Punishment Type --</option>
+                  <option
+                    th:each="type : ${punishmentTypes}"
+                    th:value="${type.id}"
+                    th:text="${type.name}"
+                  >
+                    Punishment Type
+                  </option>
+                </select>
+              </div>
+
+              <div class="mb-3">
+                <label for="punishmentDuration" class="form-label"
+                  >Duration (hours)</label
+                >
+                <input
+                  type="number"
+                  class="form-control"
+                  id="punishmentDuration"
+                  name="punishmentDuration"
+                  min="1"
+                  step="0.5"
+                />
+              </div>
+
+              <div class="mb-3">
+                <label for="punishmentDescription" class="form-label"
+                  >Description</label
+                >
+                <textarea
+                  class="form-control"
+                  id="punishmentDescription"
+                  name="punishmentDescription"
+                  rows="2"
+                  placeholder="Reason for punishment..."
+                ></textarea>
+              </div>
+
+              <input
+                type="hidden"
+                id="punishmentMembershipId"
+                name="membershipId"
+              />
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              data-bs-dismiss="modal"
+            >
+              Cancel Return
+            </button>
+            <button
+              type="button"
+              id="confirm-return-btn"
+              class="btn btn-warning"
+            >
+              <i class="fas fa-check me-2"></i>Proceed with Return
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -519,9 +664,140 @@
           const loanId = button.getAttribute("data-loan-id");
           const bookTitle = button.getAttribute("data-book-title");
 
+          // Get loan row data
+          const loanRow = document.querySelector(`[data-loan-id="${loanId}"]`);
+          const isHomeLoan = loanRow.getAttribute("data-location") === "home";
+          const loanDate = loanRow
+            .querySelector("td:nth-child(5)")
+            .textContent.trim();
+
+          // Store additional data in hidden fields
           document.getElementById("return-loan-id").value = loanId;
           document.getElementById("return-modal-book-title").textContent =
             bookTitle;
+          document.getElementById("loan-is-home").value = isHomeLoan;
+          document.getElementById("loan-date").value = loanDate;
+
+          // Reset the form
+          document.getElementById("submit-return-btn").style.display = "none";
+          document.getElementById("check-late-btn").style.display = "block";
+        });
+
+      // Add late return validation
+      document
+        .getElementById("check-late-btn")
+        .addEventListener("click", function () {
+          const loanId = document.getElementById("return-loan-id").value;
+          const returnDateStr = document.getElementById("returnDate").value;
+
+          // Get the loan data for late calculation
+          fetch(`/loans/get-loan-data/${loanId}`)
+            .then((response) => response.json())
+            .then((loanData) => {
+              const returnDate = new Date(returnDateStr);
+              const loanDate = new Date(loanData.loanDate);
+              const maxHours = loanData.isHomeLoan
+                ? loanData.maxTimeHoursHome
+                : loanData.maxTimeHoursLibrary;
+
+              // Calculate hours borrowed
+              const hoursElapsed = (returnDate - loanDate) / (1000 * 60 * 60);
+
+              if (maxHours > 0 && hoursElapsed > maxHours) {
+                // The return is late, show late modal
+                const lateModal = new bootstrap.Modal(
+                  document.getElementById("lateReturnModal")
+                );
+
+                // Update late modal content
+                const lateHours =
+                  Math.round((hoursElapsed - maxHours) * 10) / 10;
+                document.getElementById("late-hours").textContent = lateHours;
+                document.getElementById("max-allowed-hours").textContent =
+                  maxHours;
+                document.getElementById("punishmentDuration").value = lateHours;
+                document.getElementById("punishmentMembershipId").value =
+                  loanData.membershipId;
+
+                // Prepare description
+                document.getElementById(
+                  "punishmentDescription"
+                ).value = `Late return of "${loanData.bookTitle}" by ${lateHours} hours`;
+
+                lateModal.show();
+              } else {
+                // Not late, show submit button
+                document.getElementById("check-late-btn").style.display =
+                  "none";
+                document.getElementById("submit-return-btn").style.display =
+                  "block";
+              }
+            })
+            .catch((error) => {
+              console.error("Error fetching loan data:", error);
+              alert("Error checking loan data. Please try again.");
+            });
+        });
+
+      // Toggle punishment form
+      document
+        .getElementById("createPunishmentCheckbox")
+        .addEventListener("change", function () {
+          document.getElementById("punishmentForm").style.display = this.checked
+            ? "block"
+            : "none";
+        });
+
+      // Handle confirm return button in late modal
+      document
+        .getElementById("confirm-return-btn")
+        .addEventListener("click", function () {
+          // Check if punishment should be created
+          const createPunishment = document.getElementById(
+            "createPunishmentCheckbox"
+          ).checked;
+
+          if (createPunishment) {
+            // Create punishment first
+            const punishmentData = {
+              membershipId: document.getElementById("punishmentMembershipId")
+                .value,
+              punishmentTypeId:
+                document.getElementById("punishmentTypeId").value,
+              durationHours:
+                document.getElementById("punishmentDuration").value,
+              description: document.getElementById("punishmentDescription")
+                .value,
+            };
+
+            fetch("/punishments/api/create", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(punishmentData),
+            })
+              .then((response) => response.json())
+              .then((data) => {
+                // Hide late modal
+                bootstrap.Modal.getInstance(
+                  document.getElementById("lateReturnModal")
+                ).hide();
+
+                // Submit the return form
+                document.getElementById("submit-return-btn").click();
+              })
+              .catch((error) => {
+                console.error("Error creating punishment:", error);
+                alert("Failed to create punishment. Please try again.");
+              });
+          } else {
+            // Just submit the return form
+            bootstrap.Modal.getInstance(
+              document.getElementById("lateReturnModal")
+            ).hide();
+            document.getElementById("submit-return-btn").click();
+          }
         });
 
       // Handle view details modal

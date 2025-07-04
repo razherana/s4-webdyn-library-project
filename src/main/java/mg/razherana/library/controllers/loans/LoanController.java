@@ -2,6 +2,7 @@ package mg.razherana.library.controllers.loans;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -28,12 +29,14 @@ import mg.razherana.library.models.loans.People;
 import mg.razherana.library.models.loans.Reservation;
 import mg.razherana.library.models.loans.ReturnedLoanState;
 import mg.razherana.library.models.loans.ReturnedLoanStateType;
+import mg.razherana.library.models.punishments.PunishmentType;
 import mg.razherana.library.repositories.books.BookRepository;
 import mg.razherana.library.repositories.loans.LoanTypeRepository;
 import mg.razherana.library.services.loans.LoanService;
 import mg.razherana.library.services.loans.PeopleService;
 import mg.razherana.library.services.loans.ReservationService;
 import mg.razherana.library.services.loans.ReturnedLoanStateService;
+import mg.razherana.library.services.punishments.PunishmentTypeService;
 
 @Controller
 @RequestMapping("/loans")
@@ -57,17 +60,21 @@ public class LoanController {
   @Autowired
   private ReservationService reservationService;
 
+  @Autowired
+  private PunishmentTypeService punishmentTypeService;
+
   @GetMapping
   public String listLoans(Model model) {
     List<Loan> loans = loanService.findAll();
     model.addAttribute("loans", loans);
 
     // Get return states
-
     List<ReturnedLoanStateType> returnStates = returnedLoanStateService.findAllStateTypes();
     model.addAttribute("returnStates", returnStates);
 
-    System.out.println("Returns = " + returnStates);
+    // Get punishment types for late returns
+    List<PunishmentType> punishmentTypes = punishmentTypeService.findAll();
+    model.addAttribute("punishmentTypes", punishmentTypes);
 
     return "loans/list";
   }
@@ -192,6 +199,35 @@ public class LoanController {
             status.getLoanStatusType().getName(),
             status.getStatusDate().format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm"))))
         .collect(Collectors.toList());
+  }
+
+  @GetMapping("/get-loan-data/{loanId}")
+  @ResponseBody
+  public Map<String, Object> getLoanData(@PathVariable Long loanId) {
+    Loan loan = loanService.findById(loanId);
+    if (loan == null) {
+      throw new IllegalArgumentException("Loan not found with ID: " + loanId);
+    }
+
+    Map<String, Object> result = new HashMap<>();
+    result.put("loanId", loan.getId());
+    result.put("loanDate", loan.getLoanDate());
+    result.put("bookTitle", loan.getBook().getTitle());
+    result.put("membershipId", loan.getMembership().getId());
+    result.put("isHomeLoan", loan.getLoanType().getName().toLowerCase().contains("home"));
+
+    // Get max hours from membership type
+    // boolean isHomeLoan =
+    // loan.getLoanType().getName().toLowerCase().contains("home");
+
+    // int maxHours = isHomeLoan
+    // ? loan.getMembership().getMembershipType().getMaxTimeHoursHome()
+    // : loan.getMembership().getMembershipType().getMaxTimeHoursLibrary();
+
+    result.put("maxTimeHoursHome", loan.getMembership().getMembershipType().getMaxTimeHoursHome());
+    result.put("maxTimeHoursLibrary", loan.getMembership().getMembershipType().getMaxTimeHoursLibrary());
+
+    return result;
   }
 
   // DTO for status history

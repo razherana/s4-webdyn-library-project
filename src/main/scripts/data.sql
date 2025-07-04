@@ -47,3 +47,9 @@ INSERT INTO
 VALUES ('Pending'),
     ('Approved');
 
+INSERT INTO
+    punishment_types (`name`)
+VALUES ('Warning'),
+    ('Fine'),
+    ('Suspension'),
+    ('Ban');

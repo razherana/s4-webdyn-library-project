@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Edit Punishment - Library Management</title>
+
+    <link rel="stylesheet" href="/static/bs/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/static/fa/css/all.min.css" />
+    <link rel="stylesheet" href="/static/poppins/poppins.css" />
+    <link rel="stylesheet" href="/static/css/library.css" />
+  </head>
+  <body>
+    <div class="grid-container">
+      <!-- Sidebar -->
+      <th:block
+        th:replace="~{fragments/sidebar :: sidebar('punishments')}"
+      ></th:block>
+
+      <!-- Main Content -->
+      <div class="main-content">
+        <button class="btn btn-primary d-md-none toggle-btn" type="button">
+          <i class="fas fa-bars"></i>
+        </button>
+
+        <!-- Flash Messages -->
+        <div
+          th:if="${success}"
+          class="alert alert-success alert-dismissible fade show mt-3"
+          role="alert"
+        >
+          <i class="fas fa-check-circle me-2"></i>
+          <span th:text="${success}">Success message</span>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+            aria-label="Close"
+          ></button>
+        </div>
+
+        <div
+          th:if="${error}"
+          class="alert alert-danger alert-dismissible fade show mt-3"
+          role="alert"
+        >
+          <i class="fas fa-exclamation-circle me-2"></i>
+          <span th:text="${error}">Error message</span>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+            aria-label="Close"
+          ></button>
+        </div>
+
+        <!-- Edit Punishment Form -->
+        <div class="container-fluid mt-4">
+          <div class="row">
+            <div class="col-md-8 mx-auto">
+              <div class="card">
+                <div class="card-header">
+                  <h4 class="mb-0">
+                    <i class="fas fa-edit me-2"></i>Edit Punishment
+                  </h4>
+                </div>
+                <div class="card-body">
+                  <form action="/punishments/update" method="post">
+                    <input
+                      type="hidden"
+                      name="id"
+                      th:value="${punishment.id}"
+                    />
+
+                    <div class="mb-3">
+                      <label class="form-label">Member</label>
+                      <input
+                        type="text"
+                        class="form-control"
+                        th:value="${punishment.membership.people.name}"
+                        readonly
+                      />
+                    </div>
+
+                    <div class="mb-3">
+                      <label for="punishmentTypeId" class="form-label"
+                        >Punishment Type</label
+                      >
+                      <select
+                        class="form-select"
+                        id="punishmentTypeId"
+                        name="punishmentTypeId"
+                        required
+                      >
+                        <option value="">-- Select Punishment Type --</option>
+                        <option
+                          th:each="type : ${punishmentTypes}"
+                          th:value="${type.id}"
+                          th:text="${type.name}"
+                          th:selected="${type.id == punishment.type.id}"
+                        >
+                          Late Return
+                        </option>
+                      </select>
+                    </div>
+
+                    <div class="mb-3">
+                      <label for="punishmentDate" class="form-label"
+                        >Punishment Date</label
+                      >
+                      <input
+                        type="datetime-local"
+                        class="form-control"
+                        id="punishmentDate"
+                        name="punishmentDate"
+                        th:value="${#temporals.format(punishment.punishmentDate, 'yyyy-MM-dd''T''HH:mm')}"
+                        required
+                      />
+                    </div>
+
+                    <div class="mb-3">
+                      <label for="durationHours" class="form-label"
+                        >Duration (Hours)</label
+                      >
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="durationHours"
+                        name="durationHours"
+                        min="0.5"
+                        step="0.5"
+                        th:value="${punishment.durationHours}"
+                        required
+                      />
+                    </div>
+
+                    <div class="mb-3">
+                      <label for="description" class="form-label"
+                        >Description</label
+                      >
+                      <textarea
+                        class="form-control"
+                        id="description"
+                        name="description"
+                        rows="3"
+                        required
+                        th:text="${punishment.description}"
+                      ></textarea>
+                    </div>
+
+                    <div class="d-flex justify-content-between mt-4">
+                      <a href="/punishments" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Cancel
+                      </a>
+                      <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>Update Punishment
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/static/bs/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/fa/js/all.min.js"></script>
+  </body>
+</html>
