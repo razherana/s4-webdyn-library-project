@@ -15,4 +15,8 @@ public class Access {
   private long id;
 
   private String name;
+
+  private String uri;
+
+  private String methodType;
 }

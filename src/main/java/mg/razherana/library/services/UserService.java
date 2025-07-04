@@ -30,7 +30,8 @@ public class UserService {
   }
 
   public User getCurrentUser(HttpSession session) {
-    return (User) session.getAttribute(USER_SESSION_ATTR);
+    return userRepository.findById((Long) session.getAttribute(USER_SESSION_ATTR))
+        .orElse(null);
   }
 
   public void logout(HttpSession session) {
@@ -40,5 +41,20 @@ public class UserService {
 
   public boolean isAuthenticated(HttpSession session) {
     return session.getAttribute(USER_SESSION_ATTR) != null;
+  }
+
+  public boolean hasAccess(long userId, String uri, String methodType) {
+    User user = userRepository.findById(userId).orElse(null);
+
+    if (user == null)
+      return false;
+
+    if (user.getRoles().stream().anyMatch(e -> e.getName().toLowerCase().equals("admin"))) {
+      return true; // Admins have access to everything
+    }
+
+    return user.getRoles().stream()
+        .flatMap(role -> role.getAccesses().stream())
+        .anyMatch(access -> access.getUri().equals(uri) && access.getMethodType().equalsIgnoreCase(methodType));
   }
 }
