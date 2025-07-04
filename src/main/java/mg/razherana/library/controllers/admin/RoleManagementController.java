@@ -1,6 +1,7 @@
 package mg.razherana.library.controllers.admin;
 
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,7 +83,7 @@ public class RoleManagementController {
       // Handle access assignment
       if (accessIds != null && !accessIds.isEmpty()) {
         List<Access> selectedAccess = accessRepository.findAllById(accessIds);
-        role.setAccesses(selectedAccess);
+        role.setAccesses(selectedAccess.stream().collect(Collectors.toSet()));
       }
 
       roleRepository.save(role);
@@ -139,7 +140,7 @@ public class RoleManagementController {
 
       // Handle access assignment
       if (accessIds != null && !accessIds.isEmpty()) {
-        List<Access> selectedAccesses = accessRepository.findAllById(accessIds);
+        Set<Access> selectedAccesses = accessRepository.findAllById(accessIds).stream().collect(Collectors.toSet());
         role.setAccesses(selectedAccesses);
       } else {
         role.setAccesses(null); // Clear accesses if none selected

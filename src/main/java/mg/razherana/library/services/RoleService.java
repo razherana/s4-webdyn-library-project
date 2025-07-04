@@ -1,6 +1,7 @@
 package mg.razherana.library.services;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -39,7 +40,7 @@ public class RoleService {
 
     if (accessIds != null && !accessIds.isEmpty()) {
       List<Access> accesses = accessRepository.findAllById(accessIds);
-      role.setAccesses(accesses);
+      role.setAccesses(accesses.stream().collect(Collectors.toSet()));
     }
 
     return roleRepository.save(role);
@@ -58,7 +59,7 @@ public class RoleService {
 
     if (accessIds != null) {
       List<Access> accesses = accessRepository.findAllById(accessIds);
-      role.setAccesses(accesses);
+      role.setAccesses(accesses.stream().collect(Collectors.toSet()));
     }
 
     return roleRepository.save(role);

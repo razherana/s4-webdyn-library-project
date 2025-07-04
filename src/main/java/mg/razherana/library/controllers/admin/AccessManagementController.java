@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import mg.razherana.library.models.users.Access;
@@ -50,6 +51,28 @@ public class AccessManagementController {
       redirectAttributes.addFlashAttribute("success", "Access saved successfully");
     } catch (Exception e) {
       redirectAttributes.addFlashAttribute("error", "Error saving access: " + e.getMessage());
+    }
+
+    return "redirect:/admin/access";
+  }
+
+  @PostMapping("/update")
+  public String updateAccess(@RequestParam Long id, Access access, RedirectAttributes redirectAttributes) {
+    try {
+      // Check if the access exists
+      if (!accessRepository.existsById(id)) {
+        redirectAttributes.addFlashAttribute("error", "Access with ID " + id + " not found");
+        return "redirect:/admin/access";
+      }
+
+      // Ensure the ID is set correctly on the object to prevent creating a new entity
+      access.setId(id);
+
+      // Save the updated access
+      accessRepository.save(access);
+      redirectAttributes.addFlashAttribute("success", "Access updated successfully");
+    } catch (Exception e) {
+      redirectAttributes.addFlashAttribute("error", "Error updating access: " + e.getMessage());
     }
 
     return "redirect:/admin/access";

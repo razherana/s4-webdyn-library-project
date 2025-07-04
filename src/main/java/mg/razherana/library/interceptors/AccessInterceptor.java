@@ -1,4 +1,4 @@
-package mg.razherana.library.configs;
+package mg.razherana.library.interceptors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;

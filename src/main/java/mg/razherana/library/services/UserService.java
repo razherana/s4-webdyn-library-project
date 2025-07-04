@@ -2,6 +2,8 @@ package mg.razherana.library.services;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -39,7 +41,8 @@ public class UserService {
 
     return user.getRoles().stream()
         .flatMap(role -> role.getAccesses().stream())
-        .anyMatch(access -> access.getUri().equals(uri) && access.getMethodType().equalsIgnoreCase(methodType));
+        .anyMatch(
+            access -> Pattern.matches(access.getUri(), uri) && access.getMethodType().equalsIgnoreCase(methodType));
   }
 
   public boolean authenticate(String username, String password, HttpSession session) {
@@ -55,7 +58,7 @@ public class UserService {
   }
 
   public User getCurrentUser(HttpSession session) {
-    return userRepository.findById((long) session.getAttribute(USER_SESSION_ATTR)).orElse(null);
+    return userRepository.findByIdWithAll((long) session.getAttribute(USER_SESSION_ATTR)).orElse(null);
   }
 
   public void logout(HttpSession session) {
@@ -89,7 +92,7 @@ public class UserService {
 
     if (roleIds != null && !roleIds.isEmpty()) {
       List<Role> roles = roleRepository.findAllById(roleIds);
-      user.setRoles(roles);
+      user.setRoles(roles.stream().collect(Collectors.toSet()));
     }
 
     return userRepository.save(user);
@@ -113,7 +116,7 @@ public class UserService {
 
     if (roleIds != null) {
       List<Role> roles = roleRepository.findAllById(roleIds);
-      user.setRoles(roles);
+      user.setRoles(roles.stream().collect(Collectors.toSet()));
     }
 
     return userRepository.save(user);

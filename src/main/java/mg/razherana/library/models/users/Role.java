@@ -1,6 +1,6 @@
 package mg.razherana.library.models.users;
 
-import java.util.List;
+import java.util.Set;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -26,5 +26,5 @@ public class Role {
 
   @ManyToMany
   @JoinTable(name = "role_accesses", joinColumns = @jakarta.persistence.JoinColumn(name = "role_id"), inverseJoinColumns = @jakarta.persistence.JoinColumn(name = "access_id"))
-  private List<Access> accesses;
+  private Set<Access> accesses;
 }

@@ -14,8 +14,10 @@
         Library Management
       </a>
 
+      <!-- No need for inline function since we're using AccessEvaluatorService -->
+
       <div class="accordion accordion-flush" id="sidebarAccordion">
-        <!-- Dashboard Group -->
+        <!-- Dashboard Group - Always visible -->
         <div class="accordion-item">
           <h2 class="accordion-header">
             <button
@@ -37,7 +39,10 @@
           >
             <div class="accordion-body">
               <ul class="nav flex-column">
-                <li class="nav-item nav-subitem">
+                <li
+                  class="nav-item nav-subitem"
+                  th:if="${@accessEvaluatorService.hasAccess(isAdmin, userAccessUris, '/home')}"
+                >
                   <a
                     class="nav-link"
                     href="/home"
@@ -46,7 +51,10 @@
                     <i class="fas fa-home me-2"></i> Home
                   </a>
                 </li>
-                <li class="nav-item nav-subitem">
+                <li
+                  class="nav-item nav-subitem"
+                  th:if="${isAdmin == true}"
+                >
                   <a
                     class="nav-link"
                     href="#"
@@ -82,7 +90,10 @@
           >
             <div class="accordion-body">
               <ul class="nav flex-column">
-                <li class="nav-item nav-subitem">
+                <li
+                  class="nav-item nav-subitem"
+                  th:if="${@accessEvaluatorService.hasAccess(isAdmin, userAccessUris, '/books')}"
+                >
                   <a
                     class="nav-link"
                     href="/books"
@@ -118,7 +129,10 @@
           >
             <div class="accordion-body">
               <ul class="nav flex-column">
-                <li class="nav-item nav-subitem">
+                <li
+                  class="nav-item nav-subitem"
+                  th:if="${@accessEvaluatorService.hasAccess(isAdmin, userAccessUris, '/peoples')}"
+                >
                   <a
                     class="nav-link"
                     href="/peoples"
@@ -127,7 +141,10 @@
                     <i class="fas fa-users me-2"></i> People
                   </a>
                 </li>
-                <li class="nav-item nav-subitem">
+                <li
+                  class="nav-item nav-subitem"
+                  th:if="${@accessEvaluatorService.hasAccess(isAdmin, userAccessUris, '/membership-types')}"
+                >
                   <a
                     class="nav-link"
                     href="/membership-types"
@@ -136,7 +153,10 @@
                     <i class="fas fa-tags me-2"></i> Membership Types
                   </a>
                 </li>
-                <li class="nav-item nav-subitem">
+                <li
+                  class="nav-item nav-subitem"
+                  th:if="${@accessEvaluatorService.hasAccess(isAdmin, userAccessUris, '/memberships')}"
+                >
                   <a
                     class="nav-link"
                     href="/memberships"
@@ -172,7 +192,10 @@
           >
             <div class="accordion-body">
               <ul class="nav flex-column">
-                <li class="nav-item nav-subitem">
+                <li
+                  class="nav-item nav-subitem"
+                  th:if="${@accessEvaluatorService.hasAccess(isAdmin, userAccessUris, '/reservations')}"
+                >
                   <a
                     class="nav-link"
                     href="/reservations"
@@ -181,7 +204,10 @@
                     <i class="fas fa-calendar-check me-2"></i> Reservations
                   </a>
                 </li>
-                <li class="nav-item nav-subitem">
+                <li
+                  class="nav-item nav-subitem"
+                  th:if="${@accessEvaluatorService.hasAccess(isAdmin, userAccessUris, '/loans')}"
+                >
                   <a
                     class="nav-link"
                     href="/loans"
@@ -195,7 +221,7 @@
           </div>
         </div>
 
-        <!-- Admin Group - NEW -->
+        <!-- Admin Group -->
         <div class="accordion-item">
           <h2 class="accordion-header">
             <button
@@ -217,7 +243,10 @@
           >
             <div class="accordion-body">
               <ul class="nav flex-column">
-                <li class="nav-item nav-subitem">
+                <li
+                  class="nav-item nav-subitem"
+                  th:if="${@accessEvaluatorService.hasAccess(isAdmin, userAccessUris, '/admin/users')}"
+                >
                   <a
                     class="nav-link"
                     href="/admin/users"
@@ -226,7 +255,10 @@
                     <i class="fas fa-users-cog me-2"></i> User Management
                   </a>
                 </li>
-                <li class="nav-item nav-subitem">
+                <li
+                  class="nav-item nav-subitem"
+                  th:if="${@accessEvaluatorService.hasAccess(isAdmin, userAccessUris, '/admin/roles')}"
+                >
                   <a
                     class="nav-link"
                     href="/admin/roles"
@@ -235,7 +267,10 @@
                     <i class="fas fa-user-tag me-2"></i> Role Management
                   </a>
                 </li>
-                <li class="nav-item nav-subitem">
+                <li
+                  class="nav-item nav-subitem"
+                  th:if="${@accessEvaluatorService.hasAccess(isAdmin, userAccessUris, '/admin/access')}"
+                >
                   <a
                     class="nav-link"
                     href="/admin/access"
@@ -271,7 +306,10 @@
           >
             <div class="accordion-body">
               <ul class="nav flex-column">
-                <li class="nav-item nav-subitem">
+                <li
+                  class="nav-item nav-subitem"
+                  th:if="${@accessEvaluatorService.hasAccess(isAdmin, userAccessUris, '/reservation-status-types')}"
+                >
                   <a
                     class="nav-link"
                     href="/reservation-status-types"
@@ -280,7 +318,10 @@
                     <i class="fas fa-tags me-2"></i> Reservation Status
                   </a>
                 </li>
-                <li class="nav-item nav-subitem">
+                <li
+                  class="nav-item nav-subitem"
+                  th:if="${@accessEvaluatorService.hasAccess(isAdmin, userAccessUris, '/loan-status-types')}"
+                >
                   <a
                     class="nav-link"
                     href="/loan-status-types"
@@ -289,7 +330,10 @@
                     <i class="fas fa-tag me-2"></i> Loan Status
                   </a>
                 </li>
-                <li class="nav-item nav-subitem">
+                <li
+                  class="nav-item nav-subitem"
+                  th:if="${@accessEvaluatorService.hasAccess(isAdmin, userAccessUris, '/returned-loan-state-types')}"
+                >
                   <a
                     class="nav-link"
                     href="/returned-loan-state-types"
@@ -298,7 +342,10 @@
                     <i class="fas fa-clipboard-check me-2"></i> Return States
                   </a>
                 </li>
-                <li class="nav-item nav-subitem">
+                <li
+                  class="nav-item nav-subitem"
+                  th:if="${@accessEvaluatorService.hasAccess(isAdmin, userAccessUris, '/loan-types')}"
+                >
                   <a
                     class="nav-link"
                     href="/loan-types"
@@ -307,8 +354,10 @@
                     <i class="fas fa-layer-group me-2"></i> Loan Types
                   </a>
                 </li>
-                <!-- New punishment-related links -->
-                <li class="nav-item nav-subitem">
+                <li
+                  class="nav-item nav-subitem"
+                  th:if="${@accessEvaluatorService.hasAccess(isAdmin, userAccessUris, '/punishment-types')}"
+                >
                   <a
                     class="nav-link"
                     href="/punishment-types"
@@ -318,7 +367,10 @@
                     Types
                   </a>
                 </li>
-                <li class="nav-item nav-subitem">
+                <li
+                  class="nav-item nav-subitem"
+                  th:if="${@accessEvaluatorService.hasAccess(isAdmin, userAccessUris, '/punishments')}"
+                >
                   <a
                     class="nav-link"
                     href="/punishments"

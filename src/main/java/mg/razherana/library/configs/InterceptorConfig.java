@@ -6,6 +6,10 @@ import org.springframework.lang.NonNull;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import mg.razherana.library.interceptors.AccessInterceptor;
+import mg.razherana.library.interceptors.AuthInterceptor;
+import mg.razherana.library.interceptors.LoadUserRolesAccessInterceptor;
+
 @Configuration
 public class InterceptorConfig implements WebMvcConfigurer {
 
@@ -17,6 +21,11 @@ public class InterceptorConfig implements WebMvcConfigurer {
   @Bean
   AccessInterceptor accessInterceptor() {
     return new AccessInterceptor();
+  }
+
+  @Bean
+  LoadUserRolesAccessInterceptor loadUserRolesAccessInterceptor() {
+    return new LoadUserRolesAccessInterceptor();
   }
 
   @Override
@@ -32,6 +41,9 @@ public class InterceptorConfig implements WebMvcConfigurer {
         .excludePathPatterns("/static/**") // Exclude static resources
         .excludePathPatterns("/auth/login") // Don't require access for login
         .excludePathPatterns("/auth/logout") // Don't require access for logout
-        .addPathPatterns("/**"); // Require access for all other API endpoints
+        .addPathPatterns("/**"); // Require access for all other endpoints
+
+    registry.addInterceptor(loadUserRolesAccessInterceptor())
+        .addPathPatterns("/**");
   }
 }
