@@ -14,7 +14,7 @@
     <div class="grid-container">
       <!-- Sidebar -->
       <th:block
-        th:replace="~{fragments/sidebar :: sidebar('loan-types')}"
+        th:replace="~{fragments/sidebar :: sidebar('loans')}"
       ></th:block>
 
       <!-- Main Content -->
@@ -64,22 +64,39 @@
           <strong>Warning:</strong> There is a pending reservation for this
           book.
           <div class="mt-2">
-            <form
-              th:action="@{/reservations/cancel/{id}(id=${pendingReservation.id})}"
-              method="post"
-              class="d-inline"
-            >
-              <button type="submit" class="btn btn-sm btn-outline-danger">
-                <i class="fas fa-times me-2"></i>Cancel Reservation
-              </button>
-            </form>
             <button
               type="button"
               class="btn btn-sm btn-outline-secondary ms-2"
               data-bs-dismiss="alert"
             >
-              Proceed Anyway
+              Cancel Loan Creation
             </button>
+            <form
+              th:action="@{/reservations/cancel-and-create-loan}"
+              method="post"
+              class="d-inline"
+            >
+              <input
+                type="hidden"
+                name="reservationId"
+                th:value="${pendingReservation.id}"
+              />
+              <input type="hidden" name="bookId" th:value="${selectedBookId}" />
+              <input
+                type="hidden"
+                name="membershipId"
+                th:value="${selectedMembershipId}"
+              />
+              <input
+                type="hidden"
+                name="loanTypeId"
+                th:value="${selectedLoanTypeId}"
+              />
+              <button type="submit" class="btn btn-sm btn-outline-danger">
+                <i class="fas fa-times me-2"></i>Cancel Reservation and Create
+                Loan
+              </button>
+            </form>
           </div>
           <button
             type="button"

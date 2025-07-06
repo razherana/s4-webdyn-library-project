@@ -36,6 +36,13 @@ public class AuthController {
     if (userService.authenticate(username, password, session)) {
       User user = userService.getCurrentUser(session);
       redirectAttributes.addFlashAttribute("success", "Login successful for user: " + user.getUsername());
+
+      // Check if user is a people type
+      if (user.isPeople()) {
+        redirectAttributes.addFlashAttribute("info", "Welcome back, " + user.getPeople().getName() + "!");
+        return "redirect:/user/home"; // Redirect to user home page
+      }
+
       return "redirect:/home"; // Redirect to home page after successful login
     }
 

@@ -60,6 +60,9 @@ public class LoadUserRolesAccessInterceptor implements HandlerInterceptor {
       }
     }
 
+    request.setAttribute("currentUserModel", user);
+    request.setAttribute("isPeople", user.isPeople());
+
     // Store admin status and access URIs in session for sidebar use
     request.setAttribute("isAdmin", isAdmin);
     request.setAttribute("userAccessUris", accessUris);
