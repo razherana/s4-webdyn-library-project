@@ -10,6 +10,9 @@
     <link rel="stylesheet" href="/static/poppins/poppins.css" />
     <link rel="stylesheet" href="/static/css/library.css" />
 
+    <!-- Chart.js - Fix the path or use CDN if needed -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <style>
       body {
         font-family: "Poppins", sans-serif;
@@ -194,6 +197,124 @@
         color: #ffc107;
       }
 
+      /* Chart containers */
+      .chart-container {
+        background-color: white;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .chart-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 15px;
+        color: #343a40;
+      }
+
+      /* Latest records styles */
+      .latest-records {
+        margin-top: 30px;
+      }
+
+      .record-list {
+        list-style-type: none;
+        padding: 0;
+      }
+
+      .record-item {
+        padding: 12px 15px;
+        border-bottom: 1px solid #e9ecef;
+        display: flex;
+        align-items: center;
+      }
+
+      .record-item:last-child {
+        border-bottom: none;
+      }
+
+      .record-icon {
+        margin-right: 15px;
+        font-size: 1.2rem;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .loan-icon {
+        background-color: #d1e7dd;
+        color: #198754;
+      }
+
+      .return-icon {
+        background-color: #f8d7da;
+        color: #dc3545;
+      }
+
+      .record-info {
+        flex: 1;
+      }
+
+      .record-title {
+        font-weight: 600;
+        margin-bottom: 3px;
+      }
+
+      .record-meta {
+        font-size: 0.85rem;
+        color: #6c757d;
+      }
+
+      /* Quick actions */
+      .quick-actions {
+        margin-top: 30px;
+      }
+
+      .action-button {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 15px;
+        border-radius: 10px;
+        background-color: white;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        text-decoration: none;
+        color: #343a40;
+        height: 100%;
+      }
+
+      .action-button:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      .action-icon {
+        font-size: 2rem;
+        margin-bottom: 10px;
+      }
+
+      .new-loan-action {
+        color: #198754;
+      }
+
+      .new-reservation-action {
+        color: #ffc107;
+      }
+
+      .new-member-action {
+        color: #0d6efd;
+      }
+
+      .new-book-action {
+        color: #6c757d;
+      }
+
       @media (max-width: 768px) {
         .grid-container {
           grid-template-columns: 1fr;
@@ -262,7 +383,7 @@
                   <i class="fas fa-users"></i>
                 </div>
                 <div class="stat-value" th:text="${totalMembers}">0</div>
-                <div class="stat-label">Total Members</div>
+                <div class="stat-label">Total Active Members</div>
               </div>
             </div>
 
@@ -290,13 +411,150 @@
           </div>
         </div>
 
-        <!-- You could add more sections here, like recent activities or announcements -->
+        <!-- Charts Section -->
+        <div class="row">
+          <!-- Loans Per Day Chart -->
+          <div class="col-lg-8">
+            <div class="chart-container">
+              <div class="chart-title">Loans per Day (Last Week)</div>
+              <canvas id="loansChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Active vs Inactive Members Chart -->
+          <div class="col-lg-4">
+            <div class="chart-container">
+              <div class="chart-title">Membership Status</div>
+              <canvas id="membershipChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions Section -->
+        <div class="quick-actions">
+          <h4 class="mb-4">Quick Actions</h4>
+          <div class="row">
+            <div class="col-6 col-md-3 mb-3">
+              <a href="/loans/create" class="action-button">
+                <div class="action-icon new-loan-action">
+                  <i class="fas fa-book-reader"></i>
+                </div>
+                <div class="text-center">New Loan</div>
+              </a>
+            </div>
+            <div class="col-6 col-md-3 mb-3">
+              <a href="/reservations/create" class="action-button">
+                <div class="action-icon new-reservation-action">
+                  <i class="fas fa-calendar-plus"></i>
+                </div>
+                <div class="text-center">New Reservation</div>
+              </a>
+            </div>
+            <div class="col-6 col-md-3 mb-3">
+              <a href="/memberships/create" class="action-button">
+                <div class="action-icon new-member-action">
+                  <i class="fas fa-user-plus"></i>
+                </div>
+                <div class="text-center">New Membership</div>
+              </a>
+            </div>
+            <div class="col-6 col-md-3 mb-3">
+              <a href="/books/create" class="action-button">
+                <div class="action-icon new-book-action">
+                  <i class="fas fa-plus-circle"></i>
+                </div>
+                <div class="text-center">Add Book</div>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Latest Records Section -->
+        <div class="row latest-records">
+          <!-- Latest Loans -->
+          <div class="col-md-6">
+            <div class="chart-container">
+              <div class="chart-title">Latest Loans</div>
+              <ul class="record-list">
+                <li class="record-item" th:each="loan : ${latestLoans}">
+                  <div class="record-icon loan-icon">
+                    <i class="fas fa-book-reader"></i>
+                  </div>
+                  <div class="record-info">
+                    <div
+                      class="record-title"
+                      th:text="${loan.book != null ? loan.book.title : 'Unknown Book'}"
+                    >
+                      Book Title
+                    </div>
+                    <div class="record-meta">
+                      <span
+                        th:text="${loan.membership.people != null ? loan.membership.people.name : 'Unknown Member'}"
+                        >Member Name</span
+                      >
+                      •
+                      <span
+                        th:text="${#temporals.format(loan.loanDate, 'dd MMM yyyy')}"
+                        >01 Jan 2023</span
+                      >
+                    </div>
+                  </div>
+                </li>
+                <li
+                  class="text-center py-3"
+                  th:if="${#lists.isEmpty(latestLoans)}"
+                >
+                  No recent loans
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Latest Returns -->
+          <div class="col-md-6">
+            <div class="chart-container">
+              <div class="chart-title">Latest Returns</div>
+              <ul class="record-list">
+                <li class="record-item" th:each="return : ${latestReturns}">
+                  <div class="record-icon return-icon">
+                    <i class="fas fa-undo-alt"></i>
+                  </div>
+                  <div class="record-info">
+                    <div
+                      class="record-title"
+                      th:text="${return.book != null ? return.book.title : 'Unknown Book'}"
+                    >
+                      Book Title
+                    </div>
+                    <div class="record-meta">
+                      <span
+                        th:text="${return.membership.people != null ? return.membership.people.name : 'Unknown Member'}"
+                        >Member Name</span
+                      >
+                      •
+                      <span
+                        th:text="${#temporals.format(return.returnDate, 'dd MMM yyyy')}"
+                        >01 Jan 2023</span
+                      >
+                    </div>
+                  </div>
+                </li>
+                <li
+                  class="text-center py-3"
+                  th:if="${#lists.isEmpty(latestReturns)}"
+                >
+                  No recent returns
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
     <script src="/static/bs/js/bootstrap.bundle.min.js"></script>
     <script src="/static/fa/js/all.min.js"></script>
-    <script>
+    <script th:inline="javascript">
       // Toggle sidebar on mobile
       document
         .querySelector(".toggle-btn")
@@ -350,6 +608,99 @@
             bsCollapse.show();
           }
         }
+      });
+
+      // Initialize Chart.js - Fix Thymeleaf syntax and make it separate from the other code
+      document.addEventListener("DOMContentLoaded", function () {
+        // Loans per day chart
+        const loansCtx = document.getElementById("loansChart").getContext("2d");
+        const days = /*[[${lastWeekDays}]]*/ [
+          "Mon",
+          "Tue",
+          "Wed",
+          "Thu",
+          "Fri",
+          "Sat",
+          "Sun",
+        ];
+        const loanCounts = /*[[${loanCounts}]]*/ [5, 8, 2, 10, 6, 9, 4];
+
+        new Chart(loansCtx, {
+          type: "bar",
+          data: {
+            labels: days,
+            datasets: [
+              {
+                label: "Number of Loans",
+                data: loanCounts,
+                backgroundColor: "rgba(25, 135, 84, 0.7)",
+                borderColor: "rgba(25, 135, 84, 1)",
+                borderWidth: 1,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  precision: 0,
+                },
+              },
+            },
+          },
+        });
+
+        // Membership status chart
+        const membershipCtx = document
+          .getElementById("membershipChart")
+          .getContext("2d");
+        const activeMembers = /*[[${activeMembers}]]*/ 120;
+        const inactiveMembers = /*[[${inactiveMembers}]]*/ 30;
+
+        new Chart(membershipCtx, {
+          type: "doughnut",
+          data: {
+            labels: ["Active", "Inactive"],
+            datasets: [
+              {
+                data: [activeMembers, inactiveMembers],
+                backgroundColor: [
+                  "rgba(13, 110, 253, 0.7)",
+                  "rgba(108, 117, 125, 0.7)",
+                ],
+                borderColor: [
+                  "rgba(13, 110, 253, 1)",
+                  "rgba(108, 117, 125, 1)",
+                ],
+                borderWidth: 1,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: {
+                position: "bottom",
+              },
+              tooltip: {
+                callbacks: {
+                  label: function (context) {
+                    const label = context.label || "";
+                    const value = context.raw || 0;
+                    const total = context.dataset.data.reduce(
+                      (a, b) => a + b,
+                      0
+                    );
+                    const percentage = Math.round((value / total) * 100);
+                    return `${label}: ${value} (${percentage}%)`;
+                  },
+                },
+              },
+            },
+          },
+        });
       });
     </script>
   </body>

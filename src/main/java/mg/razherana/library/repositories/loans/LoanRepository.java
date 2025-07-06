@@ -1,5 +1,6 @@
 package mg.razherana.library.repositories.loans;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -53,4 +54,12 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
 
   @Query("SELECT COUNT(l) FROM Loan l WHERE l.returnDate IS NULL")
   long countByReturnedFalse();
+
+  @Query("SELECT l FROM Loan l WHERE l.returnDate IS NOT NULL ORDER BY l.returnDate DESC LIMIT 5")
+  List<Loan> findTop5ByReturnedTrueOrderByReturnDateDesc();
+
+  @Query("SELECT l FROM Loan l ORDER BY l.loanDate DESC LIMIT 5")
+  List<Loan> findTop5ByOrderByLoanDateDesc();
+
+  Long countByLoanDateEquals(LocalDateTime date);
 }

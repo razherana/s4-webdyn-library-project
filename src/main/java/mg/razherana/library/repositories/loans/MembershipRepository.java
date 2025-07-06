@@ -24,4 +24,7 @@ public interface MembershipRepository extends JpaRepository<Membership, Long> {
 
   @Query("SELECT m FROM Membership m WHERE m.endDate >= :date")
   List<Membership> findActiveMemberships(LocalDate date);
+
+  @Query("SELECT COUNT(m) FROM Membership m WHERE m.endDate >= :dateReference")
+  long countWhereMembershipValid(LocalDate dateReference);
 }
