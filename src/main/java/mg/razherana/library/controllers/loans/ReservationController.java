@@ -29,6 +29,7 @@ import mg.razherana.library.models.loans.ReservationStatusType;
 import mg.razherana.library.models.loans.ReservationStatusHistory;
 import mg.razherana.library.models.punishments.Punishment;
 import mg.razherana.library.services.books.BookService;
+import mg.razherana.library.services.loans.LoanService;
 import mg.razherana.library.services.loans.MembershipService;
 import mg.razherana.library.services.loans.ReservationService;
 import mg.razherana.library.services.punishments.PunishmentService;
@@ -52,6 +53,9 @@ public class ReservationController {
 
   @Autowired
   private PunishmentService punishmentService;
+
+  @Autowired
+  private LoanService loanService;
 
   @GetMapping("")
   public String list(Model model) {
@@ -153,4 +157,35 @@ public class ReservationController {
 
     return "redirect:/reservations";
   }
+
+  @PostMapping("/cancel-and-create-loan")
+  public String cancelReservationAndCreateLoan(
+      @RequestParam Long reservationId,
+      @RequestParam Long bookId,
+      @RequestParam Long membershipId,
+      @RequestParam Long loanTypeId,
+      RedirectAttributes redirectAttributes) {
+
+    try {
+      // First, cancel the reservation by updating its status to "Cancelled"
+      ReservationStatusType cancelledType = statusTypeRepository.findByNameContainingIgnoreCase("cancel");
+      if (cancelledType == null) {
+        throw new IllegalArgumentException("Cancelled status type not found");
+      }
+
+      // Update the reservation status
+      reservationService.updateStatus(reservationId, cancelledType.getId());
+
+      // Create the loan using the LoanService
+      loanService.createLoan(bookId, membershipId, loanTypeId);
+
+      redirectAttributes.addFlashAttribute("success",
+          "Reservation cancelled and loan created successfully.");
+      return "redirect:/loans";
+    } catch (Exception e) {
+      redirectAttributes.addFlashAttribute("error", "Error processing request: " + e.getMessage());
+      return "redirect:/reservations";
+    }
+  }
+
 }

@@ -43,9 +43,11 @@ public class RoleManagementController {
   @GetMapping("/add")
   public String showAddRoleForm(Model model) {
     List<Access> allAccess = accessRepository.findAll();
-    model.addAttribute("allAccess", allAccess);
-    model.addAttribute("role", new Role());
-    return "admin/roles/edit";
+    
+    model.addAttribute("allAccesses", allAccess);
+    model.addAttribute("accesses", allAccess);
+
+    return "admin/roles/create";
   }
 
   @GetMapping("/edit/{id}")

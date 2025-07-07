@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title th:text="${pageTitle}">Loan Details - Library</title>
+
+  <link rel="stylesheet" href="/static/bs/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="/static/fa/css/all.min.css" />
+  <link rel="stylesheet" href="/static/poppins/poppins.css" />
+  <link rel="stylesheet" href="/static/css/library.css" />
+  <style>
+    body {
+      font-family: "Poppins", sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .sidebar {
+      min-height: 100vh;
+      width: auto;
+      background-color: #343a40;
+      padding-top: 20px;
+      transition: all 0.3s;
+      z-index: 999;
+    }
+
+    .main-content {
+      padding: 20px;
+      transition: all 0.3s;
+    }
+
+    .grid-container {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      min-height: 100vh;
+    }
+
+    .loan-detail-card {
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+    }
+
+    .loan-header {
+      padding: 20px;
+      background-color: #f8f9fa;
+      border-bottom: 1px solid #dee2e6;
+    }
+
+    .loan-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    .loan-body {
+      padding: 20px;
+    }
+
+    .loan-dates {
+      margin-bottom: 20px;
+    }
+
+    .date-label {
+      font-weight: 600;
+      color: #6c757d;
+    }
+
+    .status-badge {
+      padding: 5px 10px;
+      border-radius: 15px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .status-active {
+      background-color: #d1e7dd;
+      color: #198754;
+    }
+
+    .status-overdue {
+      background-color: #f8d7da;
+      color: #dc3545;
+    }
+
+    .status-returned {
+      background-color: #e9ecef;
+      color: #6c757d;
+    }
+
+    .extension-badge {
+      padding: 5px 10px;
+      border-radius: 15px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .extension-pending {
+      background-color: #fff3cd;
+      color: #ffc107;
+    }
+
+    .extension-approved {
+      background-color: #d1e7dd;
+      color: #198754;
+    }
+
+    .extension-rejected {
+      background-color: #f8d7da;
+      color: #dc3545;
+    }
+
+    .extension-card {
+      background-color: #f8f9fa;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 10px;
+    }
+
+    .divider {
+      border-top: 1px solid #dee2e6;
+      margin: 20px 0;
+    }
+
+    @media (max-width: 768px) {
+      .grid-container {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: fixed;
+        width: 250px;
+        left: -250px;
+      }
+
+      .sidebar.active {
+        left: 0;
+      }
+
+      .main-content.active {
+        opacity: 0.3;
+      }
+
+      .toggle-btn {
+        display: block;
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        z-index: 1000;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="grid-container">
+    <!-- Sidebar -->
+    <th:block th:replace="~{fragments/people-sidebar :: sidebar('loans')}"></th:block>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <button class="btn btn-primary d-md-none toggle-btn" type="button">
+        <i class="fas fa-bars"></i>
+      </button>
+
+      <!-- Success Message -->
+      <div th:if="${success}" class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+        <i class="fas fa-check-circle me-2"></i>
+        <span th:text="${success}">Success message</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+
+      <!-- Error Message -->
+      <div th:if="${error}" class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i>
+        <span th:text="${error}">Error message</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+
+      <!-- Page Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-book-open me-2"></i>Loan Details</h2>
+        <a href="/user/loans" class="btn btn-outline-secondary">
+          <i class="fas fa-arrow-left me-2"></i>Back to My Loans
+        </a>
+      </div>
+
+      <!-- Loan Details Card -->
+      <div class="loan-detail-card">
+        <div class="loan-header d-flex justify-content-between align-items-center">
+          <div>
+            <h3 class="loan-title" th:text="${loan.book.title}">Book Title</h3>
+            <p class="mb-0" th:text="${loan.book.author != null ? loan.book.author.name : 'Unknown Author'}">Author Name</p>
+          </div>
+          <div>
+            <span th:if="${loan.returnDate == null && !loan.checkLate(now)}" 
+                  class="status-badge status-active">Active</span>
+            <span th:if="${loan.returnDate == null && loan.checkLate(now)}" 
+                  class="status-badge status-overdue">Overdue</span>
+            <span th:if="${loan.returnDate != null}" 
+                  class="status-badge status-returned">Returned</span>
+          </div>
+        </div>
+        <div class="loan-body">
+          <!-- Loan Dates -->
+          <div class="loan-dates">
+            <div class="row">
+              <div class="col-md-4 mb-3">
+                <div class="date-label">Loan Date</div>
+                <div th:text="${#temporals.format(loan.loanDate, 'dd MMMM yyyy HH:mm')}">01 January 2023 14:30</div>
+              </div>
+              <div class="col-md-4 mb-3" th:if="${loan.extendedAt != null}">
+                <div class="date-label">Extended On</div>
+                <div th:text="${#temporals.format(loan.extendedAt, 'dd MMMM yyyy HH:mm')}">15 January 2023 14:30</div>
+              </div>
+              <div class="col-md-4 mb-3" th:if="${loan.returnDate != null}">
+                <div class="date-label">Return Date</div>
+                <div th:text="${#temporals.format(loan.returnDate, 'dd MMMM yyyy HH:mm')}">31 January 2023 14:30</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Loan Details -->
+          <div class="row mb-3">
+            <div class="col-md-4 mb-3">
+              <div class="date-label">Loan Type</div>
+              <div th:text="${loan.loanType.name}">Home Loan</div>
+            </div>
+            <div class="col-md-4 mb-3">
+              <div class="date-label">Extensions Used</div>
+              <div>
+                <span th:text="${loan.extendCount}">0</span> / 
+                <span th:text="${loan.membership.membershipType.maxExtensionsAllowed}">2</span>
+              </div>
+            </div>
+            <div class="col-md-4 mb-3" th:if="${loan.returnDate == null}">
+              <div class="date-label">Maximum Time</div>
+              <div th:if="${loan.loanType.name.toLowerCase().contains('home')}">
+                <span th:text="${loan.membership.membershipType.maxTimeHoursHome + ' hours'}">72 hours</span>
+              </div>
+              <div th:unless="${loan.loanType.name.toLowerCase().contains('home')}">
+                <span th:text="${loan.membership.membershipType.maxTimeHoursLibrary + ' hours'}">8 hours</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Extension Request Button -->
+          <div class="d-flex justify-content-end mb-4" th:if="${loan.returnDate == null && loan.canBeExtended() && (pendingExtensions == null || pendingExtensions.isEmpty())}">
+            <button class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#extendLoanModal">
+              <i class="fas fa-clock me-2"></i>Request Extension
+            </button>
+          </div>
+
+          <!-- Already Pending Request Note -->
+          <div class="alert alert-warning" th:if="${loan.returnDate == null && pendingExtensions != null && !pendingExtensions.isEmpty()}">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            You already have a pending extension request for this loan.
+          </div>
+
+          <!-- Cannot Extend Note -->
+          <div class="alert alert-info" th:if="${loan.returnDate == null && !loan.canBeExtended() && (loan.extendCount >= loan.membership.membershipType.maxExtensionsAllowed)}">
+            <i class="fas fa-info-circle me-2"></i>
+            You've reached the maximum number of extensions allowed for this loan.
+          </div>
+          
+          <!-- Overdue Note -->
+          <div class="alert alert-danger" th:if="${loan.returnDate == null && loan.checkLate(now)}">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            This loan is overdue and cannot be extended. Please return the book as soon as possible.
+          </div>
+
+          <div class="divider"></div>
+
+          <!-- Extension History -->
+          <div>
+            <h5 class="mb-3">Extension History</h5>
+            <div class="alert alert-info" th:if="${extensions == null || extensions.isEmpty()}">
+              <i class="fas fa-info-circle me-2"></i>
+              No extension requests found for this loan.
+            </div>
+
+            <div th:if="${extensions != null && !extensions.isEmpty()}">
+              <div class="extension-card" th:each="extension : ${extensions}">
+                <div class="d-flex justify-content-between align-items-start">
+                  <div>
+                    <div>
+                      <span class="fw-bold">Requested: </span>
+                      <span th:text="${#temporals.format(extension.requestedAt, 'dd MMMM yyyy HH:mm')}">01 January 2023 14:30</span>
+                    </div>
+                    <div th:if="${extension.confirmedAt != null}">
+                      <span class="fw-bold">Approved: </span>
+                      <span th:text="${#temporals.format(extension.confirmedAt, 'dd MMMM yyyy HH:mm')}">02 January 2023 10:15</span>
+                    </div>
+                    <div th:if="${extension.rejectedAt != null}">
+                      <span class="fw-bold">Rejected: </span>
+                      <span th:text="${#temporals.format(extension.rejectedAt, 'dd MMMM yyyy HH:mm')}">02 January 2023 10:15</span>
+                    </div>
+                  </div>
+                  <div>
+                    <span class="extension-badge extension-pending" 
+                          th:if="${extension.confirmedAt == null && extension.rejectedAt == null}">Pending</span>
+                    <span class="extension-badge extension-approved" 
+                          th:if="${extension.confirmedAt != null}">Approved</span>
+                    <span class="extension-badge extension-rejected" 
+                          th:if="${extension.rejectedAt != null}">Rejected</span>
+                  </div>
+                </div>
+                <!-- Cancel Button for Pending Requests -->
+                <div class="mt-2" th:if="${extension.confirmedAt == null && extension.rejectedAt == null}">
+                  <button class="btn btn-sm btn-outline-danger" 
+                          data-bs-toggle="modal" 
+                          data-bs-target="#cancelExtensionModal"
+                          th:data-extension-id="${extension.id}">
+                    <i class="fas fa-times me-1"></i>Cancel Request
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Extension Request Modal -->
+  <div class="modal fade" id="extendLoanModal" tabindex="-1" aria-labelledby="extendLoanModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="extendLoanModalLabel">Request Loan Extension</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form th:action="@{/user/loans/extend}" method="post">
+          <div class="modal-body">
+            <input type="hidden" name="loanId" th:value="${loan.id}">
+            <p>Are you sure you want to request an extension for this loan?</p>
+            <p>Book: <strong th:text="${loan.book.title}">Book Title</strong></p>
+            <p class="mb-0">Current due date: 
+              <strong th:if="${loan.extendedAt != null}" th:text="${#temporals.format(loan.extendedAt.plusHours(loan.loanType.name.toLowerCase().contains('home') ? loan.membership.membershipType.maxTimeHoursHome : loan.membership.membershipType.maxTimeHoursLibrary), 'dd MMMM yyyy HH:mm')}">31 January 2023 14:30</strong>
+              <strong th:if="${loan.extendedAt == null}" th:text="${#temporals.format(loan.loanDate.plusHours(loan.loanType.name.toLowerCase().contains('home') ? loan.membership.membershipType.maxTimeHoursHome : loan.membership.membershipType.maxTimeHoursLibrary), 'dd MMMM yyyy HH:mm')}">31 January 2023 14:30</strong>
+            </p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary">Request Extension</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cancel Extension Modal -->
+  <div class="modal fade" id="cancelExtensionModal" tabindex="-1" aria-labelledby="cancelExtensionModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="cancelExtensionModalLabel">Cancel Extension Request</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form th:action="@{/user/loans/cancel-extension}" method="post">
+          <div class="modal-body">
+            <input type="hidden" id="cancelExtensionId" name="extensionId" value="">
+            <p>Are you sure you want to cancel this extension request?</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, Keep Request</button>
+            <button type="submit" class="btn btn-danger">Yes, Cancel Request</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/bs/js/bootstrap.bundle.min.js"></script>
+  <script src="/static/fa/js/all.min.js"></script>
+  <script>
+    // Toggle sidebar on mobile
+    document
+      .querySelector(".toggle-btn")
+      ?.addEventListener("click", function () {
+        document.querySelector(".sidebar").classList.toggle("active");
+        document.querySelector(".main-content").classList.toggle("active");
+      });
+
+    // Handle cancel extension modal
+    document.getElementById('cancelExtensionModal').addEventListener('show.bs.modal', function (event) {
+      const button = event.relatedTarget;
+      const extensionId = button.getAttribute('data-extension-id');
+      document.getElementById('cancelExtensionId').value = extensionId;
+    });
+  </script>
+</body>
+</html>

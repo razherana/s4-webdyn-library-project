@@ -3,6 +3,7 @@ package mg.razherana.library.repositories.loans;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -16,6 +17,9 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
   // Find active loans for a membership
   @Query("SELECT l FROM Loan l WHERE l.membership.id = :membershipId AND l.returnDate IS NULL")
   List<Loan> findActiveByMembershipId(@Param("membershipId") Long membershipId);
+
+  @Query("SELECT l FROM Loan l WHERE l.membership.id = :membershipId")
+  List<Loan> findByMembershipId(@Param("membershipId") Long membershipId);
 
   // Count active loans for a membership
   @Query("SELECT COUNT(l) FROM Loan l WHERE l.membership.id = :membershipId AND l.returnDate IS NULL")
@@ -62,4 +66,7 @@ public interface LoanRepository extends JpaRepository<Loan, Long> {
   List<Loan> findTop5ByOrderByLoanDateDesc();
 
   Long countByLoanDateEquals(LocalDateTime date);
+
+  @Query("SELECT l FROM Loan l LEFT JOIN FETCH membership m WHERE m.id = :id ORDER BY l.loanDate DESC")
+  List<Loan> findByMembershipIdOrderByLoanDateDesc(Long id, Pageable pageable);
 }

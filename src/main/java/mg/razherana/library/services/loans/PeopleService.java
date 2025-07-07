@@ -33,4 +33,8 @@ public class PeopleService {
 
     return peopleRepository.save(people);
   }
+
+  public void save(People people) {
+    peopleRepository.save(people);
+  }
 }

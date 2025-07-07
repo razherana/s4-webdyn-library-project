@@ -14,5 +14,5 @@ public interface ReservationStatusTypeRepository extends JpaRepository<Reservati
   Optional<ReservationStatusType> findByName(String name);
 
   @Query("SELECT rst FROM ReservationStatusType rst WHERE LOWER(rst.name) = LOWER(:name)")
-  ReservationStatusType findByNameContainingIgnoreCase(String string);
+  ReservationStatusType findByNameContainingIgnoreCase(String name);
 }

@@ -3,6 +3,7 @@ package mg.razherana.library.repositories.loans;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -103,4 +104,11 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
       "reservationStatusHistories", "reservationStatusHistories.reservationStatusType" })
   @Query("SELECT r FROM Reservation r LEFT JOIN FETCH r.reservationStatusHistories rsh WHERE r.book.id = :bookId AND rsh.reservationStatusType.name = 'Pending'")
   List<Reservation> findPendingReservationsForBook(@Param("bookId") Long bookId);
+
+  List<Reservation> findByMembershipId(Long id);
+
+  @EntityGraph(attributePaths = { "book", "book.author", "membership", "membership.people", "membership.membershipType",
+      "reservationStatusHistories", "reservationStatusHistories.reservationStatusType" })
+  @Query("SELECT r FROM Reservation r WHERE r.membership.id = :id ORDER BY r.reservationDate DESC")
+  List<Reservation> findByMembershipIdOrderByReservationDateDesc(Long id, Pageable pageable);
 }

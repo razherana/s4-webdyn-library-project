@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title th:text="${pageTitle}">Book Catalog - Library</title>
+
+  <link rel="stylesheet" href="/static/bs/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="/static/fa/css/all.min.css" />
+  <link rel="stylesheet" href="/static/poppins/poppins.css" />
+  <link rel="stylesheet" href="/static/css/library.css" />
+  <style>
+    body {
+      font-family: "Poppins", sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .sidebar {
+      min-height: 100vh;
+      width: auto;
+      background-color: #343a40;
+      padding-top: 20px;
+      transition: all 0.3s;
+      z-index: 999;
+    }
+
+    .main-content {
+      padding: 20px;
+      transition: all 0.3s;
+    }
+
+    .grid-container {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      min-height: 100vh;
+    }
+
+    .book-card {
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease;
+      height: 100%;
+    }
+
+    .book-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .book-image {
+      height: 180px;
+      background-color: #e9ecef;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .book-image i {
+      font-size: 3rem;
+      color: #6c757d;
+    }
+
+    .book-info {
+      padding: 15px;
+    }
+
+    .book-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 5px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      box-orient: vertical;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      height: 50px;
+    }
+
+    .book-author {
+      color: #6c757d;
+      font-size: 0.9rem;
+      margin-bottom: 10px;
+    }
+
+    .book-categories {
+      margin-bottom: 15px;
+    }
+
+    .category-badge {
+      font-size: 0.7rem;
+      padding: 3px 8px;
+      margin-right: 5px;
+      margin-bottom: 5px;
+      background-color: #e9ecef;
+      color: #495057;
+      border-radius: 10px;
+      display: inline-block;
+    }
+
+    .book-status {
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+
+    .status-available {
+      color: #198754;
+    }
+
+    .status-borrowed {
+      color: #dc3545;
+    }
+
+    .filter-container {
+      background-color: white;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .filter-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 15px;
+      color: #343a40;
+    }
+
+    @media (max-width: 768px) {
+      .grid-container {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: fixed;
+        width: 250px;
+        left: -250px;
+      }
+
+      .sidebar.active {
+        left: 0;
+      }
+
+      .main-content.active {
+        opacity: 0.3;
+      }
+
+      .toggle-btn {
+        display: block;
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        z-index: 1000;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="grid-container">
+    <!-- Sidebar -->
+    <th:block th:replace="~{fragments/people-sidebar :: sidebar('books')}"></th:block>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <button class="btn btn-primary d-md-none toggle-btn" type="button">
+        <i class="fas fa-bars"></i>
+      </button>
+
+      <!-- Page Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-book me-2"></i>Book Catalog</h2>
+      </div>
+
+      <!-- Filters Section -->
+      <div class="filter-container">
+        <form action="/user/books" method="get" class="row">
+          <div class="col-md-4 mb-3">
+            <label for="search" class="form-label">Search</label>
+            <div class="input-group">
+              <input type="text" class="form-control" id="search" name="search" placeholder="Search by title or author..." th:value="${searchTerm}">
+              <button class="btn btn-outline-secondary" type="submit">
+                <i class="fas fa-search"></i>
+              </button>
+            </div>
+          </div>
+          
+          <div class="col-md-3 mb-3">
+            <label for="categoryId" class="form-label">Category</label>
+            <select class="form-select" id="categoryId" name="categoryId" onchange="this.form.submit()">
+              <option value="">All Categories</option>
+              <option th:each="category : ${categories}" th:value="${category.id}" th:text="${category.name}" th:selected="${category.id == selectedCategoryId}">Category</option>
+            </select>
+          </div>
+          
+          <div class="col-md-3 mb-3">
+            <label class="form-label">Availability</label>
+            <div class="form-check form-switch mt-2">
+              <input class="form-check-input" type="checkbox" id="availableOnly" name="availableOnly" value="true" th:checked="${availableOnly}" onchange="this.form.submit()">
+              <label class="form-check-label" for="availableOnly">Show only available books</label>
+            </div>
+          </div>
+          
+          <div class="col-md-2 mb-3 d-flex align-items-end">
+            <a href="/user/books" class="btn btn-outline-secondary w-100">
+              <i class="fas fa-sync-alt me-2"></i>Reset
+            </a>
+          </div>
+        </form>
+      </div>
+
+      <!-- Books Grid -->
+      <div class="alert alert-info" th:if="${#lists.isEmpty(books)}">
+        <i class="fas fa-info-circle me-2"></i>No books found matching your search criteria.
+      </div>
+
+      <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4" th:unless="${#lists.isEmpty(books)}">
+        <div class="col" th:each="book : ${books}">
+          <div class="book-card">
+            <div class="book-image">
+              <i class="fas fa-book"></i>
+            </div>
+            <div class="book-info">
+              <h5 class="book-title" th:text="${book.title}">Book Title</h5>
+              <p class="book-author" th:text="${book.author != null ? book.author.name : 'Unknown Author'}">Author Name</p>
+              
+              <div class="book-categories">
+                <span class="category-badge" th:each="category : ${book.categories}" th:text="${category.name}">Category</span>
+              </div>
+              
+              <p class="book-status" th:if="${borrowedBookIds != null && !borrowedBookIds.contains(book.id)}">
+                <i class="fas fa-check-circle me-1 status-available"></i>
+                <span class="status-available">Available</span>
+              </p>
+              <p class="book-status" th:if="${borrowedBookIds != null && borrowedBookIds.contains(book.id)}">
+                <i class="fas fa-times-circle me-1 status-borrowed"></i>
+                <span class="status-borrowed">Currently Borrowed</span>
+              </p>
+              
+              <div class="d-flex mt-3">
+                <a th:href="@{/user/reservations/add(bookId=${book.id})}" class="btn btn-sm btn-outline-warning me-2">
+                  <i class="fas fa-calendar-plus me-1"></i>Reserve
+                </a>
+                <a th:href="@{/user/loans/add(bookId=${book.id})}" class="btn btn-sm btn-outline-primary" th:if="${borrowedBookIds != null && !borrowedBookIds.contains(book.id)}">
+                  <i class="fas fa-book-reader me-1"></i>Borrow
+                </a>
+                <span class="btn btn-sm btn-outline-secondary disabled" th:if="${borrowedBookIds != null && borrowedBookIds.contains(book.id)}">
+                  <i class="fas fa-book-reader me-1"></i>Borrow
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/bs/js/bootstrap.bundle.min.js"></script>
+  <script src="/static/fa/js/all.min.js"></script>
+  <script>
+    // Toggle sidebar on mobile
+    document.querySelector(".toggle-btn")?.addEventListener("click", function () {
+      document.querySelector(".sidebar").classList.toggle("active");
+      document.querySelector(".main-content").classList.toggle("active");
+    });
+  </script>
+</body>
+</html>

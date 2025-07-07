@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title th:text="${pageTitle}">New Membership - Library Management</title>
+
+    <link rel="stylesheet" href="/static/bs/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/static/fa/css/all.min.css" />
+    <link rel="stylesheet" href="/static/poppins/poppins.css" />
+    <link rel="stylesheet" href="/static/css/library.css" />
+    <style>
+      body {
+        font-family: "Poppins", sans-serif;
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+
+      .sidebar {
+        min-height: 100vh;
+        width: auto;
+        background-color: #343a40;
+        padding-top: 20px;
+        transition: all 0.3s;
+        z-index: 999;
+      }
+
+      .main-content {
+        padding: 20px;
+        transition: all 0.3s;
+      }
+
+      .grid-container {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        min-height: 100vh;
+      }
+
+      .membership-type-card {
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+        overflow: hidden;
+        height: 100%;
+        cursor: pointer;
+      }
+
+      .membership-type-card:hover {
+        transform: translateY(-5px);
+      }
+
+      .membership-type-card.selected {
+        border: 2px solid #0d6efd;
+      }
+
+      .membership-type-header {
+        padding: 15px 20px;
+        background-color: #e3f2fd;
+        border-bottom: 1px solid #dee2e6;
+      }
+
+      .membership-type-body {
+        padding: 20px;
+      }
+
+      .membership-type-name {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #0d6efd;
+        margin-bottom: 5px;
+      }
+
+      @media (max-width: 768px) {
+        .grid-container {
+          grid-template-columns: 1fr;
+        }
+
+        .sidebar {
+          position: fixed;
+          width: 250px;
+          left: -250px;
+        }
+
+        .sidebar.active {
+          left: 0;
+        }
+
+        .main-content.active {
+          opacity: 0.3;
+        }
+
+        .toggle-btn {
+          display: block;
+          position: fixed;
+          top: 10px;
+          left: 10px;
+          z-index: 1000;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="grid-container">
+      <!-- Sidebar -->
+      <th:block
+        th:replace="~{fragments/people-sidebar :: sidebar('loans-reservations')}"
+      ></th:block>
+
+      <!-- Main Content -->
+      <div class="main-content">
+        <button class="btn btn-primary d-md-none toggle-btn" type="button">
+          <i class="fas fa-bars"></i>
+        </button>
+
+        <!-- Flash Messages -->
+        <div
+          th:if="${error}"
+          class="alert alert-danger alert-dismissible fade show mt-3"
+          role="alert"
+        >
+          <i class="fas fa-exclamation-circle me-2"></i>
+          <span th:text="${error}">Error message</span>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+            aria-label="Close"
+          ></button>
+        </div>
+
+        <!-- Page Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h2>
+            <i class="fas fa-plus-circle me-2"></i>Create New Membership
+          </h2>
+          <a href="/user/memberships" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Back to My Memberships
+          </a>
+        </div>
+
+        <!-- Membership Form -->
+        <div class="card">
+          <div class="card-body">
+            <h5 class="card-title mb-4">Choose a Membership Type</h5>
+            
+            <div class="alert alert-info mb-4">
+              <i class="fas fa-info-circle me-2"></i>
+              You can create a membership that starts in the future. Memberships cannot overlap with your existing memberships.
+            </div>
+            
+            <form th:action="@{/user/memberships/add}" method="post">
+              <!-- Membership Type Selection -->
+              <div class="mb-4">
+                <div class="row" id="membershipTypeContainer">
+                  <div class="col-md-4 mb-3" th:each="type : ${membershipTypes}">
+                    <div class="membership-type-card" th:data-id="${type.id}">
+                      <div class="membership-type-header">
+                        <div class="membership-type-name" th:text="${type.name}">Standard</div>
+                      </div>
+                      <div class="membership-type-body">
+                        <div class="mb-3">
+                          <div class="d-flex justify-content-between">
+                            <div>
+                              <i class="fas fa-home me-2"></i>Books at Home:
+                            </div>
+                            <div th:text="${type.maxBooksAllowedHome}">3</div>
+                          </div>
+                        </div>
+                        <div class="mb-3">
+                          <div class="d-flex justify-content-between">
+                            <div>
+                              <i class="fas fa-building me-2"></i>Books at Library:
+                            </div>
+                            <div th:text="${type.maxBooksAllowedLibrary}">5</div>
+                          </div>
+                        </div>
+                        <div class="mb-3" th:if="${type.maxTimeHoursHome > 0}">
+                          <div class="d-flex justify-content-between">
+                            <div>
+                              <i class="fas fa-clock me-2"></i>Home Loan Duration:
+                            </div>
+                            <div th:text="${type.maxTimeHoursHome + ' hours'}">72 hours</div>
+                          </div>
+                        </div>
+                        <div class="mb-3" th:if="${type.maxTimeHoursLibrary > 0}">
+                          <div class="d-flex justify-content-between">
+                            <div>
+                              <i class="fas fa-clock me-2"></i>Library Loan Duration:
+                            </div>
+                            <div th:text="${type.maxTimeHoursLibrary + ' hours'}">8 hours</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <input type="hidden" id="membershipTypeId" name="membershipTypeId" required>
+              </div>
+
+              <!-- Date Selection -->
+              <div class="row mb-4">
+                <div class="col-md-6">
+                  <label for="startDate" class="form-label">Start Date <span class="text-danger">*</span></label>
+                  <input 
+                    type="date" 
+                    class="form-control" 
+                    id="startDate" 
+                    name="startDate" 
+                    th:min="${#temporals.format(today, 'yyyy-MM-dd')}"
+                    required
+                  >
+                  <div class="form-text">You can select a future date</div>
+                </div>
+                <div class="col-md-6">
+                  <label for="endDate" class="form-label">End Date <span class="text-danger">*</span></label>
+                  <input 
+                    type="date" 
+                    class="form-control" 
+                    id="endDate" 
+                    name="endDate"
+                    required
+                  >
+                  <div class="form-text">Must be after start date</div>
+                </div>
+              </div>
+
+              <!-- Submit Button -->
+              <div class="d-flex justify-content-end mt-4">
+                <a href="/user/memberships" class="btn btn-secondary me-2">Cancel</a>
+                <button type="submit" class="btn btn-primary" id="submitBtn" disabled>
+                  <i class="fas fa-save me-2"></i>Create Membership
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/static/bs/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/fa/js/all.min.js"></script>
+    <script>
+      // Toggle sidebar on mobile
+      document
+        .querySelector(".toggle-btn")
+        ?.addEventListener("click", function () {
+          document.querySelector(".sidebar").classList.toggle("active");
+          document.querySelector(".main-content").classList.toggle("active");
+        });
+
+      // Handle membership type selection
+      document.addEventListener("DOMContentLoaded", function() {
+        const membershipCards = document.querySelectorAll(".membership-type-card");
+        const membershipTypeIdInput = document.getElementById("membershipTypeId");
+        const submitBtn = document.getElementById("submitBtn");
+        const startDateInput = document.getElementById("startDate");
+        const endDateInput = document.getElementById("endDate");
+        
+        // Set today as default start date
+        startDateInput.value = new Date().toISOString().split('T')[0];
+        
+        // Set default end date to 1 year from today
+        const defaultEndDate = new Date();
+        defaultEndDate.setFullYear(defaultEndDate.getFullYear() + 1);
+        endDateInput.value = defaultEndDate.toISOString().split('T')[0];
+        
+        // Function to validate form
+        function validateForm() {
+          const membershipTypeSelected = membershipTypeIdInput.value !== "";
+          const startDate = startDateInput.value;
+          const endDate = endDateInput.value;
+          const datesValid = startDate && endDate && startDate <= endDate;
+          
+          submitBtn.disabled = !(membershipTypeSelected && datesValid);
+        }
+        
+        // Add event listeners for validation
+        startDateInput.addEventListener("change", validateForm);
+        endDateInput.addEventListener("change", validateForm);
+        
+        // Handle membership type selection
+        membershipCards.forEach(card => {
+          card.addEventListener("click", function() {
+            // Remove selected class from all cards
+            membershipCards.forEach(c => c.classList.remove("selected"));
+            
+            // Add selected class to clicked card
+            this.classList.add("selected");
+            
+            // Update hidden input value
+            membershipTypeIdInput.value = this.getAttribute("data-id");
+            
+            // Validate form
+            validateForm();
+          });
+        });
+      });
+
+      // Set active accordion item based on current page
+      document.addEventListener("DOMContentLoaded", function () {
+        const currentPath = window.location.pathname;
+        const navLinks = document.querySelectorAll(".sidebar .nav-link");
+
+        // Find the active link
+        let activeLink = null;
+        navLinks.forEach((link) => {
+          const href = link.getAttribute("href");
+          if (href && currentPath.startsWith(href) && href !== "/") {
+            // If we have a match that's not just the root
+            if (
+              !activeLink ||
+              href.length > activeLink.getAttribute("href").length
+            ) {
+              // Take the longer match (more specific)
+              activeLink = link;
+            }
+          }
+        });
+
+        if (activeLink) {
+          // Mark the link as active
+          activeLink.classList.add("active");
+
+          // Find parent accordion and expand it
+          const accordionBody = activeLink.closest(".accordion-collapse");
+          if (accordionBody) {
+            const accordionId = accordionBody.id;
+            const accordionButton = document.querySelector(
+              `[data-bs-target="#${accordionId}"]`
+            );
+
+            // Add active-parent class to the button
+            if (accordionButton) {
+              accordionButton.classList.add("active-parent");
+            }
+
+            // Create a new bootstrap.Collapse instance and show it
+            const bsCollapse = new bootstrap.Collapse(accordionBody, {
+              toggle: false,
+            });
+            bsCollapse.show();
+          }
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -22,6 +22,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import lombok.Data;
 import mg.razherana.library.models.books.Book;
+import mg.razherana.library.models.loans.ExtendLoan;
 import mg.razherana.library.models.loans.Loan;
 import mg.razherana.library.models.loans.LoanStatusHistory;
 import mg.razherana.library.models.loans.LoanType;
@@ -34,6 +35,7 @@ import mg.razherana.library.models.punishments.Punishment;
 import mg.razherana.library.models.punishments.PunishmentType;
 import mg.razherana.library.repositories.books.BookRepository;
 import mg.razherana.library.repositories.loans.LoanTypeRepository;
+import mg.razherana.library.services.loans.ExtendLoanService;
 import mg.razherana.library.services.loans.LoanService;
 import mg.razherana.library.services.loans.PeopleService;
 import mg.razherana.library.services.loans.ReservationService;
@@ -68,6 +70,9 @@ public class LoanController {
 
   @Autowired
   private PunishmentService punishmentService;
+
+  @Autowired
+  private ExtendLoanService extendLoanService;
 
   @GetMapping
   public String listLoans(Model model) {
@@ -188,10 +193,13 @@ public class LoanController {
 
     List<LoanStatusHistory> statusHistory = loanService.getStatusHistory(id);
     ReturnedLoanState returnState = returnedLoanStateService.findByLoanId(id);
+    List<ExtendLoan> extensions = extendLoanService.findByLoanId(id);
 
     model.addAttribute("loan", loan);
     model.addAttribute("statusHistory", statusHistory);
     model.addAttribute("returnState", returnState);
+    model.addAttribute("extensions", extensions);
+    model.addAttribute("now", LocalDateTime.now());
 
     return "loans/view";
   }

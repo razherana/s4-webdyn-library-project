@@ -75,4 +75,8 @@ public class RoleService {
 
     roleRepository.deleteById(id);
   }
+
+  public Role findByName(String string) {
+    return roleRepository.findByName(string).orElse(null);
+  }
 }
