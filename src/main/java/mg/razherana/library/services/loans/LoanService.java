@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -166,6 +167,10 @@ public class LoanService {
     return loanRepository.findActiveByMembershipId(membershipId);
   }
 
+  public List<Loan> findByMembershipId(Long membershipId) {
+    return loanRepository.findByMembershipId(membershipId);
+  }
+
   public long countActiveByMembershipId(Long membershipId) {
     return loanRepository.countActiveByMembershipId(membershipId);
   }
@@ -200,5 +205,10 @@ public class LoanService {
 
   public List<LoanStatusHistory> getStatusHistory(Long loanId) {
     return statusHistoryRepository.findByLoanIdOrderByStatusDateDesc(loanId);
+  }
+
+  public List<Loan> findRecentByMembershipId(Long id, int size) {
+    Pageable pageable = Pageable.ofSize(size);
+    return loanRepository.findByMembershipIdOrderByLoanDateDesc(id, pageable);
   }
 }

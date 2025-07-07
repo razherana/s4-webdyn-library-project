@@ -41,6 +41,7 @@ public class MembershipTypeController {
       @RequestParam int maxBooksAllowedLibrary,
       @RequestParam(required = false, defaultValue = "0") int maxTimeHoursHome,
       @RequestParam(required = false, defaultValue = "0") int maxTimeHoursLibrary,
+      @RequestParam(required = false, defaultValue = "2") int maxExtensionsAllowed,
       RedirectAttributes redirectAttributes) {
 
     MembershipType membershipType = new MembershipType();
@@ -49,6 +50,7 @@ public class MembershipTypeController {
     membershipType.setMaxBooksAllowedLibrary(maxBooksAllowedLibrary);
     membershipType.setMaxTimeHoursHome(maxTimeHoursHome);
     membershipType.setMaxTimeHoursLibrary(maxTimeHoursLibrary);
+    membershipType.setMaxExtensionsAllowed(maxExtensionsAllowed);
 
     membershipTypeService.save(membershipType);
     redirectAttributes.addFlashAttribute("success", "Membership type added successfully!");
@@ -73,11 +75,29 @@ public class MembershipTypeController {
       @RequestParam int maxBooksAllowedLibrary,
       @RequestParam(required = false, defaultValue = "0") int maxTimeHoursHome,
       @RequestParam(required = false, defaultValue = "0") int maxTimeHoursLibrary,
+      @RequestParam(required = false, defaultValue = "2") int maxExtensionsAllowed,
       RedirectAttributes redirectAttributes) {
 
-    membershipTypeService.update(id, name, maxBooksAllowedHome, maxBooksAllowedLibrary, maxTimeHoursHome,
-        maxTimeHoursLibrary);
-    redirectAttributes.addFlashAttribute("success", "Membership type updated successfully!");
+    try {
+      MembershipType type = membershipTypeService.findById(id);
+      if (type == null) {
+        redirectAttributes.addFlashAttribute("error", "Membership type not found");
+        return "redirect:/membership-types";
+      }
+      
+      type.setName(name);
+      type.setMaxBooksAllowedHome(maxBooksAllowedHome);
+      type.setMaxBooksAllowedLibrary(maxBooksAllowedLibrary);
+      type.setMaxTimeHoursHome(maxTimeHoursHome);
+      type.setMaxTimeHoursLibrary(maxTimeHoursLibrary);
+      type.setMaxExtensionsAllowed(maxExtensionsAllowed);
+      
+      membershipTypeService.save(type);
+      redirectAttributes.addFlashAttribute("success", "Membership type updated successfully!");
+    } catch (Exception e) {
+      redirectAttributes.addFlashAttribute("error", "Error updating membership type: " + e.getMessage());
+    }
+    
     return "redirect:/membership-types";
   }
 

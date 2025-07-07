@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title th:text="${pageTitle}">My Loans - Library</title>
+
+  <link rel="stylesheet" href="/static/bs/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="/static/fa/css/all.min.css" />
+  <link rel="stylesheet" href="/static/poppins/poppins.css" />
+  <link rel="stylesheet" href="/static/css/library.css" />
+  <style>
+    body {
+      font-family: "Poppins", sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .sidebar {
+      min-height: 100vh;
+      width: auto;
+      background-color: #343a40;
+      padding-top: 20px;
+      transition: all 0.3s;
+      z-index: 999;
+    }
+
+    .main-content {
+      padding: 20px;
+      transition: all 0.3s;
+    }
+
+    .grid-container {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      min-height: 100vh;
+    }
+
+    .status-badge {
+      padding: 5px 10px;
+      border-radius: 15px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .status-active {
+      background-color: #d1e7dd;
+      color: #198754;
+    }
+
+    .status-overdue {
+      background-color: #f8d7da;
+      color: #dc3545;
+    }
+
+    .status-returned {
+      background-color: #e9ecef;
+      color: #6c757d;
+    }
+
+    .loan-card {
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease;
+    }
+
+    .loan-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .loan-header {
+      padding: 15px;
+      border-bottom: 1px solid #dee2e6;
+    }
+
+    .loan-body {
+      padding: 15px;
+    }
+
+    .loan-title {
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    .loan-meta {
+      color: #6c757d;
+      font-size: 0.9rem;
+    }
+
+    .loan-date {
+      font-size: 0.85rem;
+    }
+
+    @media (max-width: 768px) {
+      .grid-container {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: fixed;
+        width: 250px;
+        left: -250px;
+      }
+
+      .sidebar.active {
+        left: 0;
+      }
+
+      .main-content.active {
+        opacity: 0.3;
+      }
+
+      .toggle-btn {
+        display: block;
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        z-index: 1000;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="grid-container">
+    <!-- Sidebar -->
+    <th:block th:replace="~{fragments/people-sidebar :: sidebar('loans')}"></th:block>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <button class="btn btn-primary d-md-none toggle-btn" type="button">
+        <i class="fas fa-bars"></i>
+      </button>
+
+      <!-- Error Message -->
+      <div th:if="${error}" class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i>
+        <span th:text="${error}">Error message</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+
+      <!-- Success Message -->
+      <div th:if="${success}" class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+        <i class="fas fa-check-circle me-2"></i>
+        <span th:text="${success}">Success message</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+
+      <!-- Page Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-book-open me-2"></i>My Loans</h2>
+        <a href="/user/loans/add" class="btn btn-primary">
+          <i class="fas fa-plus-circle me-2"></i>Borrow a Book
+        </a>
+      </div>
+
+      <!-- Active Loans Section -->
+      <div class="card mb-4">
+        <div class="card-header bg-light">
+          <h5 class="mb-0"><i class="fas fa-book-reader me-2"></i>Currently Borrowed Books</h5>
+        </div>
+        <div class="card-body">
+          <div class="alert alert-info" th:if="${#lists.isEmpty(activeLoans)}">
+            <i class="fas fa-info-circle me-2"></i>You don't have any books currently borrowed.
+          </div>
+
+          <div class="row" th:unless="${#lists.isEmpty(activeLoans)}">
+            <div class="col-md-6 col-lg-4 mb-3" th:each="loan : ${activeLoans}">
+              <div class="loan-card" th:classappend="${loan.checkLate(now) ? 'border-danger' : 'border-success'}">
+                <div class="loan-header d-flex justify-content-between" th:classappend="${loan.checkLate(now) ? 'bg-danger bg-opacity-10' : 'bg-success bg-opacity-10'}">
+                  <span class="status-badge" th:classappend="${loan.checkLate(now) ? 'status-overdue' : 'status-active'}" th:text="${loan.checkLate(now) ? 'Overdue' : 'Active'}">Status</span>
+                  <span class="loan-date" th:text="${#temporals.format(loan.loanDate, 'dd MMM yyyy')}">01 Jan 2023</span>
+                </div>
+                <div class="loan-body">
+                  <h5 class="loan-title" th:text="${loan.book.title}">Book Title</h5>
+                  <p class="loan-meta" th:text="${loan.book.author != null ? loan.book.author.name : 'Unknown Author'}">Author Name</p>
+                  <p class="mb-0 small">
+                    <i class="fas fa-tag me-1"></i>
+                    <span th:text="${loan.loanType.name}">Loan Type</span>
+                  </p>
+                  <div class="d-flex justify-content-between mt-3">
+                    <a th:href="@{/user/loans/{id}(id=${loan.id})}" class="btn btn-sm btn-outline-secondary">
+                      <i class="fas fa-info-circle me-1"></i>Details
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Loan History Section -->
+      <div class="card">
+        <div class="card-header bg-light">
+          <h5 class="mb-0"><i class="fas fa-history me-2"></i>Loan History</h5>
+        </div>
+        <div class="card-body">
+          <div class="alert alert-info" th:if="${#lists.isEmpty(loanHistory)}">
+            <i class="fas fa-info-circle me-2"></i>Your loan history is empty.
+          </div>
+
+          <div class="table-responsive" th:unless="${#lists.isEmpty(loanHistory)}">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>Book</th>
+                  <th>Author</th>
+                  <th>Loan Date</th>
+                  <th>Return Date</th>
+                  <th>Loan Type</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr th:each="loan : ${loanHistory}">
+                  <td th:text="${loan.book.title}">Book Title</td>
+                  <td th:text="${loan.book.author != null ? loan.book.author.name : 'Unknown'}">Author Name</td>
+                  <td th:text="${#temporals.format(loan.loanDate, 'dd MMM yyyy')}">01 Jan 2023</td>
+                  <td th:text="${#temporals.format(loan.returnDate, 'dd MMM yyyy')}">15 Jan 2023</td>
+                  <td th:text="${loan.loanType.name}">Loan Type</td>
+                  <td>
+                    <a th:href="@{/user/loans/{id}(id=${loan.id})}" class="btn btn-sm btn-outline-secondary">
+                      <i class="fas fa-info-circle"></i>
+                    </a>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/bs/js/bootstrap.bundle.min.js"></script>
+  <script src="/static/fa/js/all.min.js"></script>
+  <script>
+    // Toggle sidebar on mobile
+    document.querySelector(".toggle-btn")?.addEventListener("click", function () {
+      document.querySelector(".sidebar").classList.toggle("active");
+      document.querySelector(".main-content").classList.toggle("active");
+    });
+  </script>
+</body>
+</html>

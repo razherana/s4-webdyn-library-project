@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title th:text="${pageTitle}">Search Books - Library</title>
+
+  <link rel="stylesheet" href="/static/bs/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="/static/fa/css/all.min.css" />
+  <link rel="stylesheet" href="/static/poppins/poppins.css" />
+  <link rel="stylesheet" href="/static/css/library.css" />
+  <style>
+    body {
+      font-family: "Poppins", sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .sidebar {
+      min-height: 100vh;
+      width: auto;
+      background-color: #343a40;
+      padding-top: 20px;
+      transition: all 0.3s;
+      z-index: 999;
+    }
+
+    .main-content {
+      padding: 20px;
+      transition: all 0.3s;
+    }
+
+    .grid-container {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      min-height: 100vh;
+    }
+
+    .search-container {
+      background-color: #f8f9fa;
+      border-radius: 10px;
+      padding: 30px;
+      margin: 20px 0;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .search-heading {
+      font-size: 1.5rem;
+      margin-bottom: 20px;
+      color: #343a40;
+    }
+
+    .search-options {
+      background-color: white;
+      border-radius: 10px;
+      padding: 20px;
+      margin-top: 30px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .search-options-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 15px;
+      color: #343a40;
+    }
+
+    @media (max-width: 768px) {
+      .grid-container {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: fixed;
+        width: 250px;
+        left: -250px;
+      }
+
+      .sidebar.active {
+        left: 0;
+      }
+
+      .main-content.active {
+        opacity: 0.3;
+      }
+
+      .toggle-btn {
+        display: block;
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        z-index: 1000;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="grid-container">
+    <!-- Sidebar -->
+    <th:block th:replace="~{fragments/people-sidebar :: sidebar('book-search')}"></th:block>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <button class="btn btn-primary d-md-none toggle-btn" type="button">
+        <i class="fas fa-bars"></i>
+      </button>
+
+      <!-- Page Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-search me-2"></i>Search Books</h2>
+      </div>
+
+      <!-- Search Container -->
+      <div class="search-container">
+        <h3 class="search-heading">Find Your Next Book</h3>
+        
+        <form action="/user/books" method="get">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="search" class="form-label">Title or Author</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                <input type="text" class="form-control" id="search" name="search" placeholder="Enter book title or author name">
+              </div>
+            </div>
+            
+            <div class="col-md-4 mb-3">
+              <label for="categoryId" class="form-label">Category</label>
+              <select class="form-select" id="categoryId" name="categoryId">
+                <option value="">All Categories</option>
+                <option th:each="category : ${categories}" th:value="${category.id}" th:text="${category.name}">Category</option>
+              </select>
+            </div>
+            
+            <div class="col-md-2 mb-3 d-flex align-items-end">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="availableOnly" name="availableOnly" value="true">
+                <label class="form-check-label" for="availableOnly">Available only</label>
+              </div>
+            </div>
+          </div>
+          
+          <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-3">
+            <button type="reset" class="btn btn-outline-secondary">
+              <i class="fas fa-undo me-2"></i>Reset
+            </button>
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-search me-2"></i>Search
+            </button>
+          </div>
+        </form>
+        
+        <div class="search-options">
+          <h4 class="search-options-title">Quick Category Search</h4>
+          <div class="row">
+            <div class="col-6 col-md-3 mb-3" th:each="category : ${categories}">
+              <a th:href="@{/user/books(categoryId=${category.id})}" class="btn btn-outline-secondary w-100">
+                <i class="fas fa-tag me-2"></i><span th:text="${category.name}">Category</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Popular Searches Section -->
+      <div class="card mt-4">
+        <div class="card-header">
+          <h5 class="mb-0"><i class="fas fa-fire me-2"></i>Popular Searches</h5>
+        </div>
+        <div class="card-body">
+          <div class="d-flex flex-wrap gap-2">
+            <a href="/user/books?search=fiction" class="btn btn-sm btn-outline-info">
+              <i class="fas fa-book me-1"></i>Fiction
+            </a>
+            <a href="/user/books?search=science" class="btn btn-sm btn-outline-info">
+              <i class="fas fa-flask me-1"></i>Science
+            </a>
+            <a href="/user/books?search=history" class="btn btn-sm btn-outline-info">
+              <i class="fas fa-landmark me-1"></i>History
+            </a>
+            <a href="/user/books?search=programming" class="btn btn-sm btn-outline-info">
+              <i class="fas fa-code me-1"></i>Programming
+            </a>
+            <a href="/user/books?search=biography" class="btn btn-sm btn-outline-info">
+              <i class="fas fa-user me-1"></i>Biography
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/bs/js/bootstrap.bundle.min.js"></script>
+  <script src="/static/fa/js/all.min.js"></script>
+  <script>
+    // Toggle sidebar on mobile
+    document.querySelector(".toggle-btn")?.addEventListener("click", function () {
+      document.querySelector(".sidebar").classList.toggle("active");
+      document.querySelector(".main-content").classList.toggle("active");
+    });
+  </script>
+</body>
+</html>

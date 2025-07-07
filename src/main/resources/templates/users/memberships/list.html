@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title th:text="${pageTitle}">My Memberships - Library Management</title>
+
+    <link rel="stylesheet" href="/static/bs/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/static/fa/css/all.min.css" />
+    <link rel="stylesheet" href="/static/poppins/poppins.css" />
+    <link rel="stylesheet" href="/static/css/library.css" />
+    <style>
+      body {
+        font-family: "Poppins", sans-serif;
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+
+      .sidebar {
+        min-height: 100vh;
+        width: auto;
+        background-color: #343a40;
+        padding-top: 20px;
+        transition: all 0.3s;
+        z-index: 999;
+      }
+
+      .main-content {
+        padding: 20px;
+        transition: all 0.3s;
+      }
+
+      .grid-container {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        min-height: 100vh;
+      }
+
+      .membership-card {
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+        margin-bottom: 20px;
+        overflow: hidden;
+      }
+
+      .membership-card:hover {
+        transform: translateY(-5px);
+      }
+
+      .membership-header {
+        padding: 15px 20px;
+        background-color: #e3f2fd;
+        border-bottom: 1px solid #dee2e6;
+      }
+
+      .membership-body {
+        padding: 20px;
+      }
+
+      .membership-type {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #0d6efd;
+        margin-bottom: 5px;
+      }
+
+      .membership-date {
+        font-size: 0.9rem;
+        color: #6c757d;
+      }
+
+      .membership-status {
+        display: inline-block;
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-left: 10px;
+      }
+
+      .status-active {
+        background-color: #d1e7dd;
+        color: #198754;
+      }
+
+      .status-expired {
+        background-color: #f8d7da;
+        color: #dc3545;
+      }
+
+      .status-future {
+        background-color: #e2e3e5;
+        color: #495057;
+      }
+
+      @media (max-width: 768px) {
+        .grid-container {
+          grid-template-columns: 1fr;
+        }
+
+        .sidebar {
+          position: fixed;
+          width: 250px;
+          left: -250px;
+        }
+
+        .sidebar.active {
+          left: 0;
+        }
+
+        .main-content.active {
+          opacity: 0.3;
+        }
+
+        .toggle-btn {
+          display: block;
+          position: fixed;
+          top: 10px;
+          left: 10px;
+          z-index: 1000;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="grid-container">
+      <!-- Sidebar -->
+      <th:block
+        th:replace="~{fragments/people-sidebar :: sidebar('loans-reservations')}"
+      ></th:block>
+
+      <!-- Main Content -->
+      <div class="main-content">
+        <button class="btn btn-primary d-md-none toggle-btn" type="button">
+          <i class="fas fa-bars"></i>
+        </button>
+
+        <!-- Flash Messages -->
+        <div
+          th:if="${success}"
+          class="alert alert-success alert-dismissible fade show mt-3"
+          role="alert"
+        >
+          <i class="fas fa-check-circle me-2"></i>
+          <span th:text="${success}">Success message</span>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+            aria-label="Close"
+          ></button>
+        </div>
+
+        <div
+          th:if="${error}"
+          class="alert alert-danger alert-dismissible fade show mt-3"
+          role="alert"
+        >
+          <i class="fas fa-exclamation-circle me-2"></i>
+          <span th:text="${error}">Error message</span>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+            aria-label="Close"
+          ></button>
+        </div>
+
+        <!-- Page Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h2>
+            <i class="fas fa-id-card me-2"></i>My Memberships
+          </h2>
+          <a href="/user/memberships/add" class="btn btn-primary">
+            <i class="fas fa-plus-circle me-2"></i>Create New Membership
+          </a>
+        </div>
+
+        <!-- Memberships List -->
+        <div class="alert alert-info" th:if="${#lists.isEmpty(memberships)}">
+          <i class="fas fa-info-circle me-2"></i>You don't have any memberships yet. 
+          <a href="/user/memberships/add" class="alert-link">Create your first membership</a>.
+        </div>
+
+        <div class="row" th:unless="${#lists.isEmpty(memberships)}">
+          <div class="col-12 col-md-6 col-lg-4" th:each="membership : ${memberships}">
+            <div class="membership-card">
+              <div class="membership-header d-flex justify-content-between align-items-center">
+                <div class="membership-type" th:text="${membership.membershipType.name}">
+                  Standard
+                </div>
+                <div>
+                  <span 
+                    class="membership-status"
+                    th:classappend="${membership.startDate.isAfter(today) ? 'status-future' : 
+                                    (membership.endDate.isBefore(today) ? 'status-expired' : 'status-active')}"
+                    th:text="${membership.startDate.isAfter(today) ? 'Future' : 
+                              (membership.endDate.isBefore(today) ? 'Expired' : 'Active')}"
+                  >
+                    Active
+                  </span>
+                </div>
+              </div>
+              <div class="membership-body">
+                <div class="row mb-3">
+                  <div class="col-6">
+                    <div class="text-muted mb-1">Start Date</div>
+                    <div th:text="${#temporals.format(membership.startDate, 'dd MMM yyyy')}">
+                      01 Jan 2023
+                    </div>
+                  </div>
+                  <div class="col-6">
+                    <div class="text-muted mb-1">End Date</div>
+                    <div th:text="${#temporals.format(membership.endDate, 'dd MMM yyyy')}">
+                      31 Dec 2023
+                    </div>
+                  </div>
+                </div>
+                <div class="row mb-2">
+                  <div class="col-6">
+                    <div class="text-muted mb-1">Books at Home</div>
+                    <div th:text="${membership.membershipType.maxBooksAllowedHome}">3</div>
+                  </div>
+                  <div class="col-6">
+                    <div class="text-muted mb-1">Books at Library</div>
+                    <div th:text="${membership.membershipType.maxBooksAllowedLibrary}">5</div>
+                  </div>
+                </div>
+                <hr>
+                <div class="mt-3 d-flex justify-content-between">
+                  <small class="text-muted" th:if="${membership.endDate.isBefore(today)}">
+                    Expired <span th:text="${#temporals.format(membership.endDate, 'dd MMM yyyy')}">31 Dec 2023</span>
+                  </small>
+                  <small class="text-muted" th:if="${membership.startDate.isAfter(today)}">
+                    Starts <span th:text="${#temporals.format(membership.startDate, 'dd MMM yyyy')}">01 Jan 2024</span>
+                  </small>
+                  <small class="text-success" th:if="${!membership.startDate.isAfter(today) && !membership.endDate.isBefore(today)}">
+                    <i class="fas fa-check-circle"></i> Currently Active
+                  </small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/static/bs/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/fa/js/all.min.js"></script>
+    <script>
+      // Toggle sidebar on mobile
+      document
+        .querySelector(".toggle-btn")
+        ?.addEventListener("click", function () {
+          document.querySelector(".sidebar").classList.toggle("active");
+          document.querySelector(".main-content").classList.toggle("active");
+        });
+
+      // Set active accordion item based on current page
+      document.addEventListener("DOMContentLoaded", function () {
+        const currentPath = window.location.pathname;
+        const navLinks = document.querySelectorAll(".sidebar .nav-link");
+
+        // Find the active link
+        let activeLink = null;
+        navLinks.forEach((link) => {
+          const href = link.getAttribute("href");
+          if (href && currentPath.startsWith(href) && href !== "/") {
+            // If we have a match that's not just the root
+            if (
+              !activeLink ||
+              href.length > activeLink.getAttribute("href").length
+            ) {
+              // Take the longer match (more specific)
+              activeLink = link;
+            }
+          }
+        });
+
+        if (activeLink) {
+          // Mark the link as active
+          activeLink.classList.add("active");
+
+          // Find parent accordion and expand it
+          const accordionBody = activeLink.closest(".accordion-collapse");
+          if (accordionBody) {
+            const accordionId = accordionBody.id;
+            const accordionButton = document.querySelector(
+              `[data-bs-target="#${accordionId}"]`
+            );
+
+            // Add active-parent class to the button
+            if (accordionButton) {
+              accordionButton.classList.add("active-parent");
+            }
+
+            // Create a new bootstrap.Collapse instance and show it
+            const bsCollapse = new bootstrap.Collapse(accordionBody, {
+              toggle: false,
+            });
+            bsCollapse.show();
+          }
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -2,8 +2,8 @@ package mg.razherana.library.controllers.loans;
 
 import mg.razherana.library.models.loans.People;
 import mg.razherana.library.models.users.Role;
-import mg.razherana.library.models.users.User;
 import mg.razherana.library.services.RoleService;
+import mg.razherana.library.services.UserService;
 import mg.razherana.library.services.loans.PeopleService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,17 +13,22 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Set;
 
 @Controller
 @RequestMapping("/peoples")
 public class PeopleController {
+
+  private final UserService userService;
 
   @Autowired
   private PeopleService peopleService;
 
   @Autowired
   private RoleService roleService;
+
+  PeopleController(UserService userService) {
+    this.userService = userService;
+  }
 
   @GetMapping("")
   public String list(Model model) {
@@ -49,18 +54,14 @@ public class PeopleController {
       return "redirect:/peoples?error=Person already exists";
     }
 
-    User user = new User();
-    user.setUsername(people.getName().replaceAll(" ", "_").toLowerCase());
-    user.setPassword("password");
-    user.setPeople(people);
-    
     Role peopleRole = roleService.findByName("people");
-    
-    if (peopleRole != null) {
-      user.setRoles(Set.of(peopleRole));
-    } else {
+    if (peopleRole == null) {
       return "redirect:/peoples?error=Role 'people' not found";
     }
+
+    userService.save(people.getName().replaceAll(" ", "_").toLowerCase(),
+        "password",
+        List.of(peopleRole.getId()), people.getId());
 
     return "redirect:/peoples";
   }

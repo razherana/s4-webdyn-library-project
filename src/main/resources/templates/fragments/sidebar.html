@@ -216,6 +216,18 @@
                     <i class="fas fa-book-open me-2"></i> Loans
                   </a>
                 </li>
+                <li
+                  class="nav-item nav-subitem"
+                  th:if="${@accessEvaluatorService.hasAccess(isAdmin, userAccessUris, '/admin/extend-loans')}"
+                >
+                  <a
+                    class="nav-link"
+                    href="/admin/extend-loans"
+                    th:classappend="${activeMenu == 'extend-loans' ? 'active' : ''}"
+                  >
+                    <i class="fas fa-clock me-2"></i> Loan Extensions
+                  </a>
+                </li>
               </ul>
             </div>
           </div>

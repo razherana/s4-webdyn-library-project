@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>User Dashboard - Library Management</title>
+
+    <link rel="stylesheet" href="/static/bs/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/static/fa/css/all.min.css" />
+    <link rel="stylesheet" href="/static/poppins/poppins.css" />
+    <link rel="stylesheet" href="/static/css/library.css" />
+
+    <style>
+      body {
+        font-family: "Poppins", sans-serif;
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+
+      .sidebar {
+        min-height: 100vh;
+        width: auto;
+        background-color: #343a40;
+        padding-top: 20px;
+        transition: all 0.3s;
+        z-index: 999;
+      }
+
+      .main-content {
+        padding: 20px;
+        transition: all 0.3s;
+      }
+
+      .grid-container {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        min-height: 100vh;
+      }
+
+      .welcome-container {
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        padding: 30px;
+        margin-top: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .welcome-heading {
+        font-size: 1.8rem;
+        margin-bottom: 10px;
+        color: #343a40;
+      }
+
+      .welcome-subheading {
+        color: #6c757d;
+        margin-bottom: 0;
+      }
+
+      /* Statistics cards styles */
+      .stats-container {
+        margin-top: 30px;
+      }
+
+      .stat-card {
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease;
+      }
+
+      .stat-card:hover {
+        transform: translateY(-5px);
+      }
+
+      .stat-icon {
+        font-size: 2.5rem;
+        margin-bottom: 15px;
+      }
+
+      .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 5px;
+      }
+
+      .stat-label {
+        font-size: 1rem;
+        color: #6c757d;
+      }
+
+      .loans-card {
+        background-color: #e3f2fd;
+        color: #0d6efd;
+      }
+
+      .active-card {
+        background-color: #d1e7dd;
+        color: #198754;
+      }
+
+      .overdue-card {
+        background-color: #f8d7da;
+        color: #dc3545;
+      }
+
+      .reservations-card {
+        background-color: #fff3cd;
+        color: #ffc107;
+      }
+
+      /* Action buttons */
+      .action-button {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 15px;
+        border-radius: 10px;
+        background-color: white;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        text-decoration: none;
+        color: #343a40;
+        height: 100%;
+      }
+
+      .action-button:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      .action-icon {
+        font-size: 2rem;
+        margin-bottom: 10px;
+      }
+
+      .loans-action {
+        color: #0d6efd;
+      }
+
+      .reservations-action {
+        color: #ffc107;
+      }
+
+      /* Punishment alert */
+      .punishment-alert {
+        background-color: #f8d7da;
+        border-left: 5px solid #dc3545;
+        border-radius: 10px;
+        padding: 20px;
+        margin-top: 30px;
+        margin-bottom: 30px;
+      }
+
+      .punishment-heading {
+        color: #dc3545;
+        font-weight: 600;
+        margin-bottom: 10px;
+      }
+
+      /* Recent activity */
+      .activity-container {
+        background-color: white;
+        border-radius: 10px;
+        padding: 20px;
+        margin-top: 30px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .activity-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin-bottom: 15px;
+        color: #343a40;
+      }
+
+      .activity-list {
+        list-style-type: none;
+        padding: 0;
+      }
+
+      .activity-item {
+        padding: 12px 15px;
+        border-bottom: 1px solid #e9ecef;
+        display: flex;
+        align-items: center;
+      }
+
+      .activity-item:last-child {
+        border-bottom: none;
+      }
+
+      .activity-icon {
+        margin-right: 15px;
+        font-size: 1.2rem;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .loan-icon {
+        background-color: #d1e7dd;
+        color: #198754;
+      }
+
+      .reservation-icon {
+        background-color: #fff3cd;
+        color: #ffc107;
+      }
+
+      .activity-info {
+        flex: 1;
+      }
+
+      .activity-title-text {
+        font-weight: 600;
+        margin-bottom: 3px;
+      }
+
+      .activity-meta {
+        font-size: 0.85rem;
+        color: #6c757d;
+      }
+
+      .status-badge {
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 0.75rem;
+        font-weight: 600;
+      }
+
+      .status-active {
+        background-color: #d1e7dd;
+        color: #198754;
+      }
+
+      .status-overdue {
+        background-color: #f8d7da;
+        color: #dc3545;
+      }
+
+      .status-returned {
+        background-color: #e9ecef;
+        color: #6c757d;
+      }
+
+      .status-pending {
+        background-color: #fff3cd;
+        color: #ffc107;
+      }
+
+      @media (max-width: 768px) {
+        .grid-container {
+          grid-template-columns: 1fr;
+        }
+
+        .sidebar {
+          position: fixed;
+          width: 250px;
+          left: -250px;
+        }
+
+        .sidebar.active {
+          left: 0;
+        }
+
+        .main-content.active {
+          opacity: 0.3;
+        }
+
+        .toggle-btn {
+          display: block;
+          position: fixed;
+          top: 10px;
+          left: 10px;
+          z-index: 1000;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="grid-container">
+      <!-- Sidebar -->
+      <th:block
+        th:replace="~{fragments/people-sidebar :: sidebar('dashboard')}"
+      ></th:block>
+
+      <!-- Main Content -->
+      <div class="main-content">
+        <button class="btn btn-primary d-md-none toggle-btn" type="button">
+          <i class="fas fa-bars"></i>
+        </button>
+
+        <!-- Error Message -->
+        <div
+          th:if="${error}"
+          class="alert alert-danger alert-dismissible fade show mt-3"
+          role="alert"
+        >
+          <i class="fas fa-exclamation-circle me-2"></i>
+          <span th:text="${error}">Error message</span>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+            aria-label="Close"
+          ></button>
+        </div>
+
+        <!-- Welcome Section -->
+        <div class="welcome-container" th:if="${primaryMembership != null}">
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <h1 class="welcome-heading">
+                Welcome, <span th:text="${primaryMembership.people.name}">User</span>!
+              </h1>
+              <p class="welcome-subheading">
+                Membership type: <span th:text="${primaryMembership.membershipType.name}">Standard</span>
+                (valid until <span th:text="${#temporals.format(primaryMembership.endDate, 'dd MMMM yyyy')}">31 December 2023</span>)
+              </p>
+            </div>
+            <div class="d-none d-md-block">
+              <i class="fas fa-user-circle text-muted" style="font-size: 4rem"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Active Punishment Alert -->
+        <div class="punishment-alert" th:if="${activePunishment != null}">
+          <div class="d-flex align-items-start">
+            <i class="fas fa-exclamation-triangle text-danger me-3 mt-1" style="font-size: 1.5rem"></i>
+            <div>
+              <h5 class="punishment-heading">Active Restriction on Your Account</h5>
+              <p class="mb-1">
+                Your account has an active restriction until 
+                <strong th:text="${#temporals.format(activePunishment.punishmentDate.plusHours(activePunishment.durationHours), 'dd MMMM yyyy HH:mm')}">31 December 2023 23:59</strong>.
+              </p>
+              <p class="mb-0">
+                <strong>Reason:</strong> 
+                <span th:text="${activePunishment.description}">Late return of borrowed items</span>
+              </p>
+              <p class="text-muted small mb-0 mt-2">
+                During this period, you cannot borrow new books or make reservations.
+                Please contact the library staff if you have any questions.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Statistics Section -->
+        <div class="stats-container" th:if="${primaryMembership != null}">
+          <div class="row">
+            <!-- Total Loans -->
+            <div class="col-6 col-md-3">
+              <div class="stat-card loans-card text-center">
+                <div class="stat-icon">
+                  <i class="fas fa-book"></i>
+                </div>
+                <div class="stat-value" th:text="${totalLoans}">0</div>
+                <div class="stat-label">Total Loans</div>
+              </div>
+            </div>
+
+            <!-- Active Loans -->
+            <div class="col-6 col-md-3">
+              <div class="stat-card active-card text-center">
+                <div class="stat-icon">
+                  <i class="fas fa-book-reader"></i>
+                </div>
+                <div class="stat-value" th:text="${activeLoans}">0</div>
+                <div class="stat-label">Active Loans</div>
+              </div>
+            </div>
+
+            <!-- Overdue Loans -->
+            <div class="col-6 col-md-3">
+              <div class="stat-card overdue-card text-center">
+                <div class="stat-icon">
+                  <i class="fas fa-exclamation-circle"></i>
+                </div>
+                <div class="stat-value" th:text="${overdueLoans}">0</div>
+                <div class="stat-label">Overdue Items</div>
+              </div>
+            </div>
+
+            <!-- Active Reservations -->
+            <div class="col-6 col-md-3">
+              <div class="stat-card reservations-card text-center">
+                <div class="stat-icon">
+                  <i class="fas fa-calendar-check"></i>
+                </div>
+                <div class="stat-value" th:text="${activeReservations}">0</div>
+                <div class="stat-label">Active Reservations</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions mt-4">
+          <h4 class="mb-4">Quick Actions</h4>
+          <div class="row">
+            <div class="col-6">
+              <a href="/user/memberships" class="action-button">
+                <div class="action-icon new-member-action">
+                  <i class="fas fa-user-plus"></i>
+                </div>
+                <div class="text-center">Manage Memberships</div>
+              </a>
+            </div>
+            <div class="col-6" th:if="${primaryMembership != null}">
+              <a href="/user/loans" class="action-button">
+                <div class="action-icon loans-action">
+                  <i class="fas fa-book-open"></i>
+                </div>
+                <div class="text-center">View All Loans</div>
+              </a>
+            </div>
+            <div class="col-6" th:if="${primaryMembership != null}">
+              <a href="/user/reservations" class="action-button">
+                <div class="action-icon reservations-action">
+                  <i class="fas fa-calendar-alt"></i>
+                </div>
+                <div class="text-center">View All Reservations</div>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Activity Section -->
+        <div class="row" th:if="${primaryMembership != null}">
+          <!-- Recent Loans -->
+          <div class="col-md-6">
+            <div class="activity-container">
+              <div class="activity-title">Recent Loans</div>
+              <ul class="activity-list">
+                <li class="activity-item" th:each="loan : ${recentLoans}">
+                  <div class="activity-icon loan-icon">
+                    <i class="fas fa-book-reader"></i>
+                  </div>
+                  <div class="activity-info">
+                    <div class="d-flex justify-content-between align-items-start">
+                      <div class="activity-title-text" th:text="${loan.book.title}">Book Title</div>
+                      <span th:if="${loan.returnDate == null && !loan.checkLate(T(java.time.LocalDateTime).now())}" 
+                            class="status-badge status-active">Active</span>
+                      <span th:if="${loan.returnDate == null && loan.checkLate(T(java.time.LocalDateTime).now())}" 
+                            class="status-badge status-overdue">Overdue</span>
+                      <span th:if="${loan.returnDate != null}" 
+                            class="status-badge status-returned">Returned</span>
+                    </div>
+                    <div class="activity-meta">
+                      <span th:text="${#temporals.format(loan.loanDate, 'dd MMM yyyy')}">01 Jan 2023</span>
+                      <span th:if="${loan.returnDate != null}">
+                        - <span th:text="${#temporals.format(loan.returnDate, 'dd MMM yyyy')}">15 Jan 2023</span>
+                      </span>
+                    </div>
+                  </div>
+                </li>
+                <li class="text-center py-3" th:if="${recentLoans.isEmpty()}">
+                  No recent loans found
+                </li>
+              </ul>
+              <div class="text-center mt-3" th:if="${!recentLoans.isEmpty()}">
+                <a href="/user/loans" class="btn btn-sm btn-outline-primary">View All Loans</a>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Recent Reservations -->
+          <div class="col-md-6">
+            <div class="activity-container">
+              <div class="activity-title">Recent Reservations</div>
+              <ul class="activity-list">
+                <li class="activity-item" th:each="reservation : ${recentReservations}">
+                  <div class="activity-icon reservation-icon">
+                    <i class="fas fa-calendar-check"></i>
+                  </div>
+                  <div class="activity-info">
+                    <div class="d-flex justify-content-between align-items-start">
+                      <div class="activity-title-text" th:text="${reservation.book.title}">Book Title</div>
+                      <span class="status-badge status-pending" 
+                            th:text="${reservation.reservationStatusHistories[0].reservationStatusType.name}">Pending</span>
+                    </div>
+                    <div class="activity-meta">
+                      <span th:if="${reservation.takeHome}"><i class="fas fa-home me-1"></i> Take home</span>
+                      <span th:unless="${reservation.takeHome}"><i class="fas fa-building me-1"></i> Library use</span>
+                      - Reserved for <span th:text="${#temporals.format(reservation.reservationDate, 'dd MMM yyyy HH:mm')}">01 Jan 2023 15:30</span>
+                    </div>
+                  </div>
+                </li>
+                <li class="text-center py-3" th:if="${recentReservations.isEmpty()}">
+                  No recent reservations found
+                </li>
+              </ul>
+              <div class="text-center mt-3" th:if="${!recentReservations.isEmpty()}">
+                <a href="/user/reservations" class="btn btn-sm btn-outline-warning">View All Reservations</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/static/bs/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/fa/js/all.min.js"></script>
+    <script>
+      // Toggle sidebar on mobile
+      document
+        .querySelector(".toggle-btn")
+        ?.addEventListener("click", function () {
+          document.querySelector(".sidebar").classList.toggle("active");
+          document.querySelector(".main-content").classList.toggle("active");
+        });
+
+      // Set active accordion item based on current page
+      document.addEventListener("DOMContentLoaded", function () {
+        const currentPath = window.location.pathname;
+        const navLinks = document.querySelectorAll(".sidebar .nav-link");
+
+        // Find the active link
+        let activeLink = null;
+        navLinks.forEach((link) => {
+          const href = link.getAttribute("href");
+          if (href && currentPath.startsWith(href) && href !== "/") {
+            // If we have a match that's not just the root
+            if (
+              !activeLink ||
+              href.length > activeLink.getAttribute("href").length
+            ) {
+              // Take the longer match (more specific)
+              activeLink = link;
+            }
+          }
+        });
+
+        if (activeLink) {
+          // Mark the link as active
+          activeLink.classList.add("active");
+
+          // Find parent accordion and expand it
+          const accordionBody = activeLink.closest(".accordion-collapse");
+          if (accordionBody) {
+            const accordionId = accordionBody.id;
+            const accordionButton = document.querySelector(
+              `[data-bs-target="#${accordionId}"]`
+            );
+
+            // Add active-parent class to the button
+            if (accordionButton) {
+              accordionButton.classList.add("active-parent");
+            }
+
+            // Create a new bootstrap.Collapse instance and show it
+            const bsCollapse = new bootstrap.Collapse(accordionBody, {
+              toggle: false,
+            });
+            bsCollapse.show();
+          }
+        }
+      });
+    </script>
+  </body>
+</html>

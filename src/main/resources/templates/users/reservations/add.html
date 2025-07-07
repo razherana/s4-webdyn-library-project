@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title th:text="${pageTitle}">Reserve a Book - Library</title>
+
+  <link rel="stylesheet" href="/static/bs/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="/static/fa/css/all.min.css" />
+  <link rel="stylesheet" href="/static/poppins/poppins.css" />
+  <link rel="stylesheet" href="/static/css/library.css" />
+  <style>
+    body {
+      font-family: "Poppins", sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .sidebar {
+      min-height: 100vh;
+      width: auto;
+      background-color: #343a40;
+      padding-top: 20px;
+      transition: all 0.3s;
+      z-index: 999;
+    }
+
+    .main-content {
+      padding: 20px;
+      transition: all 0.3s;
+    }
+
+    .grid-container {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      min-height: 100vh;
+    }
+
+    .form-container {
+      background-color: white;
+      border-radius: 10px;
+      padding: 30px;
+      margin-bottom: 30px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 25px;
+      color: #343a40;
+      display: flex;
+      align-items: center;
+    }
+
+    .form-title i {
+      margin-right: 10px;
+    }
+
+    @media (max-width: 768px) {
+      .grid-container {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: fixed;
+        width: 250px;
+        left: -250px;
+      }
+
+      .sidebar.active {
+        left: 0;
+      }
+
+      .main-content.active {
+        opacity: 0.3;
+      }
+
+      .toggle-btn {
+        display: block;
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        z-index: 1000;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="grid-container">
+    <!-- Sidebar -->
+    <th:block th:replace="~{fragments/people-sidebar :: sidebar('reservations')}"></th:block>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <button class="btn btn-primary d-md-none toggle-btn" type="button">
+        <i class="fas fa-bars"></i>
+      </button>
+
+      <!-- Page Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-calendar-plus me-2"></i>Reserve a Book</h2>
+        <a href="/user/reservations" class="btn btn-outline-secondary">
+          <i class="fas fa-arrow-left me-2"></i>Back to Reservations
+        </a>
+      </div>
+
+      <!-- Error Message -->
+      <div th:if="${error}" class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i>
+        <span th:text="${error}">Error message</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+
+      <!-- Punishment Warning -->
+      <div th:if="${punishment}" class="alert alert-danger mt-3">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <strong>Active Punishment:</strong> You cannot make reservations until your punishment expires.
+        <div>
+          <strong>Expires on:</strong> <span th:text="${#temporals.format(punishment.punishmentDate.plusSeconds(punishment.durationHours * 3600), 'dd MMMM yyyy HH:mm')}">01 January 2023 10:30</span>
+        </div>
+        <div>
+          <strong>Reason:</strong> <span th:text="${punishment.description}">Late return of borrowed items</span>
+        </div>
+      </div>
+
+      <!-- Reservation Form -->
+      <div class="form-container" th:unless="${error != null && punishment != null}">
+        <h3 class="form-title">
+          <i class="fas fa-calendar-check"></i>Reservation Details
+        </h3>
+        
+        <form th:action="@{/user/reservations/add}" method="post" id="reservationForm">
+          <!-- Membership Selection -->
+          <div class="mb-3">
+            <label for="membershipId" class="form-label">Membership <span class="text-danger">*</span></label>
+            <select class="form-select" id="membershipId" name="membershipId" required>
+              <option value="">-- Select Membership --</option>
+              <option th:each="membership : ${memberships}" 
+                      th:value="${membership.id}" 
+                      th:text="${membership.membershipType.name + ' (valid until ' + #temporals.format(membership.endDate, 'dd MMMM yyyy') + ')'}"
+                      th:selected="${membership.id == selectedMembershipId}">
+                Standard Membership (valid until 31 December 2023)
+              </option>
+            </select>
+          </div>
+          
+          <!-- Book Selection -->
+          <div class="mb-3">
+            <label for="bookId" class="form-label">Book <span class="text-danger">*</span></label>
+            <select class="form-select" id="bookId" name="bookId" required>
+              <option value="">-- Select Book --</option>
+              <option th:each="book : ${books}" 
+                      th:value="${book.id}" 
+                      th:text="${book.title + (book.author != null ? ' - ' + book.author.name : '')}"
+                      th:selected="${book.id == selectedBookId}">
+                Book Title - Author Name
+              </option>
+            </select>
+          </div>
+          
+          <!-- Reservation Date -->
+          <div class="mb-3">
+            <label for="reservationDate" class="form-label">Reservation Date <span class="text-danger">*</span></label>
+            <input 
+              type="date" 
+              class="form-control" 
+              id="reservationDate" 
+              name="reservationDate" 
+              th:min="${#temporals.format(today, 'yyyy-MM-dd')}"
+              required
+            />
+            <div class="form-text">
+              Select the date when you want to visit the library.
+            </div>
+          </div>
+          
+          <!-- Reservation Time -->
+          <div class="mb-3">
+            <label for="reservationTime" class="form-label">Reservation Time <span class="text-danger">*</span></label>
+            <input 
+              type="time" 
+              class="form-control" 
+              id="reservationTime" 
+              name="reservationTime" 
+              th:min="${minTime}" 
+              required
+            />
+            <div class="form-text">
+              Select the time when you want to visit the library. The library is open from 9:00 AM to 5:00 PM.
+            </div>
+          </div>
+          
+          <!-- Take Home Option -->
+          <div class="mb-3 form-check">
+            <input type="checkbox" class="form-check-input" id="takeHome" name="takeHome" value="true">
+            <label class="form-check-label" for="takeHome">I want to take this book home</label>
+            <div class="form-text">
+              If unchecked, the book will be reserved for in-library use only.
+            </div>
+          </div>
+          
+          <!-- Action Buttons -->
+          <div class="d-flex justify-content-end mt-4 gap-2">
+            <a href="/user/reservations" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-calendar-check me-2"></i>Create Reservation
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/bs/js/bootstrap.bundle.min.js"></script>
+  <script src="/static/fa/js/all.min.js"></script>
+  <script>
+    // Toggle sidebar on mobile
+    document
+      .querySelector(".toggle-btn")
+      ?.addEventListener("click", function () {
+        document.querySelector(".sidebar").classList.toggle("active");
+        document.querySelector(".main-content").classList.toggle("active");
+      });
+    
+    // Set default reservation date and time
+    document.addEventListener('DOMContentLoaded', function() {
+      const today = new Date();
+      const formattedDate = today.toISOString().split('T')[0]; // YYYY-MM-DD
+      document.getElementById('reservationDate').value = formattedDate;
+      
+      // Default time to current time + 1 hour, rounded to nearest hour
+      const nextHour = new Date(today.getTime() + 60 * 60 * 1000);
+      nextHour.setMinutes(0, 0, 0);
+      const hours = String(nextHour.getHours()).padStart(2, '0');
+      const minutes = String(nextHour.getMinutes()).padStart(2, '0');
+      document.getElementById('reservationTime').value = `${hours}:${minutes}`;
+      
+      // Ensure library hours 
+      const reservationTimeInput = document.getElementById('reservationTime');
+      reservationTimeInput.addEventListener('change', function() {
+        const selectedTime = this.value;
+        const [hours, minutes] = selectedTime.split(':').map(Number);
+
+        // Check the time
+        if (hours < 9 || hours >= 17) {
+          // alert('Please select a time between 9:00 AM and 5:00 PM');
+          // this.value = '09:00'; // Reset to default time
+        }
+      });
+    });
+  </script>
+</body>
+</html>

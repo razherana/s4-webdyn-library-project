@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title th:text="${pageTitle}">My Reservations - Library</title>
+
+  <link rel="stylesheet" href="/static/bs/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="/static/fa/css/all.min.css" />
+  <link rel="stylesheet" href="/static/poppins/poppins.css" />
+  <link rel="stylesheet" href="/static/css/library.css" />
+  <style>
+    body {
+      font-family: "Poppins", sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .sidebar {
+      min-height: 100vh;
+      width: auto;
+      background-color: #343a40;
+      padding-top: 20px;
+      transition: all 0.3s;
+      z-index: 999;
+    }
+
+    .main-content {
+      padding: 20px;
+      transition: all 0.3s;
+    }
+
+    .grid-container {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      min-height: 100vh;
+    }
+
+    .status-badge {
+      padding: 5px 10px;
+      border-radius: 15px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .status-pending {
+      background-color: #fff3cd;
+      color: #ffc107;
+    }
+
+    .status-confirmed {
+      background-color: #d1e7dd;
+      color: #198754;
+    }
+
+    .status-cancelled {
+      background-color: #f8d7da;
+      color: #dc3545;
+    }
+
+    .status-completed {
+      background-color: #e9ecef;
+      color: #6c757d;
+    }
+
+    @media (max-width: 768px) {
+      .grid-container {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: fixed;
+        width: 250px;
+        left: -250px;
+      }
+
+      .sidebar.active {
+        left: 0;
+      }
+
+      .main-content.active {
+        opacity: 0.3;
+      }
+
+      .toggle-btn {
+        display: block;
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        z-index: 1000;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="grid-container">
+    <!-- Sidebar -->
+    <th:block th:replace="~{fragments/people-sidebar :: sidebar('reservations')}"></th:block>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <button class="btn btn-primary d-md-none toggle-btn" type="button">
+        <i class="fas fa-bars"></i>
+      </button>
+
+      <!-- Success Message -->
+      <div th:if="${success}" class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+        <i class="fas fa-check-circle me-2"></i>
+        <span th:text="${success}">Success message</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+
+      <!-- Error Message -->
+      <div th:if="${error}" class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i>
+        <span th:text="${error}">Error message</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+
+      <!-- Page Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-calendar-check me-2"></i>My Reservations</h2>
+        <a href="/user/reservations/add" class="btn btn-primary">
+          <i class="fas fa-plus-circle me-2"></i>New Reservation
+        </a>
+      </div>
+
+      <!-- Active Reservations Section -->
+      <div class="card mb-4">
+        <div class="card-header bg-warning bg-opacity-10">
+          <h5 class="mb-0"><i class="fas fa-hourglass-half me-2"></i>Active Reservations</h5>
+        </div>
+        <div class="card-body">
+          <div class="alert alert-info" th:if="${#lists.isEmpty(activeReservations)}">
+            <i class="fas fa-info-circle me-2"></i>You don't have any active reservations.
+          </div>
+
+          <div class="table-responsive" th:unless="${#lists.isEmpty(activeReservations)}">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>Book</th>
+                  <th>Author</th>
+                  <th>Reserved For</th>
+                  <th>Location</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr th:each="reservation : ${activeReservations}">
+                  <td th:text="${reservation.book.title}">Book Title</td>
+                  <td th:text="${reservation.book.author != null ? reservation.book.author.name : 'Unknown'}">Author Name</td>
+                  <td th:text="${#temporals.format(reservation.reservationDate, 'dd MMM yyyy HH:mm')}">01 Jan 2023 10:30</td>
+                  <td>
+                    <span th:if="${reservation.takeHome}"><i class="fas fa-home me-1"></i> Take home</span>
+                    <span th:unless="${reservation.takeHome}"><i class="fas fa-building me-1"></i> Library use</span>
+                  </td>
+                  <td>
+                    <span class="status-badge" 
+                          th:classappend="${reservation.reservationStatusHistories[0].reservationStatusType.name.toLowerCase().contains('pending') ? 'status-pending' : 'status-confirmed'}"
+                          th:text="${reservation.reservationStatusHistories[0].reservationStatusType.name}">
+                      Pending
+                    </span>
+                  </td>
+                  <td>
+                    <div class="btn-group" role="group">
+                      <a th:href="@{/user/reservations/{id}(id=${reservation.id})}" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-eye"></i>
+                      </a>
+                      <button th:if="${reservation.reservationStatusHistories[0].reservationStatusType.name.toLowerCase().contains('pending')}"
+                              type="button" class="btn btn-sm btn-outline-danger"
+                              data-bs-toggle="modal" data-bs-target="#cancelModal"
+                              th:data-reservation-id="${reservation.id}"
+                              th:data-book-title="${reservation.book.title}">
+                        <i class="fas fa-times"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Past Reservations Section -->
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0"><i class="fas fa-history me-2"></i>Past Reservations</h5>
+        </div>
+        <div class="card-body">
+          <div class="alert alert-info" th:if="${#lists.isEmpty(pastReservations)}">
+            <i class="fas fa-info-circle me-2"></i>You don't have any past reservations.
+          </div>
+
+          <div class="table-responsive" th:unless="${#lists.isEmpty(pastReservations)}">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>Book</th>
+                  <th>Author</th>
+                  <th>Reserved For</th>
+                  <th>Location</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr th:each="reservation : ${pastReservations}">
+                  <td th:text="${reservation.book.title}">Book Title</td>
+                  <td th:text="${reservation.book.author != null ? reservation.book.author.name : 'Unknown'}">Author Name</td>
+                  <td th:text="${#temporals.format(reservation.reservationDate, 'dd MMM yyyy HH:mm')}">01 Jan 2023 10:30</td>
+                  <td>
+                    <span th:if="${reservation.takeHome}"><i class="fas fa-home me-1"></i> Take home</span>
+                    <span th:unless="${reservation.takeHome}"><i class="fas fa-building me-1"></i> Library use</span>
+                  </td>
+                  <td>
+                    <span class="status-badge" 
+                          th:classappend="${reservation.reservationStatusHistories[0].reservationStatusType.name.toLowerCase().contains('cancelled') ? 'status-cancelled' : 'status-completed'}"
+                          th:text="${reservation.reservationStatusHistories[0].reservationStatusType.name}">
+                      Completed
+                    </span>
+                  </td>
+                  <td>
+                    <a th:href="@{/user/reservations/{id}(id=${reservation.id})}" class="btn btn-sm btn-outline-primary">
+                      <i class="fas fa-eye"></i>
+                    </a>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cancel Modal -->
+  <div class="modal fade" id="cancelModal" tabindex="-1" aria-labelledby="cancelModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="cancelModalLabel">Cancel Reservation</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form th:action="@{/user/reservations/cancel}" method="post">
+          <div class="modal-body">
+            <input type="hidden" id="reservationId" name="reservationId" value="">
+            <p>Are you sure you want to cancel your reservation for:</p>
+            <p class="fw-bold" id="bookTitle">Book Title</p>
+            <p class="text-danger">This action cannot be undone.</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-danger">Cancel Reservation</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/bs/js/bootstrap.bundle.min.js"></script>
+  <script src="/static/fa/js/all.min.js"></script>
+  <script>
+    // Toggle sidebar on mobile
+    document
+      .querySelector(".toggle-btn")
+      ?.addEventListener("click", function () {
+        document.querySelector(".sidebar").classList.toggle("active");
+        document.querySelector(".main-content").classList.toggle("active");
+      });
+
+    // Handle cancel modal
+    document.getElementById('cancelModal').addEventListener('show.bs.modal', function (event) {
+      const button = event.relatedTarget;
+      const reservationId = button.getAttribute('data-reservation-id');
+      const bookTitle = button.getAttribute('data-book-title');
+      
+      document.getElementById('reservationId').value = reservationId;
+      document.getElementById('bookTitle').textContent = bookTitle;
+    });
+  </script>
+</body>
+</html>

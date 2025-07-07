@@ -7,6 +7,7 @@ import org.springframework.web.servlet.HandlerInterceptor;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import mg.razherana.library.models.users.User;
 import mg.razherana.library.services.UserService;
 
 @Component
@@ -35,13 +36,21 @@ public class AccessInterceptor implements HandlerInterceptor {
     long userId = (long) request.getSession().getAttribute(
         UserService.USER_SESSION_ATTR);
 
-    System.out.println(userId);
-
     requestURI = requestURI.replaceAll("\\?.*", "");
 
     // Remove trailing slash
     if (requestURI.endsWith("/")) {
       requestURI = requestURI.substring(0, requestURI.length() - 1);
+    }
+
+    // Check if user is people and redirect to user home
+    
+    User currentUser = userService.getCurrentUser(userId);
+    System.out.println("Ato letsy, " + currentUser + " " + currentUser.getPeople());
+
+    if (currentUser.isPeople() && (requestURI.isEmpty() || requestURI.equals("/") || requestURI.equals("/home"))) {
+      response.sendRedirect(request.getContextPath() + "/user/home");
+      return false;
     }
 
     if (userService.hasAccess(userId, requestURI, request.getMethod())) {

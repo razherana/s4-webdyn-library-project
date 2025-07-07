@@ -192,6 +192,25 @@
                       </div>
                     </div>
 
+                    <!-- Max Extensions Allowed -->
+                    <div class="mb-4">
+                      <label for="maxExtensionsAllowed" class="form-label">
+                        Max Extensions Allowed
+                      </label>
+                      <input
+                        type="number"
+                        class="form-control"
+                        id="maxExtensionsAllowed"
+                        name="maxExtensionsAllowed"
+                        min="0"
+                        th:value="*{maxExtensionsAllowed}"
+                      />
+                      <div class="form-text">
+                        Maximum number of times a loan can be extended. Set to 0 to
+                        disallow extensions.
+                      </div>
+                    </div>
+
                     <!-- Action Buttons -->
                     <div class="d-flex justify-content-end gap-2 mt-4">
                       <a href="/membership-types" class="btn btn-secondary"

@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title th:text="${pageTitle}">Reservation Details - Library</title>
+
+  <link rel="stylesheet" href="/static/bs/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="/static/fa/css/all.min.css" />
+  <link rel="stylesheet" href="/static/poppins/poppins.css" />
+  <link rel="stylesheet" href="/static/css/library.css" />
+  <style>
+    body {
+      font-family: "Poppins", sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .sidebar {
+      min-height: 100vh;
+      width: auto;
+      background-color: #343a40;
+      padding-top: 20px;
+      transition: all 0.3s;
+      z-index: 999;
+    }
+
+    .main-content {
+      padding: 20px;
+      transition: all 0.3s;
+    }
+
+    .grid-container {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      min-height: 100vh;
+    }
+
+    .reservation-header {
+      background-color: #f8f9fa;
+      border-radius: 10px;
+      padding: 30px;
+      margin-bottom: 30px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .book-cover {
+      width: 120px;
+      height: 160px;
+      background-color: #e9ecef;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      color: #6c757d;
+      margin-bottom: 10px;
+      border-radius: 5px;
+    }
+
+    .book-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    .book-author {
+      color: #6c757d;
+      margin-bottom: 20px;
+    }
+
+    .status-badge {
+      padding: 8px 15px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      display: inline-block;
+      margin-bottom: 20px;
+    }
+
+    .status-pending {
+      background-color: #fff3cd;
+      color: #ffc107;
+    }
+
+    .status-confirmed {
+      background-color: #d1e7dd;
+      color: #198754;
+    }
+
+    .status-cancelled {
+      background-color: #f8d7da;
+      color: #dc3545;
+    }
+
+    .status-completed {
+      background-color: #e9ecef;
+      color: #6c757d;
+    }
+
+    .info-section {
+      background-color: white;
+      border-radius: 10px;
+      padding: 25px;
+      margin-bottom: 25px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .section-title {
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin-bottom: 20px;
+      color: #343a40;
+      display: flex;
+      align-items: center;
+    }
+
+    .section-title i {
+      margin-right: 10px;
+    }
+
+    .timeline {
+      position: relative;
+      margin-left: 30px;
+      padding-left: 20px;
+      border-left: 2px solid #e9ecef;
+    }
+
+    .timeline-item {
+      position: relative;
+      margin-bottom: 25px;
+    }
+
+    .timeline-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .timeline-badge {
+      position: absolute;
+      top: 0;
+      left: -36px;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background-color: #e9ecef;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #6c757d;
+    }
+
+    .timeline-badge.active {
+      background-color: #0d6efd;
+      color: white;
+    }
+
+    .timeline-content {
+      padding-left: 15px;
+    }
+
+    .timeline-title {
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    .timeline-date {
+      font-size: 0.85rem;
+      color: #6c757d;
+    }
+
+    @media (max-width: 768px) {
+      .grid-container {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: fixed;
+        width: 250px;
+        left: -250px;
+      }
+
+      .sidebar.active {
+        left: 0;
+      }
+
+      .main-content.active {
+        opacity: 0.3;
+      }
+
+      .toggle-btn {
+        display: block;
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        z-index: 1000;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="grid-container">
+    <!-- Sidebar -->
+    <th:block th:replace="~{fragments/people-sidebar :: sidebar('reservations')}"></th:block>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <button class="btn btn-primary d-md-none toggle-btn" type="button">
+        <i class="fas fa-bars"></i>
+      </button>
+
+      <!-- Success Message -->
+      <div th:if="${success}" class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+        <i class="fas fa-check-circle me-2"></i>
+        <span th:text="${success}">Success message</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+
+      <!-- Error Message -->
+      <div th:if="${error}" class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i>
+        <span th:text="${error}">Error message</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+
+      <!-- Page Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-calendar-check me-2"></i>Reservation Details</h2>
+        <a href="/user/reservations" class="btn btn-outline-secondary">
+          <i class="fas fa-arrow-left me-2"></i>Back to Reservations
+        </a>
+      </div>
+
+      <!-- Reservation Header -->
+      <div class="reservation-header">
+        <div class="row">
+          <div class="col-md-2 text-center">
+            <div class="book-cover mx-auto">
+              <i class="fas fa-book"></i>
+            </div>
+          </div>
+          <div class="col-md-10">
+            <h1 class="book-title" th:text="${reservation.book.title}">Book Title</h1>
+            <div class="book-author" th:text="${reservation.book.author != null ? reservation.book.author.name : 'Unknown Author'}">Author Name</div>
+            
+            <div class="status-badge" 
+                 th:classappend="${
+                   reservation.reservationStatusHistories[0].reservationStatusType.name.toLowerCase().contains('pending') ? 'status-pending' : 
+                   reservation.reservationStatusHistories[0].reservationStatusType.name.toLowerCase().contains('confirmed') ? 'status-confirmed' :
+                   reservation.reservationStatusHistories[0].reservationStatusType.name.toLowerCase().contains('cancelled') ? 'status-cancelled' : 'status-completed'
+                 }"
+                 th:text="${reservation.reservationStatusHistories[0].reservationStatusType.name}">
+              Pending
+            </div>
+            
+            <div class="row">
+              <div class="col-md-6">
+                <p><strong>Reserved For:</strong> <span th:text="${#temporals.format(reservation.reservationDate, 'dd MMMM yyyy HH:mm')}">01 January 2023 10:30</span></p>
+                <p>
+                  <strong>Location:</strong> 
+                  <span th:if="${reservation.takeHome}"><i class="fas fa-home me-1"></i> Take home</span>
+                  <span th:unless="${reservation.takeHome}"><i class="fas fa-building me-1"></i> Library use</span>
+                </p>
+              </div>
+              <div class="col-md-6 text-md-end mt-3 mt-md-0" th:if="${canCancel}">
+                <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#cancelModal">
+                  <i class="fas fa-times me-2"></i>Cancel Reservation
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reservation Status History -->
+      <div class="info-section">
+        <h3 class="section-title">
+          <i class="fas fa-history"></i>Reservation History
+        </h3>
+        
+        <div class="timeline">
+          <div class="timeline-item" th:each="status, statusStat : ${statusHistory}">
+            <div class="timeline-badge" th:classappend="${statusStat.index == 0 ? 'active' : ''}">
+              <i class="fas fa-circle"></i>
+            </div>
+            <div class="timeline-content">
+              <div class="timeline-title" th:text="${status.reservationStatusType.name}">Status</div>
+              <div class="timeline-date" th:text="${#temporals.format(status.statusDate, 'dd MMMM yyyy HH:mm')}">01 January 2023 10:30</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Book Details Section -->
+      <div class="info-section">
+        <h3 class="section-title">
+          <i class="fas fa-book"></i>Book Details
+        </h3>
+        
+        <div class="row">
+          <div class="col-md-6">
+            <p><strong>Title:</strong> <span th:text="${reservation.book.title}">Book Title</span></p>
+            <p><strong>Author:</strong> <span th:text="${reservation.book.author != null ? reservation.book.author.name : 'Unknown Author'}">Author Name</span></p>
+          </div>
+          <div class="col-md-6">
+            <p><strong>Categories:</strong> 
+              <span th:if="${reservation.book.categories != null && !reservation.book.categories.isEmpty()}" class="d-inline-flex flex-wrap gap-1">
+                <span th:each="category : ${reservation.book.categories}" class="badge bg-secondary me-1" th:text="${category.name}">Fiction</span>
+              </span>
+              <span th:if="${reservation.book.categories == null || reservation.book.categories.isEmpty()}" 
+                    th:text="${reservation.book.category != null ? reservation.book.category.name : 'N/A'}">N/A</span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cancel Modal -->
+  <div class="modal fade" id="cancelModal" tabindex="-1" aria-labelledby="cancelModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="cancelModalLabel">Cancel Reservation</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form th:action="@{/user/reservations/cancel}" method="post">
+          <div class="modal-body">
+            <input type="hidden" name="reservationId" th:value="${reservation.id}">
+            <p>Are you sure you want to cancel your reservation for:</p>
+            <p class="fw-bold" th:text="${reservation.book.title}">Book Title</p>
+            <p class="text-danger">This action cannot be undone.</p>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-danger">Cancel Reservation</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/bs/js/bootstrap.bundle.min.js"></script>
+  <script src="/static/fa/js/all.min.js"></script>
+  <script>
+    // Toggle sidebar on mobile
+    document
+      .querySelector(".toggle-btn")
+      ?.addEventListener("click", function () {
+        document.querySelector(".sidebar").classList.toggle("active");
+        document.querySelector(".main-content").classList.toggle("active");
+      });
+  </script>
+</body>
+</html>

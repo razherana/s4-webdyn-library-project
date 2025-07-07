@@ -13,7 +13,7 @@ import mg.razherana.library.models.users.User;
 public interface UserRepository extends JpaRepository<User, Long> {
   Optional<User> findByUsername(String username);
 
-  @EntityGraph(attributePaths = { "roles", "roles.accesses" })
+  @EntityGraph(attributePaths = { "roles", "roles.accesses", "people" })
   @Query("SELECT u FROM User u WHERE u.id = ?1")
   Optional<User> findByIdWithAll(long attribute);
 }

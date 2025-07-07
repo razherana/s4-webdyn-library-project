@@ -39,6 +39,12 @@ public class Loan {
   @Column
   private LocalDateTime returnDate;
 
+  @Column
+  private LocalDateTime extendedAt; 
+  
+  @Column(nullable = false, columnDefinition = "INTEGER DEFAULT 0")
+  private int extendCount = 0;
+
   /**
    * Calculates the current status of the loan
    * 
@@ -78,8 +84,40 @@ public class Loan {
     }
 
     // Calculate hours elapsed since loan
-    long hoursElapsed = loanDate.until(referenceTime, ChronoUnit.HOURS);
+    float hoursElapsed;
+    
+    if (extendedAt != null) {
+      hoursElapsed = ChronoUnit.SECONDS.between(extendedAt, referenceTime);
+    } else {
+      hoursElapsed = ChronoUnit.SECONDS.between(loanDate, referenceTime);
+    }
+
+    hoursElapsed /= 3600; // Convert seconds to hours
 
     return hoursElapsed > maxHours;
+  }
+  
+  /**
+   * Checks if the loan can be extended
+   * 
+   * @return true if the loan can be extended, false otherwise
+   */
+  public boolean canBeExtended() {
+    // Already returned, can't extend
+    if (returnDate != null) {
+      return false;
+    }
+    
+    // Check if max extensions reached
+    if (extendCount >= membership.getMembershipType().getMaxExtensionsAllowed()) {
+      return false;
+    }
+    
+    // Already late, can't extend
+    if (checkLate(LocalDateTime.now())) {
+      return false;
+    }
+    
+    return true;
   }
 }

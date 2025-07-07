@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title th:text="${pageTitle}">My Profile - Library</title>
+
+  <link rel="stylesheet" href="/static/bs/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="/static/fa/css/all.min.css" />
+  <link rel="stylesheet" href="/static/poppins/poppins.css" />
+  <link rel="stylesheet" href="/static/css/library.css" />
+  <style>
+    body {
+      font-family: "Poppins", sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .sidebar {
+      min-height: 100vh;
+      width: auto;
+      background-color: #343a40;
+      padding-top: 20px;
+      transition: all 0.3s;
+      z-index: 999;
+    }
+
+    .main-content {
+      padding: 20px;
+      transition: all 0.3s;
+    }
+
+    .grid-container {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      min-height: 100vh;
+    }
+
+    .profile-header {
+      background-color: #f8f9fa;
+      border-radius: 10px;
+      padding: 30px;
+      margin-bottom: 30px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .profile-avatar {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background-color: #e9ecef;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      color: #6c757d;
+      margin-bottom: 20px;
+    }
+
+    .profile-name {
+      font-size: 1.8rem;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
+    .profile-email {
+      color: #6c757d;
+      margin-bottom: 20px;
+    }
+
+    .profile-section {
+      background-color: white;
+      border-radius: 10px;
+      padding: 25px;
+      margin-bottom: 25px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .section-title {
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin-bottom: 20px;
+      color: #343a40;
+      display: flex;
+      align-items: center;
+    }
+
+    .section-title i {
+      margin-right: 10px;
+    }
+
+    .info-row {
+      margin-bottom: 15px;
+      display: flex;
+      flex-wrap: wrap;
+    }
+
+    .info-label {
+      font-weight: 600;
+      color: #6c757d;
+      width: 140px;
+    }
+
+    .info-value {
+      flex: 1;
+    }
+
+    @media (max-width: 768px) {
+      .grid-container {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: fixed;
+        width: 250px;
+        left: -250px;
+      }
+
+      .sidebar.active {
+        left: 0;
+      }
+
+      .main-content.active {
+        opacity: 0.3;
+      }
+
+      .toggle-btn {
+        display: block;
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        z-index: 1000;
+      }
+      
+      .info-label, 
+      .info-value {
+        width: 100%;
+      }
+      
+      .info-label {
+        margin-bottom: 5px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="grid-container">
+    <!-- Sidebar -->
+    <th:block th:replace="~{fragments/people-sidebar :: sidebar('profile')}"></th:block>
+
+    <!-- Main Content -->
+    <div class="main-content">
+      <button class="btn btn-primary d-md-none toggle-btn" type="button">
+        <i class="fas fa-bars"></i>
+      </button>
+      
+      <!-- Success Message -->
+      <div th:if="${success}" class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+        <i class="fas fa-check-circle me-2"></i>
+        <span th:text="${success}">Success message</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+
+      <!-- Error Message -->
+      <div th:if="${error}" class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i>
+        <span th:text="${error}">Error message</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+
+      <!-- Profile Header -->
+      <div class="profile-header">
+        <div class="row">
+          <div class="col-md-2 text-center">
+            <div class="profile-avatar mx-auto">
+              <i class="fas fa-user"></i>
+            </div>
+          </div>
+          <div class="col-md-10">
+            <h1 class="profile-name" th:text="${people.name}">John Doe</h1>
+            <div class="profile-email" th:text="${user.username}">john.doe@example.com</div>
+            <div class="d-flex gap-2">
+              <a href="/user/profile/edit" class="btn btn-primary">
+                <i class="fas fa-user-edit me-2"></i>Edit Profile
+              </a>
+              <a href="/user/profile/change-password" class="btn btn-outline-secondary">
+                <i class="fas fa-key me-2"></i>Change Password
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Personal Information Section -->
+      <div class="profile-section">
+        <h3 class="section-title">
+          <i class="fas fa-user-circle"></i>Personal Information
+        </h3>
+        
+        <div class="info-row">
+          <div class="info-label">Name</div>
+          <div class="info-value" th:text="${people.name}">John Doe</div>
+        </div>
+        
+        <div class="info-row">
+          <div class="info-label">Address</div>
+          <div class="info-value" th:text="${people.address != null && !people.address.isEmpty() ? people.address : 'Not provided'}">123 Library St, Booktown</div>
+        </div>
+      </div>
+
+      <!-- Account Information Section -->
+      <div class="profile-section">
+        <h3 class="section-title">
+          <i class="fas fa-user-shield"></i>Account Information
+        </h3>
+        
+        <div class="info-row">
+          <div class="info-label">Username</div>
+          <div class="info-value" th:text="${user.username}">johndoe</div>
+        </div>
+        
+        <div class="info-row">
+          <div class="info-label">Roles</div>
+          <div class="info-value">
+            <span th:each="role, iterStat : ${user.roles}" class="me-2">
+              <span class="badge bg-secondary" th:text="${role.name}">Role</span>
+            </span>
+          </div>
+        </div>
+        
+        <div class="info-row">
+          <div class="info-label">Account Status</div>
+          <span class="badge bg-success">Active</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/bs/js/bootstrap.bundle.min.js"></script>
+  <script src="/static/fa/js/all.min.js"></script>
+  <script>
+    // Toggle sidebar on mobile
+    document
+      .querySelector(".toggle-btn")
+      ?.addEventListener("click", function () {
+        document.querySelector(".sidebar").classList.toggle("active");
+        document.querySelector(".main-content").classList.toggle("active");
+      });
+  </script>
+</body>
+</html>
