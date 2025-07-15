@@ -78,7 +78,7 @@ public class LoanService {
   }
 
   @Transactional
-  public Loan createLoan(Long bookId, Long membershipId, Long loanTypeId) throws IllegalArgumentException {
+  public Loan createLoan(Long bookId, Long membershipId, Long loanTypeId, LocalDateTime loanDate) throws IllegalArgumentException {
     // Check if book exists
     Book book = bookRepository.findById(bookId)
         .orElseThrow(() -> new IllegalArgumentException("Book not found"));
@@ -129,7 +129,7 @@ public class LoanService {
     loan.setBook(book);
     loan.setMembership(membership);
     loan.setLoanType(loanType);
-    loan.setLoanDate(LocalDateTime.now());
+    loan.setLoanDate(loanDate);
 
     return loanRepository.save(loan);
   }

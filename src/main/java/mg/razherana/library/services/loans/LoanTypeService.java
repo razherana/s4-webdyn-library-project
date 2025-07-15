@@ -20,7 +20,7 @@ public class LoanTypeService {
 
   public LoanType findById(Long id) {
     return loanTypeRepository.findById(id)
-        .orElseThrow(() -> new IllegalArgumentException("Invalid loan type ID: " + id));
+        .orElse(null);
   }
 
   public LoanType save(String name) {

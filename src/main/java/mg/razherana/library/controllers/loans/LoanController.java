@@ -37,6 +37,7 @@ import mg.razherana.library.repositories.books.BookRepository;
 import mg.razherana.library.repositories.loans.LoanTypeRepository;
 import mg.razherana.library.services.loans.ExtendLoanService;
 import mg.razherana.library.services.loans.LoanService;
+import mg.razherana.library.services.loans.LoanTypeService;
 import mg.razherana.library.services.loans.PeopleService;
 import mg.razherana.library.services.loans.ReservationService;
 import mg.razherana.library.services.loans.ReturnedLoanStateService;
@@ -73,6 +74,9 @@ public class LoanController {
 
   @Autowired
   private ExtendLoanService extendLoanService;
+
+  @Autowired
+  private LoanTypeService loanTypeService;
 
   @GetMapping
   public String listLoans(Model model) {
@@ -130,14 +134,18 @@ public class LoanController {
       @RequestParam Long bookId,
       @RequestParam Long membershipId,
       @RequestParam Long loanTypeId,
+      @RequestParam(name = "date") String dateString,
       Model model,
       RedirectAttributes redirectAttributes) {
 
     try {
+      System.out.println(dateString);
+
       // Check if member has an active punishment
-      LocalDateTime now = LocalDateTime.now();
-      if (punishmentService.hasPunishmentAt(membershipId, now)) {
-        Punishment activePunishment = punishmentService.getActivePunishmentAt(membershipId, now);
+      LocalDateTime loanDate = dateString.isEmpty() ? LocalDateTime.now() : LocalDateTime.parse(dateString);
+
+      if (punishmentService.hasPunishmentAt(membershipId, loanDate)) {
+        Punishment activePunishment = punishmentService.getActivePunishmentAt(membershipId, loanDate);
         LocalDateTime endTime = activePunishment.getPunishmentDate()
             .plusSeconds((long) (activePunishment.getDurationHours() * 3600));
 
@@ -148,11 +156,34 @@ public class LoanController {
         return "redirect:/loans/create";
       }
 
+      LoanType loanType = loanTypeService.findById(loanTypeId);
+
+      if (loanType == null) {
+        redirectAttributes.addFlashAttribute("error", "Invalid loan type");
+        return "redirect:/loans/create";
+      }
+
       // Check for pending reservations
       List<Reservation> pendingReservations = reservationService.findPendingReservationsForBook(bookId);
-      if (!pendingReservations.isEmpty()) {
+
+      Reservation reservation = pendingReservations.stream()
+          .filter((res) -> (loanDate.isBefore(
+              res.getReservationDate().plusHours(
+                  loanType.getId() == 1 ? res.getMembership().getMembershipType().getMaxTimeHoursHome()
+                      : res.getMembership().getMembershipType().getMaxTimeHoursLibrary()))
+              || loanDate.isEqual(
+                  res.getReservationDate().plusHours(
+                      loanType.getId() == 1 ? res.getMembership().getMembershipType().getMaxTimeHoursHome()
+                          : res.getMembership().getMembershipType().getMaxTimeHoursLibrary())))
+              &&
+              (loanDate.isAfter(res.getReservationDate())
+                  ||
+                  loanDate.isEqual(res.getReservationDate())))
+          .findFirst().orElse(null);
+
+      if (reservation != null) {
         // Add pending reservation to model and return to form
-        model.addAttribute("pendingReservation", pendingReservations.get(0));
+        model.addAttribute("pendingReservation", reservation);
 
         // Re-add form data
         List<People> people = peopleService.findAll();
@@ -174,7 +205,7 @@ public class LoanController {
       }
 
       // Create the loan
-      loanService.createLoan(bookId, membershipId, loanTypeId);
+      loanService.createLoan(bookId, membershipId, loanTypeId, loanDate);
       redirectAttributes.addFlashAttribute("success", "Loan created successfully.");
       return "redirect:/loans";
 
