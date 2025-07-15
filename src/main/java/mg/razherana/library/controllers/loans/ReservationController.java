@@ -177,7 +177,7 @@ public class ReservationController {
       reservationService.updateStatus(reservationId, cancelledType.getId());
 
       // Create the loan using the LoanService
-      loanService.createLoan(bookId, membershipId, loanTypeId);
+      loanService.createLoan(bookId, membershipId, loanTypeId, LocalDateTime.now());
 
       redirectAttributes.addFlashAttribute("success",
           "Reservation cancelled and loan created successfully.");

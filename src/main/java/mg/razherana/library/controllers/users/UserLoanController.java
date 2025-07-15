@@ -173,7 +173,7 @@ public class UserLoanController {
         
         try {
             // Create the loan
-            loanService.createLoan(bookId, membershipId, loanTypeId);
+            loanService.createLoan(bookId, membershipId, loanTypeId, LocalDateTime.now());
             redirectAttributes.addFlashAttribute("success", "Book borrowed successfully!");
             return "redirect:/user/loans";
             

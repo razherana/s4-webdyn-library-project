@@ -2,6 +2,8 @@ package mg.razherana.library.models.books;
 
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -21,5 +23,6 @@ public class Author {
   private String name;
 
   @OneToMany(fetch = FetchType.LAZY, mappedBy = "author")
+  @JsonIgnore
   private Set<Book> books;
 }

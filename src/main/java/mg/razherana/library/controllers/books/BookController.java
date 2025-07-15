@@ -41,6 +41,24 @@ public class BookController {
     return "books/list";
   }
 
+  @GetMapping("api/list")
+  @ResponseBody
+  public Object jsonList() {
+    return bookService.findAll();
+  }
+
+  @GetMapping("api/{id}")
+  @ResponseBody
+  public Object jsonBook(@PathVariable(required = false, name = "id") String idString) {
+    long id;
+    try {
+      id = Long.parseLong(idString);
+    } catch (Exception e) {
+      return null;
+    }
+    return bookService.findById(id);
+  }
+
   @GetMapping({ "/add", "/add/" })
   public String addBookView(Model model) {
     List<Author> authors = authorService.findAll();

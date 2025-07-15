@@ -3,6 +3,8 @@ package mg.razherana.library.models.books;
 import java.util.HashSet;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -29,5 +31,6 @@ public class Category {
 
   @ManyToMany(fetch = FetchType.LAZY)
   @JoinTable(name = "book_categories", joinColumns = @JoinColumn(name = "category_id", nullable = false), inverseJoinColumns = @JoinColumn(name = "book_id", nullable = false))
+  @JsonIgnore
   private Set<Book> books = new HashSet<>();
 }
