@@ -29,6 +29,7 @@ import mg.razherana.library.models.loans.ReservationStatusType;
 import mg.razherana.library.models.loans.ReservationStatusHistory;
 import mg.razherana.library.models.punishments.Punishment;
 import mg.razherana.library.services.books.BookService;
+import mg.razherana.library.services.books.ExemplaireService;
 import mg.razherana.library.services.loans.LoanService;
 import mg.razherana.library.services.loans.MembershipService;
 import mg.razherana.library.services.loans.ReservationService;
@@ -44,6 +45,9 @@ public class ReservationController {
 
   @Autowired
   private BookService bookService;
+
+  @Autowired
+  private ExemplaireService exemplaireService;
 
   @Autowired
   private MembershipService membershipService;
@@ -78,8 +82,8 @@ public class ReservationController {
     model.addAttribute("books", books);
     model.addAttribute("memberships", activeMemberships);
     model.addAttribute("statusTypes", statusTypes);
+    model.addAttribute("exemplaireService", exemplaireService);
     model.addAttribute("today", LocalDate.now());
-    model.addAttribute("minTime", LocalTime.now().plusHours(1).toString());
 
     return "reservations/create";
   }
@@ -161,12 +165,16 @@ public class ReservationController {
   @PostMapping("/cancel-and-create-loan")
   public String cancelReservationAndCreateLoan(
       @RequestParam Long reservationId,
-      @RequestParam Long bookId,
-      @RequestParam Long membershipId,
       @RequestParam Long loanTypeId,
       RedirectAttributes redirectAttributes) {
 
     try {
+      // Get the reservation to extract exemplaire and membership info
+      Reservation reservation = reservationService.findById(reservationId);
+      if (reservation == null) {
+        throw new IllegalArgumentException("Reservation not found");
+      }
+
       // First, cancel the reservation by updating its status to "Cancelled"
       ReservationStatusType cancelledType = statusTypeRepository.findByNameContainingIgnoreCase("cancel");
       if (cancelledType == null) {
@@ -176,8 +184,8 @@ public class ReservationController {
       // Update the reservation status
       reservationService.updateStatus(reservationId, cancelledType.getId());
 
-      // Create the loan using the LoanService
-      loanService.createLoan(bookId, membershipId, loanTypeId, LocalDateTime.now());
+      // Create the loan using the exemplaire from the reservation
+      loanService.createLoan(reservation.getExemplaire().getId(), reservation.getMembership().getId(), loanTypeId, LocalDateTime.now());
 
       redirectAttributes.addFlashAttribute("success",
           "Reservation cancelled and loan created successfully.");

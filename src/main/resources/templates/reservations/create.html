@@ -76,9 +76,9 @@
                         <option
                           th:each="book : ${books}"
                           th:value="${book.id}"
-                          th:text="${book.title + (book.author != null ? ' by ' + book.author.name : '')}"
+                          th:text="${book.title + (book.author != null ? ' by ' + book.author.name : '') + ' (' + exemplaireService.countAvailableByBookId(book.id) + ' available)'}"
                         >
-                          Book Title by Author
+                          Book Title by Author (3 available)
                         </option>
                       </select>
                       <div class="form-text">
@@ -141,7 +141,6 @@
                         class="form-control"
                         id="reservationTime"
                         name="reservationTime"
-                        th:min="${minTime}"
                         required
                       />
                       <div class="form-text">

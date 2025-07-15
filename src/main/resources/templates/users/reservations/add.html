@@ -152,9 +152,9 @@
               <option value="">-- Select Book --</option>
               <option th:each="book : ${books}" 
                       th:value="${book.id}" 
-                      th:text="${book.title + (book.author != null ? ' - ' + book.author.name : '')}"
+                      th:text="${book.title + (book.author != null ? ' - ' + book.author.name : '') + ' (' + exemplaireService.countAvailableByBookId(book.id) + ' available)'}"
                       th:selected="${book.id == selectedBookId}">
-                Book Title - Author Name
+                Book Title - Author Name (3 available)
               </option>
             </select>
           </div>

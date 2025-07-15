@@ -81,11 +81,11 @@
               <table class="table table-sm">
                 <tr>
                   <th>Book:</th>
-                  <td th:text="${extendLoan.loan.book.title}">Book Title</td>
+                  <td th:text="${extendLoan.loan.exemplaire.book.title}">Book Title</td>
                 </tr>
                 <tr>
                   <th>Author:</th>
-                  <td th:text="${extendLoan.loan.book.author != null ? extendLoan.loan.book.author.name : 'Unknown'}">Author Name</td>
+                  <td th:text="${extendLoan.loan.exemplaire.book.author != null ? extendLoan.loan.exemplaire.book.author.name : 'Unknown'}">Author Name</td>
                 </tr>
                 <tr>
                   <th>Loan Date:</th>

@@ -65,7 +65,7 @@
               <tbody>
                 <tr th:each="request : ${pendingRequests}">
                   <td th:text="${request.id}">1</td>
-                  <td th:text="${request.loan.book.title}">Book Title</td>
+                  <td th:text="${request.loan.exemplaire.book.title}">Book Title</td>
                   <td th:text="${request.loan.membership.people.name}">Member Name</td>
                   <td th:text="${#temporals.format(request.loan.loanDate, 'dd MMM yyyy')}">01 Jan 2023</td>
                   <td th:text="${#temporals.format(request.requestedAt, 'dd MMM yyyy HH:mm')}">15 Jan 2023 14:30</td>
@@ -80,14 +80,14 @@
                       <button type="button" class="btn btn-sm btn-outline-success"
                               data-bs-toggle="modal" data-bs-target="#approveModal"
                               th:data-id="${request.id}"
-                              th:data-book-title="${request.loan.book.title}"
+                              th:data-book-title="${request.loan.exemplaire.book.title}"
                               th:data-member-name="${request.loan.membership.people.name}">
                         <i class="fas fa-check"></i>
                       </button>
                       <button type="button" class="btn btn-sm btn-outline-danger"
                               data-bs-toggle="modal" data-bs-target="#rejectModal"
                               th:data-id="${request.id}"
-                              th:data-book-title="${request.loan.book.title}"
+                              th:data-book-title="${request.loan.exemplaire.book.title}"
                               th:data-member-name="${request.loan.membership.people.name}">
                         <i class="fas fa-times"></i>
                       </button>
@@ -126,7 +126,7 @@
               <tbody>
                 <tr th:each="request : ${allRequests}">
                   <td th:text="${request.id}">1</td>
-                  <td th:text="${request.loan.book.title}">Book Title</td>
+                  <td th:text="${request.loan.exemplaire.book.title}">Book Title</td>
                   <td th:text="${request.loan.membership.people.name}">Member Name</td>
                   <td th:text="${#temporals.format(request.requestedAt, 'dd MMM yyyy HH:mm')}">15 Jan 2023 14:30</td>
                   <td>

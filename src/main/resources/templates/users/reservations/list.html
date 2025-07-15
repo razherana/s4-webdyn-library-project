@@ -141,6 +141,7 @@
                 <tr>
                   <th>Book</th>
                   <th>Author</th>
+                  <th>Exemplaire</th>
                   <th>Reserved For</th>
                   <th>Location</th>
                   <th>Status</th>
@@ -149,8 +150,13 @@
               </thead>
               <tbody>
                 <tr th:each="reservation : ${activeReservations}">
-                  <td th:text="${reservation.book.title}">Book Title</td>
-                  <td th:text="${reservation.book.author != null ? reservation.book.author.name : 'Unknown'}">Author Name</td>
+                  <td th:text="${reservation.exemplaire.book.title}">Book Title</td>
+                  <td th:text="${reservation.exemplaire.book.author != null ? reservation.exemplaire.book.author.name : 'Unknown'}">Author Name</td>
+                  <td>
+                    <span th:text="${reservation.exemplaire.code}" class="badge bg-info">EX001</span>
+                    <br>
+                    <small class="text-muted" th:text="${reservation.exemplaire.status}">Available</small>
+                  </td>
                   <td th:text="${#temporals.format(reservation.reservationDate, 'dd MMM yyyy HH:mm')}">01 Jan 2023 10:30</td>
                   <td>
                     <span th:if="${reservation.takeHome}"><i class="fas fa-home me-1"></i> Take home</span>
@@ -172,7 +178,7 @@
                               type="button" class="btn btn-sm btn-outline-danger"
                               data-bs-toggle="modal" data-bs-target="#cancelModal"
                               th:data-reservation-id="${reservation.id}"
-                              th:data-book-title="${reservation.book.title}">
+                              th:data-book-title="${reservation.exemplaire.book.title}">
                         <i class="fas fa-times"></i>
                       </button>
                     </div>
@@ -200,6 +206,7 @@
                 <tr>
                   <th>Book</th>
                   <th>Author</th>
+                  <th>Exemplaire</th>
                   <th>Reserved For</th>
                   <th>Location</th>
                   <th>Status</th>
@@ -208,8 +215,13 @@
               </thead>
               <tbody>
                 <tr th:each="reservation : ${pastReservations}">
-                  <td th:text="${reservation.book.title}">Book Title</td>
-                  <td th:text="${reservation.book.author != null ? reservation.book.author.name : 'Unknown'}">Author Name</td>
+                  <td th:text="${reservation.exemplaire.book.title}">Book Title</td>
+                  <td th:text="${reservation.exemplaire.book.author != null ? reservation.exemplaire.book.author.name : 'Unknown'}">Author Name</td>
+                  <td>
+                    <span th:text="${reservation.exemplaire.code}" class="badge bg-info">EX001</span>
+                    <br>
+                    <small class="text-muted" th:text="${reservation.exemplaire.status}">Available</small>
+                  </td>
                   <td th:text="${#temporals.format(reservation.reservationDate, 'dd MMM yyyy HH:mm')}">01 Jan 2023 10:30</td>
                   <td>
                     <span th:if="${reservation.takeHome}"><i class="fas fa-home me-1"></i> Take home</span>

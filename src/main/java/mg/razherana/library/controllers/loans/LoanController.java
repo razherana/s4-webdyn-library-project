@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import lombok.Data;
+import mg.razherana.library.dto.loans.LoanStatusHistoryDTO;
 import mg.razherana.library.models.books.Book;
 import mg.razherana.library.models.loans.ExtendLoan;
 import mg.razherana.library.models.loans.Loan;
@@ -35,6 +35,7 @@ import mg.razherana.library.models.punishments.Punishment;
 import mg.razherana.library.models.punishments.PunishmentType;
 import mg.razherana.library.repositories.books.BookRepository;
 import mg.razherana.library.repositories.loans.LoanTypeRepository;
+import mg.razherana.library.services.books.ExemplaireService;
 import mg.razherana.library.services.loans.ExtendLoanService;
 import mg.razherana.library.services.loans.LoanService;
 import mg.razherana.library.services.loans.LoanTypeService;
@@ -78,6 +79,9 @@ public class LoanController {
   @Autowired
   private LoanTypeService loanTypeService;
 
+  @Autowired
+  private ExemplaireService exemplaireService;
+
   @GetMapping
   public String listLoans(Model model) {
     List<Loan> loans = loanService.findAll();
@@ -118,6 +122,12 @@ public class LoanController {
 
     Set<Long> borrowedBookIds = loanService.getBorrowedBookIds();
 
+    // Get available exemplaires count for each book
+    Map<Long, Long> availableExemplairesCount = new HashMap<>();
+    for (Book book : books) {
+      availableExemplairesCount.put(book.getId(), exemplaireService.countAvailableByBookId(book.getId()));
+    }
+
     model.addAttribute("borrowedBookIds", borrowedBookIds);
     model.addAttribute("people", people);
     model.addAttribute("books", books);
@@ -125,6 +135,7 @@ public class LoanController {
     model.addAttribute("activeLoanCounts", activeLoanCounts);
     model.addAttribute("lateLoanCounts", lateLoanCounts);
     model.addAttribute("activePunishments", activePunishments);
+    model.addAttribute("availableExemplairesCount", availableExemplairesCount);
 
     return "loans/create";
   }
@@ -284,7 +295,8 @@ public class LoanController {
     Map<String, Object> result = new HashMap<>();
     result.put("loanId", loan.getId());
     result.put("loanDate", loan.getLoanDate());
-    result.put("bookTitle", loan.getBook().getTitle());
+    result.put("bookTitle", loan.getExemplaire().getBook().getTitle());
+    result.put("exemplaireCode", loan.getExemplaire().getCode());
     result.put("membershipId", loan.getMembership().getId());
     result.put("isHomeLoan", loan.getLoanType().getName().toLowerCase().contains("home"));
 
@@ -300,17 +312,5 @@ public class LoanController {
     result.put("maxTimeHoursLibrary", loan.getMembership().getMembershipType().getMaxTimeHoursLibrary());
 
     return result;
-  }
-
-  // DTO for status history
-  @Data
-  private static class LoanStatusHistoryDTO {
-    private String statusType;
-    private String date;
-
-    public LoanStatusHistoryDTO(String statusType, String date) {
-      this.statusType = statusType;
-      this.date = date;
-    }
   }
 }

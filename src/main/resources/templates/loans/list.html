@@ -261,16 +261,16 @@
                         <tr
                           th:each="loan : ${loans}"
                           th:attr="data-loan-id=${loan.id}, 
-                                  data-book-title=${loan.book.title}, 
-                                  data-author=${loan.book.author != null ? loan.book.author.name : 'N/A'}, 
+                                  data-book-title=${loan.exemplaire.book.title}, 
+                                  data-author=${loan.exemplaire.book.author != null ? loan.exemplaire.book.author.name : 'N/A'}, 
                                   data-location=${loan.loanType.name.toLowerCase().contains('home') ? 'home' : 'library'}, 
                                   data-status=${loan.getStatus()}"
                           class="loan-row"
                         >
                           <td th:text="${loan.id}">1</td>
-                          <td th:text="${loan.book.title}">Book Title</td>
+                          <td th:text="${loan.exemplaire.book.title}">Book Title</td>
                           <td
-                            th:text="${loan.book.author != null ? loan.book.author.name : 'N/A'}"
+                            th:text="${loan.exemplaire.book.author != null ? loan.exemplaire.book.author.name : 'N/A'}"
                           >
                             Author Name
                           </td>
@@ -324,7 +324,7 @@
                                 data-bs-toggle="modal"
                                 data-bs-target="#returnLoanModal"
                                 th:attr="data-loan-id=${loan.id}, 
-                                        data-book-title=${loan.book.title}"
+                                        data-book-title=${loan.exemplaire.book.title}"
                               >
                                 <i class="fas fa-undo"></i> Return
                               </button>
@@ -333,7 +333,7 @@
                                 data-bs-toggle="modal"
                                 data-bs-target="#viewDetailsModal"
                                 th:attr="data-loan-id=${loan.id}, 
-                                        data-book-title=${loan.book.title}"
+                                        data-book-title=${loan.exemplaire.book.title}"
                               >
                                 <i class="fas fa-eye"></i>
                               </button>

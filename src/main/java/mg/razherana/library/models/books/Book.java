@@ -10,6 +10,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -18,8 +19,8 @@ import lombok.ToString;
 @Entity
 @Table(name = "books")
 @Data
-@EqualsAndHashCode(exclude = { "categories", "author" }) // Exclude collections and potentially lazy ManyToOne
-@ToString(exclude = { "categories", "author" })
+@EqualsAndHashCode(exclude = { "categories", "author", "exemplaires" }) // Exclude collections and potentially lazy ManyToOne
+@ToString(exclude = { "categories", "author", "exemplaires" })
 public class Book {
   @Id
   @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
@@ -33,4 +34,7 @@ public class Book {
 
   @ManyToMany(mappedBy = "books", fetch = FetchType.LAZY)
   private Set<Category> categories = new HashSet<>();
+
+  @OneToMany(mappedBy = "book", fetch = FetchType.LAZY)
+  private Set<Exemplaire> exemplaires = new HashSet<>();
 }

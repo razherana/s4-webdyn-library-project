@@ -172,8 +172,8 @@
                   <span class="loan-date" th:text="${#temporals.format(loan.loanDate, 'dd MMM yyyy')}">01 Jan 2023</span>
                 </div>
                 <div class="loan-body">
-                  <h5 class="loan-title" th:text="${loan.book.title}">Book Title</h5>
-                  <p class="loan-meta" th:text="${loan.book.author != null ? loan.book.author.name : 'Unknown Author'}">Author Name</p>
+                  <h5 class="loan-title" th:text="${loan.exemplaire.book.title}">Book Title</h5>
+                  <p class="loan-meta" th:text="${loan.exemplaire.book.author != null ? loan.exemplaire.book.author.name : 'Unknown Author'}">Author Name</p>
                   <p class="mb-0 small">
                     <i class="fas fa-tag me-1"></i>
                     <span th:text="${loan.loanType.name}">Loan Type</span>
@@ -214,8 +214,8 @@
               </thead>
               <tbody>
                 <tr th:each="loan : ${loanHistory}">
-                  <td th:text="${loan.book.title}">Book Title</td>
-                  <td th:text="${loan.book.author != null ? loan.book.author.name : 'Unknown'}">Author Name</td>
+                  <td th:text="${loan.exemplaire.book.title}">Book Title</td>
+                  <td th:text="${loan.exemplaire.book.author != null ? loan.exemplaire.book.author.name : 'Unknown'}">Author Name</td>
                   <td th:text="${#temporals.format(loan.loanDate, 'dd MMM yyyy')}">01 Jan 2023</td>
                   <td th:text="${#temporals.format(loan.returnDate, 'dd MMM yyyy')}">15 Jan 2023</td>
                   <td th:text="${loan.loanType.name}">Loan Type</td>

@@ -11,7 +11,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
-import mg.razherana.library.models.books.Book;
+import mg.razherana.library.models.books.Exemplaire;
 
 @Entity
 @Table(name = "loans")
@@ -26,8 +26,8 @@ public class Loan {
   private Membership membership;
 
   @ManyToOne
-  @JoinColumn(name = "book_id", nullable = false)
-  private Book book;
+  @JoinColumn(name = "exemplaire_id", nullable = false)
+  private Exemplaire exemplaire;
 
   @ManyToOne
   @JoinColumn(name = "loan_type_id", nullable = false)

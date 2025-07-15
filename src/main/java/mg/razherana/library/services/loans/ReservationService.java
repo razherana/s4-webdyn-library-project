@@ -12,11 +12,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import mg.razherana.library.models.books.Book;
+import mg.razherana.library.models.books.Exemplaire;
 import mg.razherana.library.models.loans.Membership;
 import mg.razherana.library.models.loans.Reservation;
 import mg.razherana.library.models.loans.ReservationStatusHistory;
 import mg.razherana.library.models.loans.ReservationStatusType;
 import mg.razherana.library.repositories.books.BookRepository;
+import mg.razherana.library.repositories.books.ExemplaireRepository;
 import mg.razherana.library.repositories.loans.MembershipRepository;
 import mg.razherana.library.repositories.loans.ReservationRepository;
 import mg.razherana.library.repositories.loans.ReservationStatusHistoryRepository;
@@ -36,6 +38,9 @@ public class ReservationService {
 
   @Autowired
   private BookRepository bookRepository;
+
+  @Autowired
+  private ExemplaireRepository exemplaireRepository;
 
   @Autowired
   private MembershipRepository membershipRepository;
@@ -82,21 +87,30 @@ public class ReservationService {
       throw new IllegalArgumentException("Membership has expired");
     }
 
-    // Check for existing reservations at the same time
+    // Find an available exemplaire for the book
+    List<Exemplaire> availableExemplaires = exemplaireRepository.findAvailableByBookId(bookId);
+    if (availableExemplaires.isEmpty()) {
+      throw new IllegalArgumentException("No available exemplaires for this book");
+    }
+
+    // Get the first available exemplaire
+    Exemplaire exemplaire = availableExemplaires.get(0);
+
+    // Check for existing reservations for this exemplaire at the same time
     // Calculate a window of +/- 1 hour around the requested time
     LocalDateTime startWindow = reservationDateTime.minusHours(1);
     LocalDateTime endWindow = reservationDateTime.plusHours(1);
 
-    List<Reservation> existingReservations = reservationRepository.findByBookAndDateTimeBetween(
-        bookId, startWindow, endWindow);
+    List<Reservation> existingReservations = reservationRepository.findByExemplaireAndDateTimeBetween(
+        exemplaire.getId(), startWindow, endWindow);
 
     if (!existingReservations.isEmpty()) {
-      throw new IllegalArgumentException("This book is already reserved around this time");
+      throw new IllegalArgumentException("This exemplaire is already reserved around this time");
     }
 
     // Create new reservation
     Reservation reservation = new Reservation();
-    reservation.setBook(bookOpt.get());
+    reservation.setExemplaire(exemplaire);
     reservation.setTakeHome(takeHome);
     reservation.setReservationDate(reservationDateTime);
     reservation.setReservationStatusHistories(new ArrayList<>());
@@ -142,6 +156,23 @@ public class ReservationService {
     status = (status != null && status.trim().isEmpty()) ? null : status;
 
     return reservationRepository.findWithFilters(search, takeHome, status);
+  }
+
+  /**
+   * Find confirmed reservations for a specific exemplaire
+   */
+  public List<Reservation> findConfirmedReservationsForExemplaire(Long exemplaireId) {
+    List<Reservation> result = new ArrayList<>();
+    List<Reservation> exemplaireReservations = reservationRepository.findByExemplaireId(exemplaireId);
+
+    for (Reservation reservation : exemplaireReservations) {
+      ReservationStatusHistory latestStatus = statusHistoryRepository.findLatestByReservationId(reservation.getId());
+      if (latestStatus != null && latestStatus.getReservationStatusType().getName().equals("Confirmed")) {
+        result.add(reservation);
+      }
+    }
+
+    return result;
   }
 
   /**

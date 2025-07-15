@@ -190,8 +190,8 @@
       <div class="loan-detail-card">
         <div class="loan-header d-flex justify-content-between align-items-center">
           <div>
-            <h3 class="loan-title" th:text="${loan.book.title}">Book Title</h3>
-            <p class="mb-0" th:text="${loan.book.author != null ? loan.book.author.name : 'Unknown Author'}">Author Name</p>
+            <h3 class="loan-title" th:text="${loan.exemplaire.book.title}">Book Title</h3>
+            <p class="mb-0" th:text="${loan.exemplaire.book.author != null ? loan.exemplaire.book.author.name : 'Unknown Author'}">Author Name</p>
           </div>
           <div>
             <span th:if="${loan.returnDate == null && !loan.checkLate(now)}" 
@@ -335,7 +335,7 @@
           <div class="modal-body">
             <input type="hidden" name="loanId" th:value="${loan.id}">
             <p>Are you sure you want to request an extension for this loan?</p>
-            <p>Book: <strong th:text="${loan.book.title}">Book Title</strong></p>
+            <p>Book: <strong th:text="${loan.exemplaire.book.title}">Book Title</strong></p>
             <p class="mb-0">Current due date: 
               <strong th:if="${loan.extendedAt != null}" th:text="${#temporals.format(loan.extendedAt.plusHours(loan.loanType.name.toLowerCase().contains('home') ? loan.membership.membershipType.maxTimeHoursHome : loan.membership.membershipType.maxTimeHoursLibrary), 'dd MMMM yyyy HH:mm')}">31 January 2023 14:30</strong>
               <strong th:if="${loan.extendedAt == null}" th:text="${#temporals.format(loan.loanDate.plusHours(loan.loanType.name.toLowerCase().contains('home') ? loan.membership.membershipType.maxTimeHoursHome : loan.membership.membershipType.maxTimeHoursLibrary), 'dd MMMM yyyy HH:mm')}">31 January 2023 14:30</strong>

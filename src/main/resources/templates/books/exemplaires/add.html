@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Add Exemplaire - Library Management System</title>
+    <link th:href="@{/bs/css/bootstrap.min.css}" rel="stylesheet">
+    <link th:href="@{/fa/css/all.min.css}" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-8 offset-md-2">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Add Exemplaire for "<span th:text="${book.title}"></span>"</h5>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="@{/books/{bookId}/exemplaires/add(bookId=${book.id})}" method="post">
+                            <div class="mb-3">
+                                <label for="code" class="form-label">Code *</label>
+                                <input type="text" class="form-control" id="code" name="code" required
+                                       placeholder="e.g., EX001-01">
+                                <div class="form-text">Unique identifier for this exemplaire</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="location" class="form-label">Location</label>
+                                <input type="text" class="form-control" id="location" name="location"
+                                       placeholder="e.g., Shelf A1, Section B">
+                                <div class="form-text">Where this exemplaire is located</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="notes" class="form-label">Notes</label>
+                                <textarea class="form-control" id="notes" name="notes" rows="3"
+                                          placeholder="Additional notes about this exemplaire"></textarea>
+                            </div>
+                            
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <a th:href="@{/books/{bookId}/exemplaires(bookId=${book.id})}" class="btn btn-secondary">
+                                    <i class="fas fa-times"></i> Cancel
+                                </a>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> Save Exemplaire
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script th:src="@{/bs/js/bootstrap.bundle.min.js}"></script>
+</body>
+</html>

@@ -16,21 +16,21 @@ import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import mg.razherana.library.models.books.Book;
+import mg.razherana.library.models.books.Exemplaire;
 
 @Entity
 @Table(name = "reservations")
 @Data
-@ToString(exclude = { "book", "membership" })
-@EqualsAndHashCode(exclude = { "book", "membership" })
+@ToString(exclude = { "exemplaire", "membership" })
+@EqualsAndHashCode(exclude = { "exemplaire", "membership" })
 public class Reservation {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private long id;
 
   @ManyToOne(optional = false, fetch = FetchType.EAGER)
-  @JoinColumn(name = "book_id", nullable = false)
-  private Book book;
+  @JoinColumn(name = "exemplaire_id", nullable = false)
+  private Exemplaire exemplaire;
 
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "membership_id", nullable = false)

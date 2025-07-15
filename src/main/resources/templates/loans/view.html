@@ -89,12 +89,12 @@
                       <table class="table table-borderless">
                         <tr>
                           <th style="width: 150px">Title:</th>
-                          <td th:text="${loan.book.title}">Book Title</td>
+                          <td th:text="${loan.exemplaire.book.title}">Book Title</td>
                         </tr>
                         <tr>
                           <th>Author:</th>
                           <td
-                            th:text="${loan.book.author != null ? loan.book.author.name : 'N/A'}"
+                            th:text="${loan.exemplaire.book.author != null ? loan.exemplaire.book.author.name : 'N/A'}"
                           >
                             Author Name
                           </td>
@@ -219,7 +219,7 @@
                           data-bs-toggle="modal"
                           data-bs-target="#returnLoanModal"
                           th:data-loan-id="${loan.id}"
-                          th:data-book-title="${loan.book.title}"
+                          th:data-book-title="${loan.exemplaire.book.title}"
                         >
                           <i class="fas fa-undo me-2"></i>Return Book
                         </button>

@@ -28,6 +28,7 @@ import mg.razherana.library.models.users.User;
 import mg.razherana.library.repositories.loans.ReservationStatusTypeRepository;
 import mg.razherana.library.services.UserService;
 import mg.razherana.library.services.books.BookService;
+import mg.razherana.library.services.books.ExemplaireService;
 import mg.razherana.library.services.loans.MembershipService;
 import mg.razherana.library.services.loans.ReservationService;
 import mg.razherana.library.services.punishments.PunishmentService;
@@ -47,6 +48,9 @@ public class UserReservationController {
     
     @Autowired
     private BookService bookService;
+    
+    @Autowired
+    private ExemplaireService exemplaireService;
     
     @Autowired
     private ReservationStatusTypeRepository statusTypeRepository;
@@ -175,11 +179,12 @@ public class UserReservationController {
             }
         }
         
-        // Get available books
+        // Get available books with exemplaire count
         List<Book> books = bookService.findAll();
         
         model.addAttribute("memberships", activeMemberships);
         model.addAttribute("books", books);
+        model.addAttribute("exemplaireService", exemplaireService);
         model.addAttribute("selectedBookId", bookId);
         model.addAttribute("today", LocalDate.now());
         model.addAttribute("minTime", LocalTime.now().plusHours(1).toString());

@@ -295,6 +295,7 @@
                           <th>ID</th>
                           <th>Book</th>
                           <th>Author</th>
+                          <th>Exemplaire</th>
                           <th>Membership</th>
                           <th>Date & Time</th>
                           <th>Location</th>
@@ -306,17 +307,22 @@
                         <!-- We're using the existing rows but will manipulate them with JS -->
                         <tr
                           th:each="reservation : ${reservations}"
-                          th:attr="data-reservation-id=${reservation.id}, data-book-title=${reservation.book.title}, data-author=${reservation.book.author != null ? reservation.book.author.name : 'N/A'}, data-membership=${reservation.membership != null ? (reservation.membership.people != null ? reservation.membership.people.name : 'Unknown') : 'N/A'}, data-take-home=${reservation.takeHome}, data-status=${!reservation.reservationStatusHistories.empty ? reservation.reservationStatusHistories[0].reservationStatusType.name : 'Unknown'}"
+                          th:attr="data-reservation-id=${reservation.id}, data-book-title=${reservation.exemplaire.book.title}, data-author=${reservation.exemplaire.book.author != null ? reservation.exemplaire.book.author.name : 'N/A'}, data-exemplaire-code=${reservation.exemplaire.code}, data-membership=${reservation.membership != null ? (reservation.membership.people != null ? reservation.membership.people.name : 'Unknown') : 'N/A'}, data-take-home=${reservation.takeHome}, data-status=${!reservation.reservationStatusHistories.empty ? reservation.reservationStatusHistories[0].reservationStatusType.name : 'Unknown'}"
                           class="reservation-row"
                         >
                           <td th:text="${reservation.id}">1</td>
-                          <td th:text="${reservation.book.title}">
+                          <td th:text="${reservation.exemplaire.book.title}">
                             Book Title
                           </td>
                           <td
-                            th:text="${reservation.book.author != null ? reservation.book.author.name : 'N/A'}"
+                            th:text="${reservation.exemplaire.book.author != null ? reservation.exemplaire.book.author.name : 'N/A'}"
                           >
                             Author Name
+                          </td>
+                          <td>
+                            <span th:text="${reservation.exemplaire.code}" class="badge bg-info">EX001</span>
+                            <br>
+                            <small class="text-muted" th:text="${reservation.exemplaire.status}">Available</small>
                           </td>
                           <td>
                             <span th:if="${reservation.membership != null}">
@@ -366,7 +372,7 @@
                               data-bs-toggle="modal"
                               data-bs-target="#viewDetailsModal"
                               th:attr="data-reservation-id=${reservation.id},
-                                            data-book-title=${reservation.book.title},
+                                            data-book-title=${reservation.exemplaire.book.title},
                                             data-reservation-date=${#temporals.format(reservation.reservationDate, 'dd-MM-yyyy HH:mm')}"
                             >
                               <i class="fas fa-eye"></i>
@@ -376,7 +382,7 @@
                               data-bs-toggle="modal"
                               data-bs-target="#updateStatusModal"
                               th:attr="data-reservation-id=${reservation.id},
-                                      data-book-title=${reservation.book.title}"
+                                      data-book-title=${reservation.exemplaire.book.title}"
                             >
                               <i class="fas fa-edit"></i> Status
                             </button>

@@ -15,16 +15,20 @@ import mg.razherana.library.models.loans.Reservation;
 
 @Repository
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
-  @Query("SELECT r FROM Reservation r LEFT JOIN FETCH r.membership WHERE r.book.id = :bookId ORDER BY r.reservationDate DESC")
+  @Query("SELECT r FROM Reservation r LEFT JOIN FETCH r.membership WHERE r.exemplaire.id = :exemplaireId ORDER BY r.reservationDate DESC")
+  List<Reservation> findByExemplaireId(Long exemplaireId);
+
+  @Query("SELECT r FROM Reservation r LEFT JOIN FETCH r.membership WHERE r.exemplaire.book.id = :bookId ORDER BY r.reservationDate DESC")
   List<Reservation> findByBookId(Long bookId);
 
-  @EntityGraph(attributePaths = { "reservationStatusHistories", "book", "membership", "membership.people",
+  @EntityGraph(attributePaths = { "reservationStatusHistories", "exemplaire", "exemplaire.book", "membership", "membership.people",
       "membership.membershipType" })
   @Query("SELECT r FROM Reservation r ORDER BY r.reservationDate DESC")
   List<Reservation> findAllWithDetails();
 
   @Query("SELECT r FROM Reservation r " +
-      "JOIN FETCH r.book b " +
+      "JOIN FETCH r.exemplaire e " +
+      "JOIN FETCH e.book b " +
       "LEFT JOIN FETCH b.author " +
       "LEFT JOIN FETCH r.membership m " +
       "LEFT JOIN FETCH m.people " +
@@ -34,12 +38,27 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
   List<Reservation> findByTitleOrAuthorContaining(@Param("search") String search);
 
   @Query("SELECT r FROM Reservation r " +
-      "JOIN FETCH r.book b " +
+      "JOIN FETCH r.exemplaire e " +
+      "JOIN FETCH e.book b " +
       "LEFT JOIN FETCH b.author " +
       "LEFT JOIN FETCH r.membership m " +
       "LEFT JOIN FETCH m.people " +
       "LEFT JOIN FETCH m.membershipType " +
-      "WHERE b.id = :bookId AND " +
+      "WHERE e.id = :exemplaireId AND " +
+      "r.reservationDate BETWEEN :startDateTime AND :endDateTime")
+  List<Reservation> findByExemplaireAndDateTimeBetween(
+      @Param("exemplaireId") Long exemplaireId,
+      @Param("startDateTime") LocalDateTime startDateTime,
+      @Param("endDateTime") LocalDateTime endDateTime);
+
+  @Query("SELECT r FROM Reservation r " +
+      "JOIN FETCH r.exemplaire e " +
+      "JOIN FETCH e.book b " +
+      "LEFT JOIN FETCH b.author " +
+      "LEFT JOIN FETCH r.membership m " +
+      "LEFT JOIN FETCH m.people " +
+      "LEFT JOIN FETCH m.membershipType " +
+      "WHERE e.book.id = :bookId AND " +
       "r.reservationDate BETWEEN :startDateTime AND :endDateTime")
   List<Reservation> findByBookAndDateTimeBetween(
       @Param("bookId") Long bookId,
@@ -47,7 +66,8 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
       @Param("endDateTime") LocalDateTime endDateTime);
 
   @Query("SELECT r FROM Reservation r " +
-      "JOIN FETCH r.book b " +
+      "JOIN FETCH r.exemplaire e " +
+      "JOIN FETCH e.book b " +
       "LEFT JOIN FETCH b.author " +
       "LEFT JOIN FETCH r.membership m " +
       "LEFT JOIN FETCH m.people " +
@@ -57,7 +77,8 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
   List<Reservation> findByTakeHome(@Param("takeHome") boolean takeHome);
 
   @Query("SELECT r FROM Reservation r " +
-      "JOIN FETCH r.book " +
+      "JOIN FETCH r.exemplaire e " +
+      "JOIN FETCH e.book " +
       "LEFT JOIN FETCH r.membership m " +
       "LEFT JOIN FETCH m.people " +
       "LEFT JOIN FETCH m.membershipType " +
@@ -70,7 +91,8 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
 
   // New combined search query with all possible filters
   @Query("SELECT DISTINCT r FROM Reservation r " +
-      "JOIN FETCH r.book b " +
+      "JOIN FETCH r.exemplaire e " +
+      "JOIN FETCH e.book b " +
       "LEFT JOIN FETCH b.author a " +
       "LEFT JOIN FETCH r.membership m " +
       "LEFT JOIN FETCH m.people " +
@@ -88,26 +110,26 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
       @Param("takeHome") Boolean takeHome,
       @Param("status") String status);
 
-  @EntityGraph(attributePaths = { "book", "book.author", "membership", "membership.people", "membership.membershipType",
+  @EntityGraph(attributePaths = { "exemplaire", "exemplaire.book", "exemplaire.book.author", "membership", "membership.people", "membership.membershipType",
       "reservationStatusHistories", "reservationStatusHistories.reservationStatusType" })
   @Override
   @NonNull
   List<Reservation> findAll();
 
-  @EntityGraph(attributePaths = { "book", "book.author", "membership", "membership.people", "membership.membershipType",
+  @EntityGraph(attributePaths = { "exemplaire", "exemplaire.book", "exemplaire.book.author", "membership", "membership.people", "membership.membershipType",
       "reservationStatusHistories", "reservationStatusHistories.reservationStatusType" })
   @Override
   @NonNull
   Reservation getById(@NonNull Long id);
 
-  @EntityGraph(attributePaths = { "book", "book.author", "membership", "membership.people", "membership.membershipType",
+  @EntityGraph(attributePaths = { "exemplaire", "exemplaire.book", "exemplaire.book.author", "membership", "membership.people", "membership.membershipType",
       "reservationStatusHistories", "reservationStatusHistories.reservationStatusType" })
-  @Query("SELECT r FROM Reservation r LEFT JOIN FETCH r.reservationStatusHistories rsh WHERE r.book.id = :bookId AND rsh.reservationStatusType.name = 'Pending'")
+  @Query("SELECT r FROM Reservation r LEFT JOIN FETCH r.reservationStatusHistories rsh WHERE r.exemplaire.book.id = :bookId AND rsh.reservationStatusType.name = 'Pending'")
   List<Reservation> findPendingReservationsForBook(@Param("bookId") Long bookId);
 
   List<Reservation> findByMembershipId(Long id);
 
-  @EntityGraph(attributePaths = { "book", "book.author", "membership", "membership.people", "membership.membershipType",
+  @EntityGraph(attributePaths = { "exemplaire", "exemplaire.book", "exemplaire.book.author", "membership", "membership.people", "membership.membershipType",
       "reservationStatusHistories", "reservationStatusHistories.reservationStatusType" })
   @Query("SELECT r FROM Reservation r WHERE r.membership.id = :id ORDER BY r.reservationDate DESC")
   List<Reservation> findByMembershipIdOrderByReservationDateDesc(Long id, Pageable pageable);

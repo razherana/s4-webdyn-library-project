@@ -483,7 +483,7 @@
                   <div class="record-info">
                     <div
                       class="record-title"
-                      th:text="${loan.book != null ? loan.book.title : 'Unknown Book'}"
+                      th:text="${loan.exemplaire.book != null ? loan.exemplaire.book.title : 'Unknown Book'}"
                     >
                       Book Title
                     </div>
@@ -522,7 +522,7 @@
                   <div class="record-info">
                     <div
                       class="record-title"
-                      th:text="${return.book != null ? return.book.title : 'Unknown Book'}"
+                      th:text="${return.exemplaire.book != null ? return.exemplaire.book.title : 'Unknown Book'}"
                     >
                       Book Title
                     </div>

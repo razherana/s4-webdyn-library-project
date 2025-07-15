@@ -86,12 +86,22 @@
                                 >
                               </div>
                             </div>
-                            <div>
+                            <div class="d-flex justify-content-between align-items-center">
                               <span
                                 class="badge bg-secondary rounded-pill"
                                 th:text="${'ID: ' + book.id}"
                                 >ID: 1</span
                               >
+                              <div class="btn-group" role="group">
+                                <a th:href="@{/books/{id}/exemplaires(id=${book.id})}" 
+                                   class="btn btn-sm btn-outline-primary">
+                                  <i class="fas fa-copy"></i> Exemplaires
+                                </a>
+                                <a th:href="@{/books/{id}/edit(id=${book.id})}" 
+                                   class="btn btn-sm btn-outline-secondary">
+                                  <i class="fas fa-edit"></i> Edit
+                                </a>
+                              </div>
                             </div>
                           </div>
                         </div>

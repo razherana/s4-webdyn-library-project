@@ -12,7 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import mg.razherana.library.models.books.Book;
+import mg.razherana.library.models.books.Exemplaire;
 import mg.razherana.library.models.loans.Loan;
 import mg.razherana.library.models.loans.LoanStatusHistory;
 import mg.razherana.library.models.loans.LoanStatusType;
@@ -21,6 +21,7 @@ import mg.razherana.library.models.loans.Membership;
 import mg.razherana.library.models.loans.MembershipType;
 import mg.razherana.library.models.loans.Reservation;
 import mg.razherana.library.repositories.books.BookRepository;
+import mg.razherana.library.repositories.books.ExemplaireRepository;
 import mg.razherana.library.repositories.loans.LoanRepository;
 import mg.razherana.library.repositories.loans.LoanStatusHistoryRepository;
 import mg.razherana.library.repositories.loans.LoanStatusTypeRepository;
@@ -35,6 +36,9 @@ public class LoanService {
 
   @Autowired
   private BookRepository bookRepository;
+
+  @Autowired
+  private ExemplaireRepository exemplaireRepository;
 
   @Autowired
   private MembershipRepository membershipRepository;
@@ -67,21 +71,41 @@ public class LoanService {
   }
 
   public boolean isBookAvailable(Long bookId) {
-    return !loanRepository.isBookCurrentlyLoaned(bookId);
+    return exemplaireRepository.countAvailableByBookId(bookId) > 0;
+  }
+
+  public Set<Long> getAvailableBookIds() {
+    // Get all available exemplaires
+    List<Exemplaire> availableExemplaires = exemplaireRepository.findAvailableExemplaires();
+
+    // Return the unique book IDs from available exemplaires
+    return availableExemplaires.stream()
+        .map(exemplaire -> exemplaire.getBook().getId())
+        .collect(Collectors.toSet());
   }
 
   public Set<Long> getBorrowedBookIds() {
-    List<Loan> activeLoans = loanRepository.findByReturnDateIsNull();
-    return activeLoans.stream()
-        .map(loan -> loan.getBook().getId())
+    // We find from available exemplaires
+    Set<Long> availableBookIds = getAvailableBookIds();
+
+    // Get all book ids
+    Set<Long> allBookIds = bookRepository.findAll()
+        .stream()
+        .map(book -> book.getId())
+        .collect(Collectors.toSet());
+
+    // Return the difference between all book ids and available book ids
+    return allBookIds.stream()
+        .filter(bookId -> !availableBookIds.contains(bookId))
         .collect(Collectors.toSet());
   }
 
   @Transactional
   public Loan createLoan(Long bookId, Long membershipId, Long loanTypeId, LocalDateTime loanDate) throws IllegalArgumentException {
     // Check if book exists
-    Book book = bookRepository.findById(bookId)
-        .orElseThrow(() -> new IllegalArgumentException("Book not found"));
+    if (!bookRepository.existsById(bookId)) {
+      throw new IllegalArgumentException("Book not found");
+    }
 
     // Check if membership exists and is active
     Membership membership = membershipRepository.findById(membershipId)
@@ -95,10 +119,14 @@ public class LoanService {
     LoanType loanType = loanTypeRepository.findById(loanTypeId)
         .orElseThrow(() -> new IllegalArgumentException("Loan type not found"));
 
-    // Check if book is already loaned
-    if (loanRepository.isBookCurrentlyLoaned(bookId)) {
-      throw new IllegalArgumentException("Book is already loaned");
+    // Find an available exemplaire for the book
+    List<Exemplaire> availableExemplaires = exemplaireRepository.findAvailableByBookId(bookId);
+    if (availableExemplaires.isEmpty()) {
+      throw new IllegalArgumentException("No available exemplaires for this book");
     }
+
+    // Get the first available exemplaire
+    Exemplaire exemplaire = availableExemplaires.get(0);
 
     // Check for late loans
     if (loanRepository.countLateByMembershipId(membershipId) > 0) {
@@ -118,15 +146,19 @@ public class LoanService {
               (isTakeHome ? "home" : "library") + " loans");
     }
 
-    // Check for confirmed reservations
-    List<Reservation> confirmedReservations = reservationService.findConfirmedReservationsForBook(bookId);
+    // Check for confirmed reservations on the exemplaire
+    List<Reservation> confirmedReservations = reservationService.findConfirmedReservationsForExemplaire(exemplaire.getId());
     if (!confirmedReservations.isEmpty()) {
-      throw new IllegalArgumentException("Book has confirmed reservations");
+      throw new IllegalArgumentException("This exemplaire has confirmed reservations");
     }
+
+    // Update exemplaire status to borrowed
+    exemplaire.setStatus("BORROWED");
+    exemplaireRepository.save(exemplaire);
 
     // Create loan
     Loan loan = new Loan();
-    loan.setBook(book);
+    loan.setExemplaire(exemplaire);
     loan.setMembership(membership);
     loan.setLoanType(loanType);
     loan.setLoanDate(loanDate);
@@ -144,6 +176,12 @@ public class LoanService {
     }
 
     loan.setReturnDate(returnDateTime);
+    
+    // Update exemplaire status back to available
+    Exemplaire exemplaire = loan.getExemplaire();
+    exemplaire.setStatus("AVAILABLE");
+    exemplaireRepository.save(exemplaire);
+    
     return loanRepository.save(loan);
   }
 

@@ -1,7 +1,9 @@
 package mg.razherana.library.controllers.users;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +28,7 @@ import mg.razherana.library.models.users.User;
 import mg.razherana.library.repositories.books.BookRepository;
 import mg.razherana.library.repositories.loans.LoanTypeRepository;
 import mg.razherana.library.services.UserService;
+import mg.razherana.library.services.books.ExemplaireService;
 import mg.razherana.library.services.loans.ExtendLoanService;
 import mg.razherana.library.services.loans.LoanService;
 import mg.razherana.library.services.loans.MembershipService;
@@ -55,6 +58,9 @@ public class UserLoanController {
     
     @Autowired
     private ExtendLoanService extendLoanService;
+    
+    @Autowired
+    private ExemplaireService exemplaireService;
     
     @GetMapping
     public String list(HttpSession session, Model model) {
@@ -130,10 +136,16 @@ public class UserLoanController {
             }
         }
         
-        // Get available books (not borrowed)
+        // Get available books (those with available exemplaires)
         List<Book> availableBooks = bookRepository.findAll().stream()
                 .filter(book -> loanService.isBookAvailable(book.getId()))
                 .collect(Collectors.toList());
+        
+        // Get available exemplaires count for each book
+        Map<Long, Long> availableExemplairesCount = new HashMap<>();
+        for (Book book : availableBooks) {
+            availableExemplairesCount.put(book.getId(), exemplaireService.countAvailableByBookId(book.getId()));
+        }
         
         // Get loan types
         List<LoanType> loanTypes = loanTypeRepository.findAll();
@@ -141,6 +153,7 @@ public class UserLoanController {
         model.addAttribute("memberships", activeMemberships);
         model.addAttribute("books", availableBooks);
         model.addAttribute("loanTypes", loanTypes);
+        model.addAttribute("availableExemplairesCount", availableExemplairesCount);
         model.addAttribute("selectedBookId", bookId);
         model.addAttribute("pageTitle", "Borrow a Book");
         

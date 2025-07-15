@@ -238,8 +238,13 @@
             </div>
           </div>
           <div class="col-md-10">
-            <h1 class="book-title" th:text="${reservation.book.title}">Book Title</h1>
-            <div class="book-author" th:text="${reservation.book.author != null ? reservation.book.author.name : 'Unknown Author'}">Author Name</div>
+            <h1 class="book-title" th:text="${reservation.exemplaire.book.title}">Book Title</h1>
+            <div class="book-author" th:text="${reservation.exemplaire.book.author != null ? reservation.exemplaire.book.author.name : 'Unknown Author'}">Author Name</div>
+            
+            <div class="mb-3">
+              <span class="badge bg-info fs-6" th:text="${reservation.exemplaire.code}">EX001</span>
+              <span class="badge bg-secondary" th:text="${reservation.exemplaire.status}">Available</span>
+            </div>
             
             <div class="status-badge" 
                  th:classappend="${
@@ -297,16 +302,18 @@
         
         <div class="row">
           <div class="col-md-6">
-            <p><strong>Title:</strong> <span th:text="${reservation.book.title}">Book Title</span></p>
-            <p><strong>Author:</strong> <span th:text="${reservation.book.author != null ? reservation.book.author.name : 'Unknown Author'}">Author Name</span></p>
+            <p><strong>Title:</strong> <span th:text="${reservation.exemplaire.book.title}">Book Title</span></p>
+            <p><strong>Author:</strong> <span th:text="${reservation.exemplaire.book.author != null ? reservation.exemplaire.book.author.name : 'Unknown Author'}">Author Name</span></p>
+            <p><strong>Exemplaire Code:</strong> <span th:text="${reservation.exemplaire.code}" class="badge bg-info">EX001</span></p>
+            <p><strong>Exemplaire Status:</strong> <span th:text="${reservation.exemplaire.status}">Available</span></p>
           </div>
           <div class="col-md-6">
             <p><strong>Categories:</strong> 
-              <span th:if="${reservation.book.categories != null && !reservation.book.categories.isEmpty()}" class="d-inline-flex flex-wrap gap-1">
-                <span th:each="category : ${reservation.book.categories}" class="badge bg-secondary me-1" th:text="${category.name}">Fiction</span>
+              <span th:if="${reservation.exemplaire.book.categories != null && !reservation.exemplaire.book.categories.isEmpty()}" class="d-inline-flex flex-wrap gap-1">
+                <span th:each="category : ${reservation.exemplaire.book.categories}" class="badge bg-secondary me-1" th:text="${category.name}">Fiction</span>
               </span>
-              <span th:if="${reservation.book.categories == null || reservation.book.categories.isEmpty()}" 
-                    th:text="${reservation.book.category != null ? reservation.book.category.name : 'N/A'}">N/A</span>
+              <span th:if="${reservation.exemplaire.book.categories == null || reservation.exemplaire.book.categories.isEmpty()}" 
+                    th:text="${reservation.exemplaire.book.category != null ? reservation.exemplaire.book.category.name : 'N/A'}">N/A</span>
             </p>
           </div>
         </div>
@@ -326,7 +333,7 @@
           <div class="modal-body">
             <input type="hidden" name="reservationId" th:value="${reservation.id}">
             <p>Are you sure you want to cancel your reservation for:</p>
-            <p class="fw-bold" th:text="${reservation.book.title}">Book Title</p>
+            <p class="fw-bold" th:text="${reservation.exemplaire.book.title}">Book Title</p>
             <p class="text-danger">This action cannot be undone.</p>
           </div>
           <div class="modal-footer">

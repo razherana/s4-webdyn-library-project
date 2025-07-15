@@ -51,7 +51,7 @@ public class ExtendLoanController {
             
             // Check if there are confirmed reservations for this book
             boolean hasConfirmedReservations = !reservationService
-                    .findConfirmedReservationsForBook(extendLoan.getLoan().getBook().getId())
+                    .findConfirmedReservationsForBook(extendLoan.getLoan().getExemplaire().getBook().getId())
                     .isEmpty();
             
             model.addAttribute("extendLoan", extendLoan);

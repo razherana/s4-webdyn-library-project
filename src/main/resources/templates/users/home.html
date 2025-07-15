@@ -444,7 +444,7 @@
                   </div>
                   <div class="activity-info">
                     <div class="d-flex justify-content-between align-items-start">
-                      <div class="activity-title-text" th:text="${loan.book.title}">Book Title</div>
+                      <div class="activity-title-text" th:text="${loan.exemplaire.book.title}">Book Title</div>
                       <span th:if="${loan.returnDate == null && !loan.checkLate(T(java.time.LocalDateTime).now())}" 
                             class="status-badge status-active">Active</span>
                       <span th:if="${loan.returnDate == null && loan.checkLate(T(java.time.LocalDateTime).now())}" 
@@ -481,7 +481,7 @@
                   </div>
                   <div class="activity-info">
                     <div class="d-flex justify-content-between align-items-start">
-                      <div class="activity-title-text" th:text="${reservation.book.title}">Book Title</div>
+                      <div class="activity-title-text" th:text="${reservation.exemplaire.book.title}">Book Title</div>
                       <span class="status-badge status-pending" 
                             th:text="${reservation.reservationStatusHistories[0].reservationStatusType.name}">Pending</span>
                     </div>
