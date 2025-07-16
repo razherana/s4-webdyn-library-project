@@ -44,9 +44,9 @@ INSERT INTO peoples (id, name) VALUES
 -- Insert membership types (quotas) with unlimited library time
 INSERT INTO membership_types (id, name, max_books_allowed_home, max_time_hours_home, 
                             max_books_allowed_library, max_time_hours_library, max_extensions_allowed, punishment_time) VALUES
-(1, 'Etudiant', 2, 7*24, 9999999, 9999999, 3, 10),       
-(2, 'Enseignant', 3, 9*24, 9999999, 9999999, 5, 9),     
-(3, 'Professionnel', 4, 12*24, 9999999, 9999999, 7, 8); 
+(1, 'Etudiant', 2, 7*24, 9999999, 9999999, 3, 10*24),       
+(2, 'Enseignant', 3, 9*24, 9999999, 9999999, 5, 9*24),     
+(3, 'Professionnel', 4, 12*24, 9999999, 9999999, 7, 8*24); 
 
 -- Insert memberships (abonnements)
 INSERT INTO memberships (id, start_date, end_date, membership_type_id, people_id) VALUES 
