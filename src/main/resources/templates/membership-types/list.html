@@ -60,6 +60,7 @@
                           <th>Time Limit (Home)</th>
                           <th>Time Limit (Library)</th>
                           <th>Max Extensions</th>
+                          <th>Punishment Hours</th>
                           <th>Actions</th>
                         </tr>
                       </thead>
@@ -80,6 +81,7 @@
                             8 hours
                           </td>
                           <td th:text="${type.maxExtensionsAllowed}">2</td>
+                          <td th:text="${type.punishmentTime}">2</td>
                           <td>
                             <div class="btn-group" role="group">
                               <a

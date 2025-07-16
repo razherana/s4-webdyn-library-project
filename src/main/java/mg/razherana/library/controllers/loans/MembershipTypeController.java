@@ -42,6 +42,7 @@ public class MembershipTypeController {
       @RequestParam(required = false, defaultValue = "0") int maxTimeHoursHome,
       @RequestParam(required = false, defaultValue = "0") int maxTimeHoursLibrary,
       @RequestParam(required = false, defaultValue = "2") int maxExtensionsAllowed,
+      @RequestParam(required = false, defaultValue = "2") int punishmentTime,
       RedirectAttributes redirectAttributes) {
 
     MembershipType membershipType = new MembershipType();
@@ -51,6 +52,7 @@ public class MembershipTypeController {
     membershipType.setMaxTimeHoursHome(maxTimeHoursHome);
     membershipType.setMaxTimeHoursLibrary(maxTimeHoursLibrary);
     membershipType.setMaxExtensionsAllowed(maxExtensionsAllowed);
+    membershipType.setPunishmentTime(punishmentTime);
 
     membershipTypeService.save(membershipType);
     redirectAttributes.addFlashAttribute("success", "Membership type added successfully!");
@@ -76,6 +78,7 @@ public class MembershipTypeController {
       @RequestParam(required = false, defaultValue = "0") int maxTimeHoursHome,
       @RequestParam(required = false, defaultValue = "0") int maxTimeHoursLibrary,
       @RequestParam(required = false, defaultValue = "2") int maxExtensionsAllowed,
+      @RequestParam(required = false, defaultValue = "2") int punishmentTime,
       RedirectAttributes redirectAttributes) {
 
     try {
@@ -84,20 +87,21 @@ public class MembershipTypeController {
         redirectAttributes.addFlashAttribute("error", "Membership type not found");
         return "redirect:/membership-types";
       }
-      
+
       type.setName(name);
       type.setMaxBooksAllowedHome(maxBooksAllowedHome);
       type.setMaxBooksAllowedLibrary(maxBooksAllowedLibrary);
       type.setMaxTimeHoursHome(maxTimeHoursHome);
       type.setMaxTimeHoursLibrary(maxTimeHoursLibrary);
       type.setMaxExtensionsAllowed(maxExtensionsAllowed);
-      
+      type.setPunishmentTime(punishmentTime);
+
       membershipTypeService.save(type);
       redirectAttributes.addFlashAttribute("success", "Membership type updated successfully!");
     } catch (Exception e) {
       redirectAttributes.addFlashAttribute("error", "Error updating membership type: " + e.getMessage());
     }
-    
+
     return "redirect:/membership-types";
   }
 
