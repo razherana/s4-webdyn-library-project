@@ -41,6 +41,12 @@ public class BookController {
     return "books/list";
   }
 
+  @GetMapping("/listAPI")
+  public String listAPI(Model model) {
+    model.addAttribute("pageTitle", "Book Management - API");
+    return "books/listAPI";
+  }
+
   @GetMapping("api/list")
   @ResponseBody
   public Object jsonList() {

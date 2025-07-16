@@ -1,5 +1,7 @@
 package mg.razherana.library.models.books;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -23,6 +25,7 @@ public class Exemplaire {
 
   @ManyToOne
   @JoinColumn(name = "book_id", nullable = false)
+  @JsonIgnore
   private Book book;
 
   @Column(nullable = false, unique = true)

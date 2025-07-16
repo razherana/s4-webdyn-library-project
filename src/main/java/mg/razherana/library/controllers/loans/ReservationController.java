@@ -30,6 +30,7 @@ import mg.razherana.library.models.loans.ReservationStatusHistory;
 import mg.razherana.library.models.punishments.Punishment;
 import mg.razherana.library.services.books.BookService;
 import mg.razherana.library.services.books.ExemplaireService;
+import mg.razherana.library.services.feries.FerieService;
 import mg.razherana.library.services.loans.LoanService;
 import mg.razherana.library.services.loans.MembershipService;
 import mg.razherana.library.services.loans.ReservationService;
@@ -60,6 +61,9 @@ public class ReservationController {
 
   @Autowired
   private LoanService loanService;
+
+  @Autowired
+  private FerieService ferieService;
 
   @GetMapping("")
   public String list(Model model) {
@@ -117,6 +121,13 @@ public class ReservationController {
                 endTime.format(DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm")) +
                 "). Reason: " + activePunishment.getDescription());
         return "redirect:/reservations/add";
+      }
+
+      if(!ferieService.canMakeLoansOrReservations(reservationDate)){
+        LocalDate nextAvailable = ferieService.getNextAvailableBusinessDay(reservationDate);
+        redirectAttributes.addFlashAttribute("error",
+            "Cannot create reservations on holidays. Next available date: " + nextAvailable);
+        return "redirect:/loans/create";
       }
 
       reservationService.createReservation(bookId, membershipId, reservationDateTime, takeHome);
