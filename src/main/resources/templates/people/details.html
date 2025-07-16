@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Person Details - Library Management</title>
+    
+    <link rel="stylesheet" href="/static/bs/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/fa/css/all.min.css">
+    <link rel="stylesheet" href="/static/poppins/poppins.css">
+    <link rel="stylesheet" href="/static/css/library.css">
+    
+    <style>
+        .info-card {
+            border-left: 4px solid #007bff;
+        }
+        
+        .membership-card {
+            transition: transform 0.2s ease-in-out;
+        }
+        
+        .membership-card:hover {
+            transform: translateY(-2px);
+        }
+        
+        .membership-active {
+            border-left: 4px solid #28a745;
+        }
+        
+        .membership-inactive {
+            border-left: 4px solid #6c757d;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #6c757d;
+        }
+        
+        .activity-item {
+            padding: 1rem;
+            border-left: 3px solid #e9ecef;
+            margin-bottom: 1rem;
+        }
+        
+        .activity-item.loan {
+            border-left-color: #007bff;
+        }
+        
+        .activity-item.reservation {
+            border-left-color: #28a745;
+        }
+        
+        .activity-item.punishment {
+            border-left-color: #dc3545;
+        }
+        
+        .status-badge {
+            font-size: 0.75rem;
+        }
+        
+        .nav-pills .nav-link.active {
+            background-color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-container">
+        <!-- Sidebar -->
+        <th:block th:replace="~{fragments/sidebar :: sidebar('people-api')}"></th:block>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <button class="btn btn-primary d-md-none toggle-btn" type="button">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <!-- Header -->
+            <div class="container-fluid mt-4">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div>
+                                <h2 class="mb-1">
+                                    <i class="fas fa-user me-2"></i>
+                                    <span th:text="${person.name}">Person Name</span>
+                                </h2>
+                                <nav aria-label="breadcrumb">
+                                    <ol class="breadcrumb">
+                                        <li class="breadcrumb-item"><a href="/people-api">People</a></li>
+                                        <li class="breadcrumb-item active" aria-current="page" th:text="${person.name}">Person Name</li>
+                                    </ol>
+                                </nav>
+                            </div>
+                            <div>
+                                <a th:href="@{/people-api/{id}/edit(id=${person.id})}" class="btn btn-outline-primary">
+                                    <i class="fas fa-edit me-1"></i>Edit
+                                </a>
+                                <a href="/people-api" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left me-1"></i>Back to List
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Person Information -->
+                <div class="row mb-4">
+                    <div class="col-md-8">
+                        <div class="card info-card">
+                            <div class="card-body">
+                                <h5 class="card-title">Personal Information</h5>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p><strong>Full Name:</strong> <span th:text="${person.name}">Person Name</span></p>
+                                        <p><strong>Birth Date:</strong> 
+                                            <span th:if="${person.birthDate}" th:text="${#temporals.format(person.birthDate, 'dd MMM yyyy')}">01 Jan 1990</span>
+                                            <span th:unless="${person.birthDate}" class="text-muted">Not specified</span>
+                                        </p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p><strong>Address:</strong> 
+                                            <span th:if="${person.address}" th:text="${person.address}">Address</span>
+                                            <span th:unless="${person.address}" class="text-muted">Not provided</span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body text-center">
+                                <h5 class="card-title">Quick Stats</h5>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <h3 class="text-primary mb-1" id="totalMemberships">-</h3>
+                                        <small class="text-muted">Memberships</small>
+                                    </div>
+                                    <div class="col-6">
+                                        <h3 class="text-success mb-1" id="activeMemberships">-</h3>
+                                        <small class="text-muted">Active</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Memberships Section -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Memberships</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="membershipsLoading" class="loading">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <p class="mt-2">Loading memberships...</p>
+                        </div>
+                        
+                        <div id="membershipsContainer" style="display: none;">
+                            <!-- Memberships will be loaded here -->
+                        </div>
+                        
+                        <div id="noMemberships" class="empty-state" style="display: none;">
+                            <i class="fas fa-id-card fa-3x mb-3"></i>
+                            <h5>No Memberships</h5>
+                            <p class="text-muted">This person has no memberships.</p>
+                        </div>
+                        
+                        <!-- Membership Template - Hidden -->
+                        <template id="membershipTemplate">
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <h6>
+                                        <span data-membership-type-name></span>
+                                        <span class="badge ms-2" data-membership-status-badge></span>
+                                    </h6>
+                                    <p class="text-muted mb-2" data-membership-dates></p>
+                                    <p class="mb-2" data-membership-limits></p>
+                                    <button class="btn btn-outline-primary btn-sm" data-membership-view-button>
+                                        View Details
+                                    </button>
+                                </div>
+                            </div>
+                        </template>
+                        
+                        <!-- Membership Details Modal Content Template -->
+                        <template id="membershipDetailsTemplate">
+                            <div class="mb-4">
+                                <h6>Membership Information</h6>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p><strong>Type:</strong> <span data-membership-type></span></p>
+                                        <p><strong>Start Date:</strong> <span data-start-date></span></p>
+                                        <p><strong>End Date:</strong> <span data-end-date></span></p>
+                                        <p><strong>Status:</strong> <span class="badge" data-membership-status></span></p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p><strong>Home Books Limit:</strong> <span data-home-books-limit></span></p>
+                                        <p><strong>Library Books Limit:</strong> <span data-library-books-limit></span></p>
+                                        <p><strong>Max Extensions:</strong> <span data-max-extensions></span></p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <ul class="nav nav-pills mb-3" id="membershipTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="loans-tab" data-bs-toggle="pill" data-bs-target="#loans" type="button" role="tab">
+                                        <i class="fas fa-book me-1"></i>Loans (<span data-loans-count></span>)
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="reservations-tab" data-bs-toggle="pill" data-bs-target="#reservations" type="button" role="tab">
+                                        <i class="fas fa-calendar-check me-1"></i>Reservations (<span data-reservations-count></span>)
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="punishments-tab" data-bs-toggle="pill" data-bs-target="#punishments" type="button" role="tab">
+                                        <i class="fas fa-exclamation-triangle me-1"></i>Punishments (<span data-punishments-count></span>)
+                                    </button>
+                                </li>
+                            </ul>
+                            
+                            <div class="tab-content">
+                                <div class="tab-pane fade show active" id="loans" role="tabpanel">
+                                    <div data-loans-container></div>
+                                </div>
+                                <div class="tab-pane fade" id="reservations" role="tabpanel">
+                                    <div data-reservations-container></div>
+                                </div>
+                                <div class="tab-pane fade" id="punishments" role="tabpanel">
+                                    <div data-punishments-container></div>
+                                </div>
+                            </div>
+                        </template>
+                        
+                        <!-- Loan Item Template -->
+                        <template id="loanItemTemplate">
+                            <div class="activity-item loan">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1" data-book-title></h6>
+                                        <p class="text-muted mb-1">
+                                            <strong>Author:</strong> <span data-book-author></span><br>
+                                            <strong>Exemplaire:</strong> <span data-exemplaire-code></span> (<span data-exemplaire-status></span>)<br>
+                                            <strong>Loan Type:</strong> <span data-loan-type></span>
+                                        </p>
+                                        <small class="text-muted">
+                                            <i class="fas fa-calendar-alt me-1"></i>
+                                            <span data-loan-dates></span>
+                                        </small>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge" data-loan-status></span>
+                                        <div class="mt-1">
+                                            <small class="text-muted">Extensions: <span data-extend-count></span></small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                        
+                        <!-- Reservation Item Template -->
+                        <template id="reservationItemTemplate">
+                            <div class="activity-item reservation">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1" data-book-title></h6>
+                                        <p class="text-muted mb-1">
+                                            <strong>Author:</strong> <span data-book-author></span><br>
+                                            <strong>Exemplaire:</strong> <span data-exemplaire-code></span> (<span data-exemplaire-status></span>)<br>
+                                            <strong>Location:</strong> <span data-location></span>
+                                        </p>
+                                        <small class="text-muted">
+                                            <i class="fas fa-calendar-alt me-1"></i>
+                                            Reserved for: <span data-reservation-date></span>
+                                        </small>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge bg-info" data-reservation-status></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                        
+                        <!-- Punishment Item Template -->
+                        <template id="punishmentItemTemplate">
+                            <div class="activity-item punishment">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1" data-punishment-type></h6>
+                                        <p class="text-muted mb-1" data-punishment-description></p>
+                                        <small class="text-muted">
+                                            <i class="fas fa-calendar-alt me-1"></i>
+                                            <span data-punishment-details></span>
+                                        </small>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge" data-punishment-status></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                        
+                        <!-- Empty State Template -->
+                        <template id="emptyStateTemplate">
+                            <div class="empty-state">
+                                <i class="fa-2x mb-2" data-empty-icon></i>
+                                <p data-empty-message></p>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Membership Details Modal -->
+    <div class="modal fade" id="membershipModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Membership Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="membershipDetailsContent">
+                        <!-- Membership details will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/static/bs/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/fa/js/all.min.js"></script>
+    <script src="/static/js/sidebar.js"></script>
+    
+    <script th:inline="javascript">
+        class PersonDetailsManager {
+            constructor() {
+                this.personId = /*[[${person.id}]]*/ 1;
+                this.memberships = [];
+                this.init();
+            }
+            
+            init() {
+                this.loadMemberships();
+            }
+            
+            async loadMemberships() {
+                try {
+                    const response = await fetch(`/api/people/${this.personId}/memberships`);
+                    if (!response.ok) {
+                        throw new Error('Failed to load memberships');
+                    }
+                    
+                    this.memberships = await response.json();
+                    this.renderMemberships();
+                    this.updateStats();
+                    
+                } catch (error) {
+                    console.error('Error loading memberships:', error);
+                    this.showError();
+                }
+            }
+            
+            renderMemberships() {
+                const container = document.getElementById('membershipsContainer');
+                const loading = document.getElementById('membershipsLoading');
+                const noMemberships = document.getElementById('noMemberships');
+                const template = document.getElementById('membershipTemplate');
+                
+                loading.style.display = 'none';
+                
+                if (this.memberships.length === 0) {
+                    noMemberships.style.display = 'block';
+                    return;
+                }
+                
+                container.style.display = 'block';
+                container.innerHTML = ''; // Clear container
+                
+                this.memberships.forEach(membership => {
+                    // Clone the template
+                    const membershipNode = template.content.cloneNode(true);
+                    
+                    // Fill in the data
+                    membershipNode.querySelector('[data-membership-type-name]').textContent = membership.membershipType.name;
+                    
+                    const statusBadge = membershipNode.querySelector('[data-membership-status-badge]');
+                    statusBadge.textContent = membership.isActive ? 'Active' : 'Inactive';
+                    statusBadge.classList.add(membership.isActive ? 'bg-success' : 'bg-secondary');
+                    
+                    membershipNode.querySelector('[data-membership-dates]').textContent = 
+                        `${new Date(membership.startDate).toLocaleDateString()} - ${new Date(membership.endDate).toLocaleDateString()}`;
+                    
+                    membershipNode.querySelector('[data-membership-limits]').innerHTML = 
+                        `<strong>Home:</strong> ${membership.membershipType.maxBooksAllowedHome} books, ${membership.membershipType.maxTimeHoursHome}h |
+                        <strong>Library:</strong> ${membership.membershipType.maxBooksAllowedLibrary} books, ${membership.membershipType.maxTimeHoursLibrary}h`;
+                    
+                    const viewButton = membershipNode.querySelector('[data-membership-view-button]');
+                    viewButton.onclick = () => this.viewMembershipDetails(membership.id);
+                    
+                    // Add the populated template to the container
+                    container.appendChild(membershipNode);
+                });
+            }
+            
+            updateStats() {
+                const totalMemberships = this.memberships.length;
+                const activeMemberships = this.memberships.filter(m => m.isActive).length;
+                
+                document.getElementById('totalMemberships').textContent = totalMemberships;
+                document.getElementById('activeMemberships').textContent = activeMemberships;
+            }
+            
+            async viewMembershipDetails(membershipId) {
+                const membership = this.memberships.find(m => m.id === membershipId);
+                if (!membership) return;
+                
+                const modalContent = document.getElementById('membershipDetailsContent');
+                modalContent.innerHTML = '<div class="text-center"><div class="spinner-border text-primary" role="status"></div></div>';
+                
+                const modal = new bootstrap.Modal(document.getElementById('membershipModal'));
+                modal.show();
+                
+                try {
+                    // Load loans, reservations, and punishments
+                    const [loansResponse, reservationsResponse, punishmentsResponse] = await Promise.all([
+                        fetch(`/api/people/${this.personId}/memberships/${membershipId}/loans`),
+                        fetch(`/api/people/${this.personId}/memberships/${membershipId}/reservations`),
+                        fetch(`/api/people/${this.personId}/memberships/${membershipId}/punishments`)
+                    ]);
+                    
+                    const loans = await loansResponse.json();
+                    const reservations = await reservationsResponse.json();
+                    const punishments = await punishmentsResponse.json();
+                    
+                    this.renderMembershipDetailsModal(membership, loans, reservations, punishments);
+                    
+                } catch (error) {
+                    console.error('Error loading membership details:', error);
+                    modalContent.innerHTML = '<div class="alert alert-danger">Error loading membership details</div>';
+                }
+            }
+            
+            renderMembershipDetailsModal(membership, loans, reservations, punishments) {
+                const template = document.getElementById('membershipDetailsTemplate');
+                const detailsNode = template.content.cloneNode(true);
+                
+                // Fill membership information
+                detailsNode.querySelector('[data-membership-type]').textContent = membership.membershipType.name;
+                detailsNode.querySelector('[data-start-date]').textContent = new Date(membership.startDate).toLocaleDateString();
+                detailsNode.querySelector('[data-end-date]').textContent = new Date(membership.endDate).toLocaleDateString();
+                
+                const statusBadge = detailsNode.querySelector('[data-membership-status]');
+                statusBadge.textContent = membership.isActive ? 'Active' : 'Inactive';
+                statusBadge.classList.add(membership.isActive ? 'bg-success' : 'bg-secondary');
+                
+                detailsNode.querySelector('[data-home-books-limit]').textContent = membership.membershipType.maxBooksAllowedHome;
+                detailsNode.querySelector('[data-library-books-limit]').textContent = membership.membershipType.maxBooksAllowedLibrary;
+                detailsNode.querySelector('[data-max-extensions]').textContent = membership.membershipType.maxExtensionsAllowed;
+                
+                // Fill counts
+                detailsNode.querySelector('[data-loans-count]').textContent = loans.length;
+                detailsNode.querySelector('[data-reservations-count]').textContent = reservations.length;
+                detailsNode.querySelector('[data-punishments-count]').textContent = punishments.length;
+                
+                // Fill containers
+                const loansContainer = detailsNode.querySelector('[data-loans-container]');
+                const reservationsContainer = detailsNode.querySelector('[data-reservations-container]');
+                const punishmentsContainer = detailsNode.querySelector('[data-punishments-container]');
+                
+                this.renderLoansToContainer(loans, loansContainer);
+                this.renderReservationsToContainer(reservations, reservationsContainer);
+                this.renderPunishmentsToContainer(punishments, punishmentsContainer);
+                
+                // Replace modal content
+                const modalContent = document.getElementById('membershipDetailsContent');
+                modalContent.innerHTML = '';
+                modalContent.appendChild(detailsNode);
+            }
+            
+            renderLoansToContainer(loans, container) {
+                if (loans.length === 0) {
+                    this.renderEmptyState(container, 'fas fa-book', 'No loans found');
+                    return;
+                }
+                
+                loans.forEach(loan => {
+                    const template = document.getElementById('loanItemTemplate');
+                    const loanNode = template.content.cloneNode(true);
+                    
+                    loanNode.querySelector('[data-book-title]').textContent = loan.exemplaire.book.title;
+                    loanNode.querySelector('[data-book-author]').textContent = loan.exemplaire.book.author;
+                    loanNode.querySelector('[data-exemplaire-code]').textContent = loan.exemplaire.code;
+                    loanNode.querySelector('[data-exemplaire-status]').textContent = loan.exemplaire.status;
+                    loanNode.querySelector('[data-loan-type]').textContent = loan.loanType.name;
+                    
+                    // Format loan dates
+                    let dateText = `Loaned: ${new Date(loan.loanDate).toLocaleDateString()}`;
+                    if (loan.returnDate) {
+                        dateText += ` • Returned: ${new Date(loan.returnDate).toLocaleDateString()}`;
+                    }
+                    if (loan.extendedAt) {
+                        dateText += ` • Extended: ${new Date(loan.extendedAt).toLocaleDateString()}`;
+                    }
+                    loanNode.querySelector('[data-loan-dates]').textContent = dateText;
+                    
+                    // Set loan status
+                    const statusBadge = loanNode.querySelector('[data-loan-status]');
+                    if (loan.isReturned) {
+                        statusBadge.textContent = 'Returned';
+                        statusBadge.classList.add('bg-success');
+                    } else if (loan.isLate) {
+                        statusBadge.textContent = 'Late';
+                        statusBadge.classList.add('bg-danger');
+                    } else {
+                        statusBadge.textContent = 'Active';
+                        statusBadge.classList.add('bg-warning');
+                    }
+                    
+                    loanNode.querySelector('[data-extend-count]').textContent = loan.extendCount;
+                    
+                    container.appendChild(loanNode);
+                });
+            }
+            
+            renderReservationsToContainer(reservations, container) {
+                if (reservations.length === 0) {
+                    this.renderEmptyState(container, 'fas fa-calendar-check', 'No reservations found');
+                    return;
+                }
+                
+                reservations.forEach(reservation => {
+                    const template = document.getElementById('reservationItemTemplate');
+                    const reservationNode = template.content.cloneNode(true);
+                    
+                    reservationNode.querySelector('[data-book-title]').textContent = reservation.exemplaire.book.title;
+                    reservationNode.querySelector('[data-book-author]').textContent = reservation.exemplaire.book.author;
+                    reservationNode.querySelector('[data-exemplaire-code]').textContent = reservation.exemplaire.code;
+                    reservationNode.querySelector('[data-exemplaire-status]').textContent = reservation.exemplaire.status;
+                    reservationNode.querySelector('[data-location]').textContent = reservation.takeHome ? 'Take Home' : 'Library Use';
+                    reservationNode.querySelector('[data-reservation-date]').textContent = new Date(reservation.reservationDate).toLocaleDateString();
+                    reservationNode.querySelector('[data-reservation-status]').textContent = reservation.currentStatus ? reservation.currentStatus.name : 'Unknown';
+                    
+                    container.appendChild(reservationNode);
+                });
+            }
+            
+            renderPunishmentsToContainer(punishments, container) {
+                if (punishments.length === 0) {
+                    this.renderEmptyState(container, 'fas fa-exclamation-triangle', 'No punishments found');
+                    return;
+                }
+                
+                punishments.forEach(punishment => {
+                    const template = document.getElementById('punishmentItemTemplate');
+                    const punishmentNode = template.content.cloneNode(true);
+                    
+                    punishmentNode.querySelector('[data-punishment-type]').textContent = punishment.punishmentType.name;
+                    punishmentNode.querySelector('[data-punishment-description]').textContent = punishment.description;
+                    
+                    // Format punishment details
+                    let detailsText = `${new Date(punishment.punishmentDate).toLocaleDateString()} • Duration: ${punishment.durationHours}h`;
+                    if (punishment.endTime) {
+                        detailsText += ` • Ends: ${new Date(punishment.endTime).toLocaleDateString()}`;
+                    }
+                    punishmentNode.querySelector('[data-punishment-details]').textContent = detailsText;
+                    
+                    // Set punishment status
+                    const statusBadge = punishmentNode.querySelector('[data-punishment-status]');
+                    statusBadge.textContent = punishment.isActive ? 'Active' : 'Completed';
+                    statusBadge.classList.add(punishment.isActive ? 'bg-danger' : 'bg-secondary');
+                    
+                    container.appendChild(punishmentNode);
+                });
+            }
+            
+            renderEmptyState(container, iconClass, message) {
+                const template = document.getElementById('emptyStateTemplate');
+                const emptyNode = template.content.cloneNode(true);
+                
+                emptyNode.querySelector('[data-empty-icon]').className = `${iconClass} fa-2x mb-2`;
+                emptyNode.querySelector('[data-empty-message]').textContent = message;
+                
+                container.appendChild(emptyNode);
+            }
+            
+            showError() {
+                const loading = document.getElementById('membershipsLoading');
+                const container = document.getElementById('membershipsContainer');
+                
+                loading.style.display = 'none';
+                container.innerHTML = '<div class="alert alert-danger">Error loading memberships</div>';
+                container.style.display = 'block';
+            }
+        }
+        
+        // Initialize the person details manager
+        let personDetails;
+        document.addEventListener('DOMContentLoaded', () => {
+            personDetails = new PersonDetailsManager();
+        });
+    </script>
+</body>
+</html>

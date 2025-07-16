@@ -143,6 +143,18 @@
                 </li>
                 <li
                   class="nav-item nav-subitem"
+                  th:if="${@accessEvaluatorService.hasAccess(isAdmin, userAccessUris, '/people-api')}"
+                >
+                  <a
+                    class="nav-link"
+                    href="/people-api"
+                    th:classappend="${activeMenu == 'people-api' ? 'active' : ''}"
+                  >
+                    <i class="fas fa-users me-2"></i> People API
+                  </a>
+                </li>
+                <li
+                  class="nav-item nav-subitem"
                   th:if="${@accessEvaluatorService.hasAccess(isAdmin, userAccessUris, '/membership-types')}"
                 >
                   <a

@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>People Management - Library Management</title>
+    
+    <link rel="stylesheet" href="/static/bs/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/fa/css/all.min.css">
+    <link rel="stylesheet" href="/static/poppins/poppins.css">
+    <link rel="stylesheet" href="/static/css/library.css">
+    
+    <style>
+        .people-card {
+            transition: transform 0.2s ease-in-out;
+        }
+        
+        .people-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .error {
+            color: #dc3545;
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .search-container {
+            margin-bottom: 2rem;
+        }
+        
+        .membership-badge {
+            font-size: 0.75rem;
+        }
+        
+        .membership-badge.active {
+            background-color: #28a745;
+        }
+        
+        .membership-badge.inactive {
+            background-color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="grid-container">
+        <!-- Sidebar -->
+        <th:block th:replace="~{fragments/sidebar :: sidebar('people-api')}"></th:block>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <button class="btn btn-primary d-md-none toggle-btn" type="button">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <!-- Header -->
+            <div class="container-fluid mt-4">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h2><i class="fas fa-users me-2"></i>People Management</h2>
+                            <a href="/peoples/add" class="btn btn-primary">
+                                <i class="fas fa-plus me-1"></i>Add New Person
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Search -->
+                <div class="search-container">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="searchInput" placeholder="Search by name or address...">
+                                <button class="btn btn-outline-secondary" type="button" id="searchBtn">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-outline-info" id="refreshBtn">
+                                    <i class="fas fa-sync-alt"></i> Refresh
+                                </button>
+                                <button class="btn btn-outline-secondary" id="clearSearchBtn" style="display: none;">
+                                    <i class="fas fa-times"></i> Clear
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Loading/Error States -->
+                <div id="loadingState" class="loading" style="display: none;">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Loading people...</p>
+                </div>
+                
+                <div id="errorState" class="error" style="display: none;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p class="mt-2">Error loading people. Please try again.</p>
+                </div>
+                
+                <!-- People Grid -->
+                <div id="peopleGrid" class="row">
+                    <!-- People cards will be dynamically inserted here -->
+                </div>
+                
+                <!-- No Results -->
+                <div id="noResults" class="text-center py-5" style="display: none;">
+                    <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                    <h4 class="text-muted">No people found</h4>
+                    <p class="text-muted">Try adjusting your search criteria</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/static/bs/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/fa/js/all.min.js"></script>
+    <script src="/static/js/sidebar.js"></script>
+    
+    <script>
+        class PeopleManager {
+            constructor() {
+                this.people = [];
+                this.filteredPeople = [];
+                this.currentSearch = '';
+                this.init();
+            }
+            
+            init() {
+                this.bindEvents();
+                this.loadPeople();
+            }
+            
+            bindEvents() {
+                document.getElementById('searchBtn').addEventListener('click', () => this.handleSearch());
+                document.getElementById('searchInput').addEventListener('keyup', (e) => {
+                    if (e.key === 'Enter') {
+                        this.handleSearch();
+                    }
+                });
+                document.getElementById('clearSearchBtn').addEventListener('click', () => this.clearSearch());
+                document.getElementById('refreshBtn').addEventListener('click', () => this.loadPeople());
+            }
+            
+            async loadPeople() {
+                this.showLoading();
+                
+                try {
+                    const response = await fetch('/api/people');
+                    if (!response.ok) {
+                        throw new Error('Failed to load people');
+                    }
+                    
+                    this.people = await response.json();
+                    this.filteredPeople = [...this.people];
+                    this.renderPeople();
+                    this.hideLoading();
+                    
+                } catch (error) {
+                    console.error('Error loading people:', error);
+                    this.showError();
+                }
+            }
+            
+            handleSearch() {
+                const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+                this.currentSearch = searchTerm;
+                
+                if (searchTerm === '') {
+                    this.filteredPeople = [...this.people];
+                    document.getElementById('clearSearchBtn').style.display = 'none';
+                } else {
+                    this.filteredPeople = this.people.filter(person => 
+                        person.name.toLowerCase().includes(searchTerm) ||
+                        (person.address && person.address.toLowerCase().includes(searchTerm))
+                    );
+                    document.getElementById('clearSearchBtn').style.display = 'block';
+                }
+                
+                this.renderPeople();
+            }
+            
+            clearSearch() {
+                document.getElementById('searchInput').value = '';
+                this.currentSearch = '';
+                this.filteredPeople = [...this.people];
+                document.getElementById('clearSearchBtn').style.display = 'none';
+                this.renderPeople();
+            }
+            
+            renderPeople() {
+                const container = document.getElementById('peopleGrid');
+                const noResults = document.getElementById('noResults');
+                
+                if (this.filteredPeople.length === 0) {
+                    container.innerHTML = '';
+                    noResults.style.display = 'block';
+                    return;
+                }
+                
+                noResults.style.display = 'none';
+                
+                container.innerHTML = this.filteredPeople.map(person => `
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card people-card h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <h5 class="card-title mb-0">
+                                        <i class="fas fa-user me-2"></i>${person.name}
+                                    </h5>
+                                    <span class="badge membership-badge ${person.membershipsCount > 0 ? 'active' : 'inactive'}">
+                                        ${person.membershipsCount} membership${person.membershipsCount !== 1 ? 's' : ''}
+                                    </span>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <small class="text-muted">
+                                        <i class="fas fa-birthday-cake me-1"></i>
+                                        ${person.birthDate ? new Date(person.birthDate).toLocaleDateString() : 'Not specified'}
+                                    </small>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <small class="text-muted">
+                                        <i class="fas fa-map-marker-alt me-1"></i>
+                                        ${person.address || 'Address not provided'}
+                                    </small>
+                                </div>
+                                
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <a href="/people-api/${person.id}" class="btn btn-primary btn-sm">
+                                        <i class="fas fa-eye me-1"></i>View Details
+                                    </a>
+                                    <a href="/peoples/${person.id}/edit" class="btn btn-outline-secondary btn-sm">
+                                        <i class="fas fa-edit me-1"></i>Edit
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            showLoading() {
+                document.getElementById('loadingState').style.display = 'block';
+                document.getElementById('errorState').style.display = 'none';
+                document.getElementById('peopleGrid').style.display = 'none';
+                document.getElementById('noResults').style.display = 'none';
+            }
+            
+            hideLoading() {
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('peopleGrid').style.display = 'flex';
+            }
+            
+            showError() {
+                document.getElementById('loadingState').style.display = 'none';
+                document.getElementById('errorState').style.display = 'block';
+                document.getElementById('peopleGrid').style.display = 'none';
+                document.getElementById('noResults').style.display = 'none';
+            }
+        }
+        
+        // Initialize the people manager when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new PeopleManager();
+        });
+    </script>
+</body>
+</html>

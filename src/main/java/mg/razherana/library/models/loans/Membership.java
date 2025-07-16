@@ -30,6 +30,10 @@ public class Membership {
   @JoinColumn(name = "membership_type_id", nullable = false)
   private MembershipType membershipType;
 
+  public String getNumRepr() {
+    return membershipType.getName().substring(0, 3).toUpperCase() + "_" + String.format("%03d", people.getId()) + "_MEM_" + String.format("%03d", id);
+  }
+
   private LocalDate startDate;
 
   private LocalDate endDate;
