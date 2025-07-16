@@ -264,7 +264,9 @@
                                   data-book-title=${loan.exemplaire.book.title}, 
                                   data-author=${loan.exemplaire.book.author != null ? loan.exemplaire.book.author.name : 'N/A'}, 
                                   data-location=${loan.loanType.name.toLowerCase().contains('home') ? 'home' : 'library'}, 
-                                  data-status=${loan.getStatus()}"
+                                  data-status=${loan.getStatus()},
+                                  data-punishment=${loan.membership.membershipType.punishmentTime}
+                                  "
                           class="loan-row"
                         >
                           <td th:text="${loan.id}">1</td>
@@ -673,6 +675,7 @@
 
           // Store additional data in hidden fields
           document.getElementById("return-loan-id").value = loanId;
+          document.getElementById("return-loan-id").setAttribute("data-punishment", loanRow.getAttribute("data-punishment"))
           document.getElementById("return-modal-book-title").textContent =
             bookTitle;
           document.getElementById("loan-is-home").value = isHomeLoan;
@@ -688,6 +691,7 @@
         .getElementById("check-late-btn")
         .addEventListener("click", function () {
           const loanId = document.getElementById("return-loan-id").value;
+          const punishmentTime = +document.getElementById("return-loan-id").getAttribute("data-punishment");
           const returnDateStr = document.getElementById("returnDate").value;
 
           // Get the loan data for late calculation
@@ -715,7 +719,7 @@
                 document.getElementById("late-hours").textContent = lateHours;
                 document.getElementById("max-allowed-hours").textContent =
                   maxHours;
-                document.getElementById("punishmentDuration").value = lateHours;
+                document.getElementById("punishmentDuration").value = +punishmentTime;
                 document.getElementById("punishmentMembershipId").value =
                   loanData.membershipId;
 

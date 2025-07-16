@@ -36,4 +36,7 @@ public class MembershipType {
   // Maximum number of extensions allowed per loan
   @Column(nullable = false, columnDefinition = "INTEGER DEFAULT 2")
   private int maxExtensionsAllowed;
+
+  @Column(nullable = false, columnDefinition = "INTEGER DEFAULT 5")
+  private int punishmentTime;
 }

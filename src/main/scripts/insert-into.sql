@@ -43,10 +43,10 @@ INSERT INTO peoples (id, name) VALUES
 
 -- Insert membership types (quotas) with unlimited library time
 INSERT INTO membership_types (id, name, max_books_allowed_home, max_time_hours_home, 
-                            max_books_allowed_library, max_time_hours_library, max_extensions_allowed) VALUES
-(1, 'Etudiant', 2, 7*24, 9999999, 9999999, 3),       
-(2, 'Enseignant', 3, 9*24, 9999999, 9999999, 5),     
-(3, 'Professionnel', 4, 12*24, 9999999, 9999999, 7); 
+                            max_books_allowed_library, max_time_hours_library, max_extensions_allowed, punishment_time) VALUES
+(1, 'Etudiant', 2, 7*24, 9999999, 9999999, 3, 10),       
+(2, 'Enseignant', 3, 9*24, 9999999, 9999999, 5, 9),     
+(3, 'Professionnel', 4, 12*24, 9999999, 9999999, 7, 8); 
 
 -- Insert memberships (abonnements)
 INSERT INTO memberships (id, start_date, end_date, membership_type_id, people_id) VALUES 
@@ -58,17 +58,3 @@ INSERT INTO memberships (id, start_date, end_date, membership_type_id, people_id
 (6, '2025-07-01', '2026-06-01', 2, 6),  -- ENS003 (Salima Touhami)
 (7, '2025-06-01', '2025-12-01', 3, 7),  -- PROF001 (Rachid El Mansouri)
 (8, '2024-10-01', '2025-06-01', 3, 8); -- PROF002 (Amina Zerouali)
-
--- Insert penalties with current date and membership IDs
-INSERT INTO punishments (description, duration_hours, punishment_date, membership_id, punishment_type_id)
-VALUES
-('Retard de retour', 240, NOW(), 1, 1),  -- ETU001 (Membership ID 1)
-('Retard de retour', 240, NOW(), 2, 1),  -- ETU002 (Membership ID 2)
-('Retard de retour', 240, NOW(), 3, 1),  -- ETU003 (Membership ID 3)
-
-('Retard de retour', 216, NOW(), 4, 1),  -- ENS001 (Membership ID 4)
-('Retard de retour', 216, NOW(), 5, 1),  -- ENS002 (Membership ID 5)
-('Retard de retour', 216, NOW(), 6, 1),  -- ENS003 (Membership ID 6)
-
-('Retard de retour', 192, NOW(), 7, 1),  -- PROF001 (Membership ID 7)
-('Retard de retour', 192, NOW(), 8, 1);  -- PROF002 (Membership ID 8)
