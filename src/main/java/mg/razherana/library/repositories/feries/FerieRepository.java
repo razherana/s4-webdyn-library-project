@@ -11,13 +11,12 @@ import java.util.List;
 
 @Repository
 public interface FerieRepository extends JpaRepository<Ferie, Long> {
-    
-    @Query("SELECT f FROM Ferie f WHERE f.date = :date")
-    boolean existsByDate(@Param("date") LocalDate date);
-    
     @Query("SELECT f FROM Ferie f WHERE f.date BETWEEN :startDate AND :endDate ORDER BY f.date")
     List<Ferie> findByDateBetween(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
     
     @Query("SELECT f FROM Ferie f WHERE f.date >= :startDate ORDER BY f.date")
     List<Ferie> findFeriesFromDate(@Param("startDate") LocalDate startDate);
+
+    @Query("SELECT f FROM Ferie f WHERE f.date = :date")
+    List<Ferie> getByDate(LocalDate date);
 }

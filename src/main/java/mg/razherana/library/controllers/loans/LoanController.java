@@ -1,5 +1,6 @@
 package mg.razherana.library.controllers.loans;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -36,6 +37,7 @@ import mg.razherana.library.models.punishments.PunishmentType;
 import mg.razherana.library.repositories.books.BookRepository;
 import mg.razherana.library.repositories.loans.LoanTypeRepository;
 import mg.razherana.library.services.books.ExemplaireService;
+import mg.razherana.library.services.feries.FerieService;
 import mg.razherana.library.services.loans.ExtendLoanService;
 import mg.razherana.library.services.loans.LoanService;
 import mg.razherana.library.services.loans.LoanTypeService;
@@ -81,6 +83,9 @@ public class LoanController {
 
   @Autowired
   private ExemplaireService exemplaireService;
+
+  @Autowired
+  private FerieService ferieService;
 
   @GetMapping
   public String listLoans(Model model) {
@@ -171,6 +176,13 @@ public class LoanController {
 
       if (loanType == null) {
         redirectAttributes.addFlashAttribute("error", "Invalid loan type");
+        return "redirect:/loans/create";
+      }
+
+      if(!ferieService.canMakeLoansOrReservations(loanDate.toLocalDate())){
+        LocalDate nextAvailable = ferieService.getNextAvailableBusinessDay(loanDate.toLocalDate());
+        redirectAttributes.addFlashAttribute("error",
+            "Cannot create loans on holidays. Next available date: " + nextAvailable);
         return "redirect:/loans/create";
       }
 
