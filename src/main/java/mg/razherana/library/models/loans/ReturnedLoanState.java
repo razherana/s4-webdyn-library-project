@@ -28,5 +28,5 @@ public class ReturnedLoanState {
   private ReturnedLoanStateType stateType;
 
   @Column
-  private String notes; // Additional notes about the return condition
+  private String notes;
 }

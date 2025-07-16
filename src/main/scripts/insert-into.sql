@@ -58,3 +58,11 @@ INSERT INTO memberships (id, start_date, end_date, membership_type_id, people_id
 (6, '2025-07-01', '2026-06-01', 2, 6),  -- ENS003 (Salima Touhami)
 (7, '2025-06-01', '2025-12-01', 3, 7),  -- PROF001 (Rachid El Mansouri)
 (8, '2024-10-01', '2025-06-01', 3, 8); -- PROF002 (Amina Zerouali)
+
+INSERT INTO feries (name, date) VALUES
+('New Year\'s Day', '2024-01-01'),
+('Independence Day', '2024-06-26'),
+('Christmas Day', '2024-12-25'),
+('New Year\'s Day', '2025-01-01'),
+('Independence Day', '2025-06-26'),
+('Christmas Day', '2025-12-25');

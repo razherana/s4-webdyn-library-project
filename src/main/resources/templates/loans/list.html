@@ -637,202 +637,287 @@
     <script src="/static/bs/js/bootstrap.bundle.min.js"></script>
     <script src="/static/fa/js/all.min.js"></script>
     <script>
-      // Toggle sidebar on mobile
-      document
-        .querySelector(".toggle-btn")
-        ?.addEventListener("click", function () {
-          document.querySelector(".sidebar").classList.toggle("active");
-          document.querySelector(".main-content").classList.toggle("active");
-        });
-
-      // Set the return date default value to current datetime
-      document.addEventListener("DOMContentLoaded", function () {
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = String(now.getMonth() + 1).padStart(2, "0");
-        const day = String(now.getDate()).padStart(2, "0");
-        const hours = String(now.getHours()).padStart(2, "0");
-        const minutes = String(now.getMinutes()).padStart(2, "0");
-
-        const formattedDate = `${year}-${month}-${day}T${hours}:${minutes}`;
-        document.getElementById("returnDate").value = formattedDate;
-      });
-
-      // Handle return loan modal
-      document
-        .getElementById("returnLoanModal")
-        .addEventListener("show.bs.modal", function (event) {
+      // Loan Management System with Ferie Support
+      class LoanManager {
+        constructor() {
+          this.loans = [];
+          this.init();
+        }
+        
+        init() {
+          this.setupEventListeners();
+          this.loadLoansData();
+          this.checkLateLoans();
+        }
+        
+        setupEventListeners() {
+          // Toggle sidebar on mobile
+          document.querySelector(".toggle-btn")?.addEventListener("click", () => {
+            document.querySelector(".sidebar").classList.toggle("active");
+            document.querySelector(".main-content").classList.toggle("active");
+          });
+          
+          // Set default return date
+          document.addEventListener("DOMContentLoaded", () => {
+            this.setDefaultReturnDate();
+          });
+          
+          // Handle return loan modal
+          document.getElementById("returnLoanModal").addEventListener("show.bs.modal", (event) => {
+            this.handleReturnLoanModal(event);
+          });
+          
+          // Handle late return validation
+          document.getElementById("check-late-btn").addEventListener("click", () => {
+            this.validateLateReturn();
+          });
+          
+          // Toggle punishment form
+          document.getElementById("createPunishmentCheckbox").addEventListener("change", (e) => {
+            document.getElementById("punishmentForm").style.display = e.target.checked ? "block" : "none";
+          });
+          
+          // Handle confirm return button
+          document.getElementById("confirm-return-btn").addEventListener("click", () => {
+            this.confirmLateReturn();
+          });
+          
+          // Handle view details modal
+          document.getElementById("viewDetailsModal").addEventListener("show.bs.modal", (event) => {
+            this.handleViewDetailsModal(event);
+          });
+        }
+        
+        setDefaultReturnDate() {
+          const now = new Date();
+          const year = now.getFullYear();
+          const month = String(now.getMonth() + 1).padStart(2, "0");
+          const day = String(now.getDate()).padStart(2, "0");
+          const hours = String(now.getHours()).padStart(2, "0");
+          const minutes = String(now.getMinutes()).padStart(2, "0");
+          
+          const formattedDate = `${year}-${month}-${day}T${hours}:${minutes}`;
+          document.getElementById("returnDate").value = formattedDate;
+        }
+        
+        loadLoansData() {
+          // Load loan data from the DOM (you might want to fetch this from an API)
+          const loanRows = document.querySelectorAll(".loan-row");
+          this.loans = Array.from(loanRows).map(row => ({
+            id: row.getAttribute("data-loan-id"),
+            bookTitle: row.getAttribute("data-book-title"),
+            author: row.getAttribute("data-author"),
+            status: row.getAttribute("data-status"),
+            location: row.getAttribute("data-location"),
+            loanDate: row.getAttribute("data-loan-date"),
+            maxHours: parseInt(row.getAttribute("data-max-hours") || "0"),
+            membershipId: row.getAttribute("data-membership-id"),
+            punishmentTime: parseInt(row.getAttribute("data-punishment") || "0")
+          }));
+        }
+        
+        async checkLateLoans() {
+          // Check each loan for late status using business hours calculation
+          for (const loan of this.loans) {
+            if (loan.status === "In loan") {
+              try {
+                const response = await fetch(`/api/feries/calculate-business-hours`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({
+                    startDate: loan.loanDate,
+                    endDate: new Date().toISOString().split('T')[0]
+                  })
+                });
+                
+                const businessHoursData = await response.json();
+                const hoursElapsed = businessHoursData.businessHours;
+                
+                if (loan.maxHours > 0 && hoursElapsed > loan.maxHours) {
+                  this.markLoanAsLate(loan.id, hoursElapsed - loan.maxHours);
+                }
+              } catch (error) {
+                console.error(`Error checking late status for loan ${loan.id}:`, error);
+                // Fallback to simple calculation
+                const loanDate = new Date(loan.loanDate);
+                const now = new Date();
+                const hoursElapsed = (now - loanDate) / (1000 * 60 * 60);
+                
+                if (loan.maxHours > 0 && hoursElapsed > loan.maxHours) {
+                  this.markLoanAsLate(loan.id, hoursElapsed - loan.maxHours);
+                }
+              }
+            }
+          }
+        }
+        
+        markLoanAsLate(loanId, lateHours) {
+          const loanRow = document.querySelector(`[data-loan-id="${loanId}"]`);
+          if (loanRow) {
+            // Update status display
+            const statusCell = loanRow.querySelector('.status-cell');
+            if (statusCell) {
+              statusCell.innerHTML = `
+                <span class="badge bg-danger">
+                  <i class="fas fa-exclamation-triangle me-1"></i>
+                  Late (${Math.round(lateHours * 10) / 10}h)
+                </span>
+              `;
+            }
+            
+            // Add visual indicator
+            loanRow.classList.add('table-danger');
+            loanRow.setAttribute('data-status', 'Late');
+          }
+        }
+        
+        handleReturnLoanModal(event) {
           const button = event.relatedTarget;
           const loanId = button.getAttribute("data-loan-id");
           const bookTitle = button.getAttribute("data-book-title");
-
+          
           // Get loan row data
           const loanRow = document.querySelector(`[data-loan-id="${loanId}"]`);
           const isHomeLoan = loanRow.getAttribute("data-location") === "home";
-          const loanDate = loanRow
-            .querySelector("td:nth-child(5)")
-            .textContent.trim();
-
+          const loanDate = loanRow.querySelector("td:nth-child(5)")?.textContent.trim();
+          
           // Store additional data in hidden fields
           document.getElementById("return-loan-id").value = loanId;
-          document.getElementById("return-loan-id").setAttribute("data-punishment", loanRow.getAttribute("data-punishment"))
-          document.getElementById("return-modal-book-title").textContent =
-            bookTitle;
+          document.getElementById("return-loan-id").setAttribute("data-punishment", loanRow.getAttribute("data-punishment"));
+          document.getElementById("return-modal-book-title").textContent = bookTitle;
           document.getElementById("loan-is-home").value = isHomeLoan;
           document.getElementById("loan-date").value = loanDate;
-
+          
           // Reset the form
           document.getElementById("submit-return-btn").style.display = "none";
           document.getElementById("check-late-btn").style.display = "block";
-        });
-
-      // Add late return validation
-      document
-        .getElementById("check-late-btn")
-        .addEventListener("click", function () {
+        }
+        
+        async validateLateReturn() {
           const loanId = document.getElementById("return-loan-id").value;
           const punishmentTime = +document.getElementById("return-loan-id").getAttribute("data-punishment");
           const returnDateStr = document.getElementById("returnDate").value;
-
-          // Get the loan data for late calculation
-          fetch(`/loans/get-loan-data/${loanId}`)
-            .then((response) => response.json())
-            .then((loanData) => {
-              const returnDate = new Date(returnDateStr);
-              const loanDate = new Date(loanData.loanDate);
-              const maxHours = loanData.isHomeLoan
-                ? loanData.maxTimeHoursHome
-                : loanData.maxTimeHoursLibrary;
-
-              // Calculate hours borrowed
-              const hoursElapsed = (returnDate - loanDate) / (1000 * 60 * 60);
-
-              if (maxHours > 0 && hoursElapsed > maxHours) {
-                // The return is late, show late modal
-                const lateModal = new bootstrap.Modal(
-                  document.getElementById("lateReturnModal")
-                );
-
-                // Update late modal content
-                const lateHours =
-                  Math.round((hoursElapsed - maxHours) * 10) / 10;
-                document.getElementById("late-hours").textContent = lateHours;
-                document.getElementById("max-allowed-hours").textContent =
-                  maxHours;
-                document.getElementById("punishmentDuration").value = +punishmentTime;
-                document.getElementById("punishmentMembershipId").value =
-                  loanData.membershipId;
-
-                // Prepare description
-                document.getElementById(
-                  "punishmentDescription"
-                ).value = `Late return of "${loanData.bookTitle}" by ${lateHours} hours`;
-
-                lateModal.show();
-              } else {
-                // Not late, show submit button
-                document.getElementById("check-late-btn").style.display =
-                  "none";
-                document.getElementById("submit-return-btn").style.display =
-                  "block";
-              }
-            })
-            .catch((error) => {
-              console.error("Error fetching loan data:", error);
-              alert("Error checking loan data. Please try again.");
-            });
-        });
-
-      // Toggle punishment form
-      document
-        .getElementById("createPunishmentCheckbox")
-        .addEventListener("change", function () {
-          document.getElementById("punishmentForm").style.display = this.checked
-            ? "block"
-            : "none";
-        });
-
-      // Handle confirm return button in late modal
-      document
-        .getElementById("confirm-return-btn")
-        .addEventListener("click", function () {
-          // Check if punishment should be created
-          const createPunishment = document.getElementById(
-            "createPunishmentCheckbox"
-          ).checked;
-
-          if (createPunishment) {
-            // Create punishment first
-            const punishmentData = {
-              membershipId: document.getElementById("punishmentMembershipId")
-                .value,
-              punishmentTypeId:
-                document.getElementById("punishmentTypeId").value,
-              durationHours:
-                document.getElementById("punishmentDuration").value,
-              description: document.getElementById("punishmentDescription")
-                .value,
-            };
-
-            fetch("/punishments/api/create", {
-              method: "POST",
+          
+          try {
+            // Get the loan data for late calculation
+            const loanDataResponse = await fetch(`/loans/get-loan-data/${loanId}`);
+            const loanData = await loanDataResponse.json();
+            
+            const returnDate = new Date(returnDateStr);
+            const loanDate = new Date(loanData.loanDate);
+            const maxHours = loanData.isHomeLoan ? loanData.maxTimeHoursHome : loanData.maxTimeHoursLibrary;
+            
+            // Calculate business hours borrowed (excluding feries and weekends)
+            const businessHoursResponse = await fetch(`/api/feries/calculate-business-hours`, {
+              method: 'POST',
               headers: {
-                "Content-Type": "application/json",
+                'Content-Type': 'application/json',
               },
-              body: JSON.stringify(punishmentData),
-            })
-              .then((response) => response.json())
-              .then((data) => {
-                // Hide late modal
-                bootstrap.Modal.getInstance(
-                  document.getElementById("lateReturnModal")
-                ).hide();
-
-                // Submit the return form
-                document.getElementById("submit-return-btn").click();
+              body: JSON.stringify({
+                startDate: loanData.loanDate,
+                endDate: returnDateStr
               })
-              .catch((error) => {
-                console.error("Error creating punishment:", error);
-                alert("Failed to create punishment. Please try again.");
+            });
+            
+            const businessHoursData = await businessHoursResponse.json();
+            const hoursElapsed = businessHoursData.businessHours;
+            
+            if (maxHours > 0 && hoursElapsed > maxHours) {
+              this.showLateReturnModal(loanData, hoursElapsed, maxHours, punishmentTime);
+            } else {
+              // Not late, show submit button
+              document.getElementById("check-late-btn").style.display = "none";
+              document.getElementById("submit-return-btn").style.display = "block";
+            }
+          } catch (error) {
+            console.error("Error validating late return:", error);
+            this.handleValidationError(error);
+          }
+        }
+        
+        showLateReturnModal(loanData, hoursElapsed, maxHours, punishmentTime) {
+          const lateModal = new bootstrap.Modal(document.getElementById("lateReturnModal"));
+          
+          // Update late modal content
+          const lateHours = Math.round((hoursElapsed - maxHours) * 10) / 10;
+          document.getElementById("late-hours").textContent = lateHours;
+          document.getElementById("max-allowed-hours").textContent = maxHours;
+          document.getElementById("punishmentDuration").value = punishmentTime;
+          document.getElementById("punishmentMembershipId").value = loanData.membershipId;
+          
+          // Prepare description
+          document.getElementById("punishmentDescription").value = 
+            `Late return of "${loanData.bookTitle}" by ${lateHours} hours (excluding feries and weekends)`;
+          
+          lateModal.show();
+        }
+        
+        handleValidationError(error) {
+          alert("Error checking loan data. Please try again.");
+          console.error("Validation error:", error);
+        }
+        
+        async confirmLateReturn() {
+          const createPunishment = document.getElementById("createPunishmentCheckbox").checked;
+          
+          if (createPunishment) {
+            try {
+              const punishmentData = {
+                membershipId: document.getElementById("punishmentMembershipId").value,
+                punishmentTypeId: document.getElementById("punishmentTypeId").value,
+                durationHours: document.getElementById("punishmentDuration").value,
+                description: document.getElementById("punishmentDescription").value,
+              };
+              
+              const response = await fetch("/punishments/api/create", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(punishmentData),
               });
+              
+              await response.json();
+              
+              // Hide late modal and submit return
+              bootstrap.Modal.getInstance(document.getElementById("lateReturnModal")).hide();
+              document.getElementById("submit-return-btn").click();
+              
+            } catch (error) {
+              console.error("Error creating punishment:", error);
+              alert("Failed to create punishment. Please try again.");
+            }
           } else {
             // Just submit the return form
-            bootstrap.Modal.getInstance(
-              document.getElementById("lateReturnModal")
-            ).hide();
+            bootstrap.Modal.getInstance(document.getElementById("lateReturnModal")).hide();
             document.getElementById("submit-return-btn").click();
           }
-        });
-
-      // Handle view details modal
-      document
-        .getElementById("viewDetailsModal")
-        .addEventListener("show.bs.modal", function (event) {
+        }
+        
+        handleViewDetailsModal(event) {
           const button = event.relatedTarget;
           const loanId = button.getAttribute("data-loan-id");
-
+          
           // Show loading indicator
-          document.getElementById("loan-details-loading").style.display =
-            "block";
-          document.getElementById("loanDetailsContent").innerHTML =
+          document.getElementById("loan-details-loading").style.display = "block";
+          document.getElementById("loanDetailsContent").innerHTML = 
             '<div id="loan-details-loading" class="text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>';
-
-          // In a real implementation, you would fetch the loan details via AJAX
-          // For this example, we'll simulate it with a timeout
+          
+          // Simulate loading loan details
           setTimeout(() => {
-            const loanRow = document.querySelector(
-              `[data-loan-id="${loanId}"]`
-            );
+            const loanRow = document.querySelector(`[data-loan-id="${loanId}"]`);
             const bookTitle = loanRow.getAttribute("data-book-title");
             const author = loanRow.getAttribute("data-author");
             const status = loanRow.getAttribute("data-status");
-
+            
             // Create a nicely formatted loan details display
             let statusClass = "";
             if (status === "In loan") statusClass = "text-primary";
             else if (status === "Late") statusClass = "text-danger";
             else if (status === "Returned") statusClass = "text-success";
-
+            
             const loanInfo = `
               <h6 class="mb-3">${bookTitle}</h6>
               <p><strong>Author:</strong> ${author}</p>
@@ -844,27 +929,35 @@
               <h6 class="mt-4 mb-3">Return Information</h6>
               <p class="text-muted">Return details would be displayed here if the book has been returned...</p>
             `;
-
+            
             document.getElementById("loanDetailsContent").innerHTML = loanInfo;
           }, 1000);
-        });
-
-      // Client-side filtering functionality
+        }
+      }
+      
+      // Initialize the loan manager
+      let loanManager;
+      document.addEventListener("DOMContentLoaded", () => {
+        loanManager = new LoanManager();
+      });
+      
+      // Client-side filtering functionality (keeping existing filter logic)
       document.addEventListener("DOMContentLoaded", function () {
+        // Initialize filter functionality
+        initializeFilters();
+      });
+      
+      function initializeFilters() {
         // Get all filter elements
         const searchInput = document.getElementById("searchInput");
         const searchButton = document.getElementById("searchButton");
         const clearSearchButton = document.getElementById("clearSearchButton");
         const locationFilters = document.querySelectorAll(".location-filter");
-        const clearLocationFilter = document.querySelector(
-          ".clear-location-filter"
-        );
+        const clearLocationFilter = document.querySelector(".clear-location-filter");
         const statusFilters = document.querySelectorAll(".status-filter");
-        const clearStatusFilter = document.querySelector(
-          ".clear-status-filter"
-        );
+        const clearStatusFilter = document.querySelector(".clear-status-filter");
         const clearAllFilters = document.getElementById("clearAllFilters");
-
+        
         // Filter badges
         const activeFilters = document.getElementById("activeFilters");
         const searchBadge = document.getElementById("searchBadge");
@@ -873,64 +966,61 @@
         const locationText = document.getElementById("locationText");
         const statusBadge = document.getElementById("statusBadge");
         const statusText = document.getElementById("statusText");
-
+        
         // Loan rows and counter
         const loanRows = document.querySelectorAll(".loan-row");
         const noResultsRow = document.getElementById("noResultsRow");
         const loanCount = document.getElementById("loanCount");
-
+        
         // Filter state
         let currentSearchTerm = "";
         let currentLocation = null;
         let currentStatus = null;
-
-        // Update filter badges visibility
+        
+        // Filter logic functions
         function updateFilterBadges() {
-          const hasFilters =
-            currentSearchTerm || currentLocation || currentStatus;
-
-          activeFilters.style.display = hasFilters ? "flex" : "none";
-
-          searchBadge.style.display = currentSearchTerm
-            ? "inline-block"
-            : "none";
-          searchText.textContent = currentSearchTerm;
-
-          locationBadge.style.display = currentLocation
-            ? "inline-block"
-            : "none";
-          locationText.textContent =
-            currentLocation === "home"
-              ? "Take Home Only"
-              : currentLocation === "library"
-              ? "In-Library Only"
-              : "";
-
-          statusBadge.style.display = currentStatus ? "inline-block" : "none";
-          statusText.textContent = currentStatus || "";
+          const hasFilters = currentSearchTerm || currentLocation || currentStatus;
+          
+          if (activeFilters) {
+            activeFilters.style.display = hasFilters ? "flex" : "none";
+          }
+          
+          if (searchBadge) {
+            searchBadge.style.display = currentSearchTerm ? "inline-block" : "none";
+            if (searchText) searchText.textContent = currentSearchTerm;
+          }
+          
+          if (locationBadge) {
+            locationBadge.style.display = currentLocation ? "inline-block" : "none";
+            if (locationText) {
+              locationText.textContent = currentLocation === "home" ? "Take Home Only" : 
+                                       currentLocation === "library" ? "In-Library Only" : "";
+            }
+          }
+          
+          if (statusBadge) {
+            statusBadge.style.display = currentStatus ? "inline-block" : "none";
+            if (statusText) statusText.textContent = currentStatus || "";
+          }
         }
-
-        // Apply all filters
+        
         function applyFilters() {
           let visibleCount = 0;
-
+          
           loanRows.forEach((row) => {
-            const bookTitle = row.getAttribute("data-book-title").toLowerCase();
-            const author = row.getAttribute("data-author").toLowerCase();
+            const bookTitle = row.getAttribute("data-book-title")?.toLowerCase() || "";
+            const author = row.getAttribute("data-author")?.toLowerCase() || "";
             const location = row.getAttribute("data-location");
             const status = row.getAttribute("data-status");
-
+            
             // Check if the row matches all active filters
-            const matchesSearch =
-              !currentSearchTerm ||
-              bookTitle.includes(currentSearchTerm.toLowerCase()) ||
-              author.includes(currentSearchTerm.toLowerCase());
-
-            const matchesLocation =
-              !currentLocation || location === currentLocation;
-
+            const matchesSearch = !currentSearchTerm || 
+                                bookTitle.includes(currentSearchTerm.toLowerCase()) ||
+                                author.includes(currentSearchTerm.toLowerCase());
+            
+            const matchesLocation = !currentLocation || location === currentLocation;
             const matchesStatus = !currentStatus || status === currentStatus;
-
+            
             // Show/hide the row based on filter matches
             if (matchesSearch && matchesLocation && matchesStatus) {
               row.style.display = "";
@@ -939,84 +1029,99 @@
               row.style.display = "none";
             }
           });
-
+          
           // Show "no results" message if needed
-          noResultsRow.style.display = visibleCount === 0 ? "" : "none";
-
+          if (noResultsRow) {
+            noResultsRow.style.display = visibleCount === 0 ? "" : "none";
+          }
+          
           // Update the counter
-          loanCount.textContent = visibleCount;
-
+          if (loanCount) {
+            loanCount.textContent = visibleCount;
+          }
+          
           // Update filter badges
           updateFilterBadges();
         }
-
-        // Clear all filters
+        
         function clearFilters() {
           currentSearchTerm = "";
           currentLocation = null;
           currentStatus = null;
-
-          searchInput.value = "";
-          clearSearchButton.style.display = "none";
-
+          
+          if (searchInput) searchInput.value = "";
+          if (clearSearchButton) clearSearchButton.style.display = "none";
+          
           applyFilters();
         }
-
+        
         // Event Listeners
-        searchButton.addEventListener("click", function () {
-          currentSearchTerm = searchInput.value.trim();
-          clearSearchButton.style.display = currentSearchTerm
-            ? "block"
-            : "none";
-          applyFilters();
-        });
-
-        searchInput.addEventListener("keyup", function (event) {
-          if (event.key === "Enter") {
-            currentSearchTerm = searchInput.value.trim();
-            clearSearchButton.style.display = currentSearchTerm
-              ? "block"
-              : "none";
+        if (searchButton) {
+          searchButton.addEventListener("click", function () {
+            currentSearchTerm = searchInput?.value.trim() || "";
+            if (clearSearchButton) {
+              clearSearchButton.style.display = currentSearchTerm ? "block" : "none";
+            }
             applyFilters();
-          }
-        });
-
-        clearSearchButton.addEventListener("click", function () {
-          searchInput.value = "";
-          currentSearchTerm = "";
-          clearSearchButton.style.display = "none";
-          applyFilters();
-        });
-
+          });
+        }
+        
+        if (searchInput) {
+          searchInput.addEventListener("keyup", function (event) {
+            if (event.key === "Enter") {
+              currentSearchTerm = searchInput.value.trim();
+              if (clearSearchButton) {
+                clearSearchButton.style.display = currentSearchTerm ? "block" : "none";
+              }
+              applyFilters();
+            }
+          });
+        }
+        
+        if (clearSearchButton) {
+          clearSearchButton.addEventListener("click", function () {
+            if (searchInput) searchInput.value = "";
+            currentSearchTerm = "";
+            clearSearchButton.style.display = "none";
+            applyFilters();
+          });
+        }
+        
         locationFilters.forEach((filter) => {
           filter.addEventListener("click", function () {
             currentLocation = filter.getAttribute("data-location");
             applyFilters();
           });
         });
-
-        clearLocationFilter.addEventListener("click", function () {
-          currentLocation = null;
-          applyFilters();
-        });
-
+        
+        if (clearLocationFilter) {
+          clearLocationFilter.addEventListener("click", function () {
+            currentLocation = null;
+            applyFilters();
+          });
+        }
+        
         statusFilters.forEach((filter) => {
           filter.addEventListener("click", function () {
             currentStatus = filter.getAttribute("data-status");
             applyFilters();
           });
         });
-
-        clearStatusFilter.addEventListener("click", function () {
-          currentStatus = null;
-          applyFilters();
-        });
-
-        clearAllFilters.addEventListener("click", clearFilters);
-
+        
+        if (clearStatusFilter) {
+          clearStatusFilter.addEventListener("click", function () {
+            currentStatus = null;
+            applyFilters();
+          });
+        }
+        
+        if (clearAllFilters) {
+          clearAllFilters.addEventListener("click", clearFilters);
+        }
+        
         // Initialize
         updateFilterBadges();
-      });
+      }
     </script>
   </body>
 </html>
